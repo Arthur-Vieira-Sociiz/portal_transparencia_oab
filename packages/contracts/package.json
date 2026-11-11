@@ -7,6 +7,18 @@
     ".": {
       "types": "./src/index.ts",
       "default": "./src/index.ts"
+    },
+    "./common": {
+      "types": "./src/common.ts",
+      "default": "./src/common.ts"
+    },
+    "./health": {
+      "types": "./src/health.ts",
+      "default": "./src/health.ts"
+    },
+    "./transparency": {
+      "types": "./src/transparency.ts",
+      "default": "./src/transparency.ts"
     }
   },
   "scripts": {

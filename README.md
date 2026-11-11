@@ -23,12 +23,16 @@ O primeiro ciclo de desenvolvimento será dedicado à reprodução fiel das pág
 - [Contexto durável do produto](./PRODUCT.md)
 - [Guia de desenvolvimento e comandos](./docs/GUIA_DESENVOLVIMENTO.md)
 - [Diário de implementação e aprendizado](./docs/DIARIO_IMPLEMENTACAO.md)
+- [Inventário dos snippets PHP](./docs/INVENTARIO_SNIPPETS.md)
+- [Deploy na Vercel](./docs/DEPLOY_VERCEL.md)
 
 ## Estado atual
 
-Etapa 2 concluída: Git, workspace pnpm, Turborepo, React/Vite, API Express e
-pacotes compartilhados estão inicializados. As rotas-base `/public`, `/admin` e
-`/login` já existem; o conteúdo fiel das dez páginas começa na Etapa 3.
+Etapa 2 concluída e Etapa 3 iniciada: Git, workspace pnpm, Turborepo,
+React/Vite, API Express e pacotes compartilhados estão inicializados. As
+rotas-base `/public`, `/admin` e `/login` já existem, os primeiros contratos Zod
+foram extraídos dos snippets legados e web/API estão preparados para projetos
+separados na Vercel.
 
 ## Primeiros comandos
 

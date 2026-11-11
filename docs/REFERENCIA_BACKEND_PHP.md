@@ -49,8 +49,8 @@ O upload físico será feito para armazenamento de objetos. O banco guardará os
 
 ## Pendente
 
-- Receber os snippets PHP brutos em `docs/referencias/snippets/raw/`.
+- Seis snippets PHP brutos foram recebidos em `docs/referencias/snippets/raw/` e permanecem fora do Git.
 - Sanitizar credenciais, dados pessoais e caminhos privados antes de versionar qualquer trecho.
-- Associar cada snippet a uma das dez categorias.
+- Receber o snippet específico de orçamentário e confirmar se existe outro snippet administrativo.
 - Identificar tabelas ou fontes de dados usadas atualmente.
 - Inventariar os documentos oficiais e a política de retenção.

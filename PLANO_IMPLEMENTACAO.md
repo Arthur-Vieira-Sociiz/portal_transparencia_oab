@@ -48,6 +48,8 @@ O desenvolvimento começa pela reprodução fiel do portal público. Os contrato
 
 ## Etapa 3 — Contratos e fixtures públicas
 
+- [x] Inventariar os seis snippets recebidos e preservar os originais fora do Git.
+- [x] Criar a base Zod compartilhada para indicadores, documentos, RH, patrimônio, financeiro, contratos e quantitativos administrativos.
 - [ ] Modelar com Zod indicadores, documentos, orçamento, patrimônio, contratos, RH, relatórios, glossário e LGPD.
 - [ ] Criar fixtures equivalentes ao conteúdo atual.
 - [ ] Implementar uma interface de repositório de dados com adapter local.
@@ -139,6 +141,7 @@ Rotas previstas:
 
 ## Etapa 9 — Publicação e embed no WordPress
 
+- [x] Preparar configurações Vercel para os projetos `apps/web` e `apps/api`.
 - [ ] Publicar web e API em `transparencia.orbiapp.com.br` por HTTPS.
 - [ ] Criar shortcode/bloco WordPress para `https://transparencia.orbiapp.com.br/public`.
 - [ ] Sincronizar a altura do iframe com `postMessage` e validação de origem.

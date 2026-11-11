@@ -1,0 +1,78 @@
+import { describe, expect, it } from 'vitest'
+
+import {
+  AdministrativeEnrollmentSchema,
+  GeneralIndicatorsSchema,
+  HumanResourcesRecordSchema,
+  type Month,
+} from './index.js'
+
+const months: Month[] = [
+  'january',
+  'february',
+  'march',
+  'april',
+  'may',
+  'june',
+  'july',
+  'august',
+  'september',
+  'october',
+  'november',
+  'december',
+]
+
+describe('transparency contracts', () => {
+  it('parses the general indicators observed in the legacy dashboard', () => {
+    const result = GeneralIndicatorsSchema.safeParse({
+      exercise: 2026,
+      totalRevenue: 100,
+      totalExpense: 80,
+      exerciseResult: 20,
+      plannedBudget: 120,
+      executedBudget: 80,
+      executionPercentage: 66.67,
+      activeLawyers: 10,
+      interns: 2,
+      registeredSocieties: 3,
+      appointments: 20,
+      protocols: 15,
+      certificates: 5,
+      ombudsmanRequests: 1,
+      activeContracts: 4,
+      totalContractValue: 500,
+      newBids: 2,
+      closedContracts: 1,
+      employees: 30,
+    })
+
+    expect(result.success).toBe(true)
+  })
+
+  it('rejects repeated months in a human resources record', () => {
+    const repeatedMonths = months.map((month) => ({ month, documents: [] }))
+    repeatedMonths[11] = { month: 'january', documents: [] }
+
+    const result = HumanResourcesRecordSchema.safeParse({
+      exercise: 2026,
+      locality: 'Maceió',
+      months: repeatedMonths,
+    })
+
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects negative administrative quantities', () => {
+    const result = AdministrativeEnrollmentSchema.safeParse({
+      id: 'maceio-2026',
+      exercise: 2026,
+      subsection: 'Maceió',
+      lawyers: -1,
+      interns: 0,
+      supplementary: 0,
+      transferringLawyers: 0,
+    })
+
+    expect(result.success).toBe(false)
+  })
+})

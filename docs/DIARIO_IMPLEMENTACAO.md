@@ -80,3 +80,33 @@ O frontend e a API não importam código um do outro. Ambos importam
 saúde. Assim, o formato é validado em tempo de execução e também conhecido pelo
 TypeScript. Esse é o primeiro exemplo concreto de compartilhamento sem acoplamento
 entre as aplicações.
+
+## 2026-11-11 — Snippets, contratos e Vercel
+
+### Decisão de deploy
+
+O monorepo será conectado a dois projetos Vercel: `apps/web` como aplicação Vite
+e `apps/api` como aplicação Express. Separar os projetos mantém logs, previews e
+variáveis independentes, mas ambos continuam usando o mesmo repositório e os
+mesmos contratos.
+
+O frontend recebe `VITE_API_URL`, que é incorporada ao bundle e deve conter apenas
+o endereço público da API. A API recebe `WEB_ORIGIN` e, futuramente,
+`DATABASE_URL`; essas variáveis não são expostas ao navegador.
+
+### Tradução dos snippets para contratos
+
+Seis snippets foram preservados na pasta bruta ignorada pelo Git. Em vez de copiar
+os campos ACF, criamos schemas de domínio para documentos, indicadores, recursos
+humanos, patrimônio, financeiro, contratos e quantitativos administrativos.
+
+O tipo TypeScript nasce do schema com `z.infer`. Assim, não mantemos uma interface
+e uma validação separadas que poderiam divergir.
+
+### Problema encontrado na validação
+
+O primeiro typecheck falhou porque a API usa resolução ESM estrita e os exports
+relativos do pacote de contratos não tinham a extensão `.js`. Depois da correção,
+criamos também subcaminhos como `@oab-transparencia/contracts/health`. Isso evita
+que o frontend carregue schemas que não usa e devolveu o bundle ao tamanho
+anterior.

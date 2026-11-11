@@ -1,10 +1,12 @@
 import {
   HealthResponseSchema,
   type HealthResponse,
-} from '@oab-transparencia/contracts'
+} from '@oab-transparencia/contracts/health'
+
+const apiBaseUrl = (import.meta.env.VITE_API_URL ?? '/api').replace(/\/$/, '')
 
 export async function getApiHealth(): Promise<HealthResponse> {
-  const response = await fetch('/api/health')
+  const response = await fetch(`${apiBaseUrl}/health`)
 
   if (!response.ok) {
     throw new Error('A API não respondeu corretamente.')
