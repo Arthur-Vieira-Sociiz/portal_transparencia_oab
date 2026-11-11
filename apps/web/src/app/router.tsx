@@ -7,6 +7,7 @@ import { ContractsPage } from '../features/public/pages/ContractsPage'
 import { FinancialPage } from '../features/public/pages/FinancialPage'
 import { InstitutionalPage } from '../features/public/pages/InstitutionalPage'
 import { HumanResourcesPage } from '../features/public/pages/HumanResourcesPage'
+import { LgpdPage } from '../features/public/pages/LgpdPage'
 import { GlossaryPage } from '../features/public/pages/GlossaryPage'
 import { PatrimonialPage } from '../features/public/pages/PatrimonialPage'
 
@@ -50,6 +51,10 @@ export const router = createBrowserRouter([
   {
     path: '/public/glossario',
     element: <GlossaryPage />,
+  },
+  {
+    path: '/public/lgpd',
+    element: <LgpdPage />,
   },
   {
     path: '/public/:section',

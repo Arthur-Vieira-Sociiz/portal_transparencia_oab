@@ -82,7 +82,7 @@ Implementar na ordem abaixo:
 6. [x] Recursos Humanos.
 7. [x] Contratos e Licitações.
 8. [x] Glossário.
-9. [ ] LGPD.
+9. [x] LGPD.
 10. [ ] Relatórios e Indicadores.
 
 Rotas previstas:
@@ -166,6 +166,6 @@ Rotas previstas:
 
 ## Próxima ação
 
-Continuar a Etapa 3 e iniciar a nona composição pública: modelar os dados e
-implementar a página LGPD, reutilizando o shell público. O iframe externo de
-Administrativo permanece como dependência temporária documentada.
+Continuar a Etapa 3 e iniciar a décima composição pública: modelar os dados e
+implementar a página Relatórios e Indicadores, reutilizando o shell público. O
+iframe externo de Administrativo permanece como dependência temporária documentada.

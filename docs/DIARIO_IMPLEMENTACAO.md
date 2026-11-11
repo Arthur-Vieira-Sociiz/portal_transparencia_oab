@@ -404,3 +404,18 @@ setas, Home e End.
 `PublicGlossaryPageSchema` concentra a introdução e a coleção completa. A página
 deriva o agrupamento alfabético no React; assim, o admin futuro cadastra apenas
 termo e definição, sem precisar manter listas por letra manualmente.
+
+## 2026-11-11 — Nona página pública: LGPD
+
+### Estrutura encontrada no portal atual
+
+A página LGPD reúne dois parágrafos introdutórios, uma política de privacidade
+em accordion e dois grupos adicionais sobre cookies. A primeira seção de cada
+grupo é iniciada aberta, como na referência.
+
+### Contrato e atualização futura
+
+`PublicLgpdPageSchema` organiza os parágrafos e grupos de seções, e cada
+`LgpdSectionSchema` separa título e conteúdo. O painel administrativo poderá
+atualizar seções ou grupos individualmente, mantendo a interface pública e sua
+ordem sem código específico por tópico.

@@ -175,6 +175,22 @@ export const PublicGlossaryPageSchema = z.object({
   entries: z.array(GlossaryEntrySchema).min(1),
 })
 
+export const LgpdSectionSchema = z.object({
+  id: z.string().min(1),
+  title: z.string().trim().min(1),
+  content: z.string().trim().min(1),
+})
+
+export const LgpdSectionGroupSchema = z.object({
+  id: z.string().min(1),
+  sections: z.array(LgpdSectionSchema).min(1),
+})
+
+export const PublicLgpdPageSchema = z.object({
+  introduction: z.array(z.string().trim().min(1)).min(1),
+  groups: z.array(LgpdSectionGroupSchema).min(1),
+})
+
 export const AdministrativeEnrollmentSchema = z.object({
   id: z.string().min(1),
   exercise: ExerciseSchema,
@@ -233,6 +249,9 @@ export type ContractRecord = z.infer<typeof ContractRecordSchema>
 export type PublicContractsPage = z.infer<typeof PublicContractsPageSchema>
 export type GlossaryEntry = z.infer<typeof GlossaryEntrySchema>
 export type PublicGlossaryPage = z.infer<typeof PublicGlossaryPageSchema>
+export type LgpdSection = z.infer<typeof LgpdSectionSchema>
+export type LgpdSectionGroup = z.infer<typeof LgpdSectionGroupSchema>
+export type PublicLgpdPage = z.infer<typeof PublicLgpdPageSchema>
 export type AdministrativeEnrollment = z.infer<
   typeof AdministrativeEnrollmentSchema
 >
