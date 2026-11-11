@@ -122,3 +122,15 @@ Removemos a lista explícita. Os tipos de Node agora são descobertos pela prese
 de `@types/node`, e os testes importam suas funções diretamente do Vitest. Também
 declaramos `WEB_ORIGIN`, `VITE_API_URL` e `DATABASE_URL` no ambiente da tarefa de
 build do Turborepo, eliminando o aviso de variáveis omitidas do cache.
+
+### Falha de runtime após o build da API
+
+O deploy seguinte compilou, mas a Function tentou carregar
+`@oab-transparencia/contracts/src/health.ts`. O pacote compartilhado ainda usava
+exports source-first também para execução. A Vercel instalou o workspace, porém o
+arquivo TypeScript fonte não entrou no bundle final da Function.
+
+O pacote de contratos agora possui build próprio em `dist`, mantém o código fonte
+somente para resolução de tipos e aponta os exports de runtime para JavaScript
+compilado. O Turborepo constrói dependências antes da API e inicia um watcher dos
+contratos durante o desenvolvimento.

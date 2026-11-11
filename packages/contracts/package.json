@@ -3,25 +3,31 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.js",
   "exports": {
     ".": {
       "types": "./src/index.ts",
-      "default": "./src/index.ts"
+      "default": "./dist/index.js"
     },
     "./common": {
       "types": "./src/common.ts",
-      "default": "./src/common.ts"
+      "default": "./dist/common.js"
     },
     "./health": {
       "types": "./src/health.ts",
-      "default": "./src/health.ts"
+      "default": "./dist/health.js"
     },
     "./transparency": {
       "types": "./src/transparency.ts",
-      "default": "./src/transparency.ts"
+      "default": "./dist/transparency.js"
     }
   },
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch --preserveWatchOutput",
     "typecheck": "tsc --noEmit",
     "lint": "oxlint src",
     "test": "vitest run"

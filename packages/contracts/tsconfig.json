@@ -1,7 +1,4 @@
 {
   "extends": "@oab-transparencia/typescript-config/react-library.json",
-  "compilerOptions": {
-    "types": ["vitest/globals"]
-  },
   "include": ["src"]
 }
