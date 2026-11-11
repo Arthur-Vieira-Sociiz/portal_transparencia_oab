@@ -322,3 +322,22 @@ Foram incluídos mocks alinhados ao conteúdo exibido hoje para 2026: quatro
 balancetes trimestrais, quatro demonstrativos trimestrais, um relatório de
 receitas e um de despesas. Os links são temporários e serão substituídos pelo
 armazenamento de documentos do novo portal.
+
+## 2026-11-11 — Quinta página pública: Patrimonial
+
+### Estrutura implementada
+
+O portal atual organiza a área Patrimonial em uma tabela com filtros por ano,
+tipo de bem e situação. A nova rota `/public/patrimonial` reproduz essa estrutura
+com rolagem horizontal em telas estreitas, badges de situação e estado vazio.
+
+O contrato `PublicPatrimonialPageSchema` agrupa os exercícios e os bens. Cada
+bem tem identificação, tipo, descrição, localização, valor de aquisição,
+situação, exercício e documento opcional. Esse é o mesmo conjunto de campos que
+o formulário administrativo deverá cadastrar depois.
+
+### Mocks
+
+Foram adicionados três bens de demonstração para exercitar os filtros: imóvel
+ativo, mobiliário locado e equipamentos emprestados. Eles são estritamente dados
+de desenvolvimento; não representam o patrimônio real da OAB/AL.

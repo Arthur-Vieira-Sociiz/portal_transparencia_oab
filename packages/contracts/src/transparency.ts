@@ -179,6 +179,11 @@ export const PatrimonialFiltersSchema = z.object({
   status: z.string().trim().min(1).optional(),
 })
 
+export const PublicPatrimonialPageSchema = z.object({
+  availableExercises: z.array(ExerciseSchema).min(1),
+  assets: z.array(PatrimonialAssetSchema),
+})
+
 export const ContractFiltersSchema = z.object({
   exercise: ExerciseSchema.optional(),
   supplier: z.string().trim().min(1).optional(),
@@ -193,6 +198,7 @@ export type PublicInstitutionalPage = z.infer<
 >
 export type HumanResourcesRecord = z.infer<typeof HumanResourcesRecordSchema>
 export type PatrimonialAsset = z.infer<typeof PatrimonialAssetSchema>
+export type PublicPatrimonialPage = z.infer<typeof PublicPatrimonialPageSchema>
 export type FinancialSectionId = z.infer<typeof FinancialSectionIdSchema>
 export type FinancialTransparency = z.infer<typeof FinancialTransparencySchema>
 export type PublicFinancialPage = z.infer<typeof PublicFinancialPageSchema>

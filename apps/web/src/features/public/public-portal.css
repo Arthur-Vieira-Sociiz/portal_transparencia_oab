@@ -473,6 +473,131 @@
   text-align: center;
 }
 
+.patrimonial-content {
+  color: #666;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.patrimonial-content__intro {
+  margin: 0;
+}
+
+.patrimonial-filters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(120px, 220px));
+  gap: 20px;
+  margin: 28px 0 30px;
+}
+
+.patrimonial-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #666;
+  font-size: 13px;
+}
+
+.patrimonial-filter select {
+  min-height: 42px;
+  padding: 9px 36px 9px 16px;
+  border: 0;
+  border-radius: 4px;
+  color: #333;
+  background-color: #f2f2f2;
+}
+
+.patrimonial-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #eaeaea;
+  background: #fff;
+  -webkit-overflow-scrolling: touch;
+}
+
+.patrimonial-table {
+  width: 100%;
+  min-width: 900px;
+  border-collapse: collapse;
+}
+
+.patrimonial-table th {
+  padding: 7px 16px;
+  border-right: 1px solid #dcdcdc;
+  color: #263851;
+  background: #eeeff1;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.patrimonial-table th:last-child {
+  border-right: 0;
+}
+
+.patrimonial-table td {
+  padding: 16px;
+  border-bottom: 1px solid #eaeaea;
+  color: #444;
+  font-size: 14px;
+  vertical-align: middle;
+}
+
+.patrimonial-table td:nth-child(4),
+.patrimonial-table td:nth-child(6),
+.patrimonial-table td:last-child,
+.patrimonial-table th:nth-child(6),
+.patrimonial-table th:last-child {
+  white-space: nowrap;
+  text-align: center;
+}
+
+.patrimonial-status {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.patrimonial-status--ativo {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.patrimonial-status--locado {
+  color: #1e40af;
+  background: #dbeafe;
+}
+
+.patrimonial-status--emprestado {
+  color: #854d0e;
+  background: #fef9c3;
+}
+
+.patrimonial-document-link {
+  display: inline-flex;
+  color: #00a0e9;
+}
+
+.patrimonial-document-link:hover {
+  color: #0077b5;
+}
+
+.patrimonial-document-link svg {
+  width: 20px;
+  height: 20px;
+}
+
+.patrimonial-table__empty {
+  color: #666;
+  font-style: italic;
+  text-align: center !important;
+}
+
 .document-download {
   display: inline-flex;
   min-height: 42px;
@@ -533,6 +658,10 @@
   }
 
   .financial-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .patrimonial-filters {
     grid-template-columns: 1fr;
   }
 

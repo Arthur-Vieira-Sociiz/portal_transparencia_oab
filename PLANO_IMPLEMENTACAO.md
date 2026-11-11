@@ -78,7 +78,7 @@ Implementar na ordem abaixo:
 2. [x] Administrativo.
 3. [x] Orçamentário.
 4. [x] Financeiro.
-5. [ ] Patrimonial.
+5. [x] Patrimonial.
 6. [ ] Recursos Humanos.
 7. [ ] Contratos e Licitações.
 8. [ ] Glossário.
@@ -166,6 +166,6 @@ Rotas previstas:
 
 ## Próxima ação
 
-Continuar a Etapa 3 e iniciar a quinta composição pública: modelar os dados e
-implementar a página Patrimonial, reutilizando o shell público. O iframe externo
+Continuar a Etapa 3 e iniciar a sexta composição pública: modelar os dados e
+implementar a página Recursos Humanos, reutilizando o shell público. O iframe externo
 de Administrativo permanece como dependência temporária documentada.
