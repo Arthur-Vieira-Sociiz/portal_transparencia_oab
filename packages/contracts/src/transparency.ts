@@ -112,6 +112,31 @@ export const FinancialTransparencySchema = z.object({
   sections: z.array(FinancialSectionSchema),
 })
 
+export const BudgetInformationTypeSchema = z.enum([
+  'budget',
+  'financial',
+  'trial-balance',
+  'financial-statement',
+  'patrimonial-statement',
+  'budget-proposal',
+])
+
+export const BudgetRecordSchema = z.object({
+  id: z.string().min(1),
+  informationType: BudgetInformationTypeSchema,
+  annualBudget: NonNegativeAmountSchema,
+  plannedAmount: NonNegativeAmountSchema,
+  executedAmount: NonNegativeAmountSchema,
+  executionPercentage: z.number().finite().min(0).max(100),
+  exercise: ExerciseSchema,
+  document: TransparencyDocumentSchema.optional(),
+})
+
+export const BudgetTransparencySchema = z.object({
+  availableExercises: z.array(ExerciseSchema).min(1),
+  records: z.array(BudgetRecordSchema),
+})
+
 export const ContractRecordSchema = z.object({
   id: z.string().min(1),
   supplier: z.string().trim().min(1),
@@ -164,6 +189,8 @@ export type PublicInstitutionalPage = z.infer<
 export type HumanResourcesRecord = z.infer<typeof HumanResourcesRecordSchema>
 export type PatrimonialAsset = z.infer<typeof PatrimonialAssetSchema>
 export type FinancialTransparency = z.infer<typeof FinancialTransparencySchema>
+export type BudgetTransparency = z.infer<typeof BudgetTransparencySchema>
+export type BudgetRecord = z.infer<typeof BudgetRecordSchema>
 export type ContractRecord = z.infer<typeof ContractRecordSchema>
 export type AdministrativeEnrollment = z.infer<
   typeof AdministrativeEnrollmentSchema

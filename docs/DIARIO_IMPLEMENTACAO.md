@@ -259,3 +259,39 @@ As duas formas produzem a mesma declaração CSS no navegador.
 - 12 testes aprovados no monorepo;
 - comparação visual desktop executada;
 - correção compartilhada aplicada aos rótulos longos em telas estreitas.
+
+## 2026-11-11 — Terceira página pública: Orçamentário
+
+### O que foi construído
+
+A rota `/public/orcamentario` agora usa o mesmo `PublicPortalLayout` de
+Institucional e Administrativo. Após conferir a implementação WordPress atual,
+a página foi ajustada para reproduzir sua estrutura: filtros de exercício e tipo
+de informação, tabela horizontal, badge de execução e atalho de visualização do
+PDF.
+
+Os dois registros de demonstração foram espelhados da página consultada em
+2026-11-11: orçamento anual de R$ 14,5 milhões e execuções de 87,2% e 95,5%.
+Eles permanecem na fixture local, não são uma fonte oficial do novo portal e
+serão substituídos pelos registros publicados no painel administrativo.
+
+### Conceito: composição sobre contrato
+
+O componente visual não recebe um objeto solto. O repositório retorna um dado que
+passa por `BudgetTransparencySchema` antes de chegar ao React. Quando a API for
+conectada, trocaremos somente o adapter do repositório. A página continuará
+conhecendo apenas o contrato `BudgetTransparency`.
+
+Para executar apenas o frontend durante o desenvolvimento:
+
+```powershell
+pnpm --filter @oab-transparencia/web dev
+```
+
+Para validar o workspace depois de uma alteração:
+
+```powershell
+pnpm --filter @oab-transparencia/web lint
+pnpm --filter @oab-transparencia/web test
+pnpm --filter @oab-transparencia/web build
+```

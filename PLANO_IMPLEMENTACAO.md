@@ -76,7 +76,7 @@ Implementar na ordem abaixo:
 
 1. [x] Institucional.
 2. [x] Administrativo.
-3. [ ] Orçamentário.
+3. [x] Orçamentário.
 4. [ ] Patrimonial.
 5. [ ] Financeiro.
 6. [ ] Recursos Humanos.
@@ -166,6 +166,6 @@ Rotas previstas:
 
 ## Próxima ação
 
-Continuar a Etapa 3 e iniciar a terceira composição pública: modelar os dados e
-implementar a página Orçamentário, reutilizando o shell público. O iframe externo
+Continuar a Etapa 3 e iniciar a quarta composição pública: modelar os dados e
+implementar a página Patrimonial, reutilizando o shell público. O iframe externo
 de Administrativo permanece como dependência temporária documentada.
