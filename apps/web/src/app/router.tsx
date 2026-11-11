@@ -3,6 +3,7 @@ import { Navigate, createBrowserRouter } from 'react-router-dom'
 import { FoundationPage } from '../features/foundation/FoundationPage'
 import { AdministrativePage } from '../features/public/pages/AdministrativePage'
 import { BudgetPage } from '../features/public/pages/BudgetPage'
+import { FinancialPage } from '../features/public/pages/FinancialPage'
 import { InstitutionalPage } from '../features/public/pages/InstitutionalPage'
 
 export const router = createBrowserRouter([
@@ -25,6 +26,10 @@ export const router = createBrowserRouter([
   {
     path: '/public/orcamentario',
     element: <BudgetPage />,
+  },
+  {
+    path: '/public/financeiro',
+    element: <FinancialPage />,
   },
   {
     path: '/public/:section',

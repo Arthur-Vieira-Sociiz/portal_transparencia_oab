@@ -112,6 +112,11 @@ export const FinancialTransparencySchema = z.object({
   sections: z.array(FinancialSectionSchema),
 })
 
+export const PublicFinancialPageSchema = z.object({
+  availableExercises: z.array(ExerciseSchema).min(1),
+  periods: z.array(FinancialTransparencySchema),
+})
+
 export const BudgetInformationTypeSchema = z.enum([
   'budget',
   'financial',
@@ -188,7 +193,9 @@ export type PublicInstitutionalPage = z.infer<
 >
 export type HumanResourcesRecord = z.infer<typeof HumanResourcesRecordSchema>
 export type PatrimonialAsset = z.infer<typeof PatrimonialAssetSchema>
+export type FinancialSectionId = z.infer<typeof FinancialSectionIdSchema>
 export type FinancialTransparency = z.infer<typeof FinancialTransparencySchema>
+export type PublicFinancialPage = z.infer<typeof PublicFinancialPageSchema>
 export type BudgetTransparency = z.infer<typeof BudgetTransparencySchema>
 export type BudgetRecord = z.infer<typeof BudgetRecordSchema>
 export type ContractRecord = z.infer<typeof ContractRecordSchema>

@@ -295,3 +295,30 @@ pnpm --filter @oab-transparencia/web lint
 pnpm --filter @oab-transparencia/web test
 pnpm --filter @oab-transparencia/web build
 ```
+
+## 2026-11-11 — Quarta página pública: Financeiro
+
+### Estrutura encontrada no portal atual
+
+A página Financeiro possui filtros de exercício e tipo de informação. Seus
+resultados aparecem em quatro blocos expansíveis: Balancetes, Demonstrativos
+Financeiros, Quadro Sintético de Receitas e Quadro Sintético de Despesas. Cada
+linha pode disponibilizar um ou dois documentos para download.
+
+### Implementação reutilizável
+
+Foi criado `PublicFinancialPageSchema`, que agrupa vários exercícios e seus
+respectivos `FinancialTransparency`. Cada item de documento segue o contrato
+compartilhado de formato, URL e exercício. Isso permite que a futura área
+administrativa cadastre a mesma estrutura que o portal público renderiza.
+
+O estado do accordion é controlado com `useState`, enquanto o filtro apenas
+deriva a lista exibida a partir dos dados já carregados; não há nova requisição a
+cada troca de filtro enquanto usamos fixtures locais.
+
+### Dados iniciais
+
+Foram incluídos mocks alinhados ao conteúdo exibido hoje para 2026: quatro
+balancetes trimestrais, quatro demonstrativos trimestrais, um relatório de
+receitas e um de despesas. Os links são temporários e serão substituídos pelo
+armazenamento de documentos do novo portal.
