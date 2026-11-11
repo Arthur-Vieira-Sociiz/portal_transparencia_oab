@@ -388,3 +388,19 @@ de 410px. O card mostra exclusivamente os campos que aparecem na referência
 (fornecedor, CNPJ, vigência, valor e aditivo); `objectDescription` e `signedAt`
 continuam no contrato compartilhado para o formulário administrativo futuro,
 mas não são inventados na tela pública.
+
+## 2026-11-11 — Oitava página pública: Glossário
+
+### Referência e interação
+
+A página atual foi consultada diretamente para preservar seu conteúdo e a sua
+composição: título, texto introdutório, índice alfabético de A a Z e painel de
+termos por letra. As abas podem ser acionadas por clique e pelo teclado com as
+setas, Home e End.
+
+### Contrato compartilhado
+
+`GlossaryEntrySchema` valida cada termo e sua definição, enquanto
+`PublicGlossaryPageSchema` concentra a introdução e a coleção completa. A página
+deriva o agrupamento alfabético no React; assim, o admin futuro cadastra apenas
+termo e definição, sem precisar manter listas por letra manualmente.

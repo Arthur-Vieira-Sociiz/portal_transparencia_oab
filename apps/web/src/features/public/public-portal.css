@@ -918,6 +918,83 @@
   text-align: center;
 }
 
+.glossary-content {
+  margin-top: 48px;
+  color: #666;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.glossary-content .public-section-title {
+  margin: 0 0 12px;
+}
+
+.glossary-content__intro {
+  margin: 0;
+}
+
+.glossary-tabs {
+  display: grid;
+  grid-template-columns: repeat(26, minmax(0, 1fr));
+  margin-top: 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.glossary-tabs__tab {
+  min-width: 0;
+  padding: 15px 15px 12px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  color: #263851;
+  background: #fff;
+  font: inherit;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.glossary-tabs__tab:hover,
+.glossary-tabs__tab[aria-selected='true'] {
+  border-bottom-color: #0099ff;
+  color: #0099ff;
+}
+
+.glossary-tabs__tab:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: 2px solid #263851;
+  outline-offset: -2px;
+}
+
+.glossary-panel {
+  margin-top: 24px;
+}
+
+.glossary-panel h3 {
+  margin: 0 0 12px;
+  color: #263851;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 18px;
+}
+
+.glossary-panel__entries {
+  padding: 20px;
+  background: #edeff1;
+}
+
+.glossary-panel__entries p {
+  margin: 0 0 16px;
+}
+
+.glossary-panel__entries p:last-child {
+  margin-bottom: 0;
+}
+
+.glossary-panel__entries strong {
+  color: #263851;
+  font-weight: 600;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -1014,6 +1091,16 @@
 
   .contracts-grid {
     grid-template-columns: 1fr;
+  }
+
+  .glossary-tabs {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+
+  .glossary-tabs__tab {
+    flex: 0 0 auto;
   }
 
   .financial-document-row {

@@ -165,6 +165,16 @@ export const PublicContractsPageSchema = z.object({
   contracts: z.array(ContractRecordSchema),
 })
 
+export const GlossaryEntrySchema = z.object({
+  term: z.string().trim().min(1),
+  definition: z.string().trim().min(1),
+})
+
+export const PublicGlossaryPageSchema = z.object({
+  introduction: z.string().trim().min(1),
+  entries: z.array(GlossaryEntrySchema).min(1),
+})
+
 export const AdministrativeEnrollmentSchema = z.object({
   id: z.string().min(1),
   exercise: ExerciseSchema,
@@ -221,6 +231,8 @@ export type BudgetTransparency = z.infer<typeof BudgetTransparencySchema>
 export type BudgetRecord = z.infer<typeof BudgetRecordSchema>
 export type ContractRecord = z.infer<typeof ContractRecordSchema>
 export type PublicContractsPage = z.infer<typeof PublicContractsPageSchema>
+export type GlossaryEntry = z.infer<typeof GlossaryEntrySchema>
+export type PublicGlossaryPage = z.infer<typeof PublicGlossaryPageSchema>
 export type AdministrativeEnrollment = z.infer<
   typeof AdministrativeEnrollmentSchema
 >
