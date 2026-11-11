@@ -5,6 +5,7 @@ import { AdministrativePage } from '../features/public/pages/AdministrativePage'
 import { BudgetPage } from '../features/public/pages/BudgetPage'
 import { FinancialPage } from '../features/public/pages/FinancialPage'
 import { InstitutionalPage } from '../features/public/pages/InstitutionalPage'
+import { HumanResourcesPage } from '../features/public/pages/HumanResourcesPage'
 import { PatrimonialPage } from '../features/public/pages/PatrimonialPage'
 
 export const router = createBrowserRouter([
@@ -35,6 +36,10 @@ export const router = createBrowserRouter([
   {
     path: '/public/patrimonial',
     element: <PatrimonialPage />,
+  },
+  {
+    path: '/public/recursos-humanos',
+    element: <HumanResourcesPage />,
   },
   {
     path: '/public/:section',

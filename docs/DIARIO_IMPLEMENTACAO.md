@@ -341,3 +341,22 @@ o formulário administrativo deverá cadastrar depois.
 Foram adicionados três bens de demonstração para exercitar os filtros: imóvel
 ativo, mobiliário locado e equipamentos emprestados. Eles são estritamente dados
 de desenvolvimento; não representam o patrimônio real da OAB/AL.
+
+## 2026-11-11 — Sexta página pública: Recursos Humanos
+
+### Estrutura encontrada no portal atual
+
+A área de Recursos Humanos filtra por ano e localidade e apresenta os doze meses
+do exercício. Cada competência disponibiliza arquivos para consulta.
+
+### Contrato e interface
+
+`PublicHumanResourcesPageSchema` agrupa exercícios e registros de RH. Cada
+registro exige exatamente doze competências únicas — uma regra que já existia em
+`HumanResourcesRecordSchema` e evita duplicidade ou meses faltando no futuro
+admin.
+
+A página `/public/recursos-humanos` reproduz os filtros, o cabeçalho da sede, a
+lista mensal e os downloads. Foram criados dados de desenvolvimento para
+Jacarecica (2026) e Maceió Centro (2025), exclusivamente para exercitar os
+estados de filtro e a futura publicação.

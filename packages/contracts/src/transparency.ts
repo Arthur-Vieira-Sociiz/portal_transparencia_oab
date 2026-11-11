@@ -76,6 +76,11 @@ export const HumanResourcesRecordSchema = z
     }
   })
 
+export const PublicHumanResourcesPageSchema = z.object({
+  availableExercises: z.array(ExerciseSchema).min(1),
+  records: z.array(HumanResourcesRecordSchema),
+})
+
 export const PatrimonialAssetSchema = z.object({
   id: z.string().min(1),
   informationType: z.string().trim().min(1),
@@ -197,6 +202,9 @@ export type PublicInstitutionalPage = z.infer<
   typeof PublicInstitutionalPageSchema
 >
 export type HumanResourcesRecord = z.infer<typeof HumanResourcesRecordSchema>
+export type PublicHumanResourcesPage = z.infer<
+  typeof PublicHumanResourcesPageSchema
+>
 export type PatrimonialAsset = z.infer<typeof PatrimonialAssetSchema>
 export type PublicPatrimonialPage = z.infer<typeof PublicPatrimonialPageSchema>
 export type FinancialSectionId = z.infer<typeof FinancialSectionIdSchema>

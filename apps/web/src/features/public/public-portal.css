@@ -598,6 +598,114 @@
   text-align: center !important;
 }
 
+.human-resources-content {
+  color: #666;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.human-resources-content__intro {
+  margin: 0;
+}
+
+.human-resources-filters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(140px, 220px));
+  gap: 20px;
+  margin: 28px 0 30px;
+}
+
+.human-resources-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #666;
+  font-size: 13px;
+}
+
+.human-resources-filter select {
+  min-height: 42px;
+  padding: 9px 36px 9px 16px;
+  border: 0;
+  border-radius: 4px;
+  color: #333;
+  background-color: #f2f2f2;
+}
+
+.human-resources-list {
+  border: 1px solid #eaeaea;
+  background: #fff;
+}
+
+.human-resources-list h3 {
+  margin: 0;
+  padding: 16px 20px;
+  border-bottom: 1px solid #eaeaea;
+  color: #1e293b;
+  background: #f0f2f5;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.human-resources-list__body {
+  padding-inline: 20px;
+}
+
+.human-resources-month {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.human-resources-month:last-child {
+  border-bottom: 0;
+}
+
+.human-resources-month > span {
+  color: #333;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.human-resources-month__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.human-resources-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #00a0e9;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.human-resources-download:hover {
+  text-decoration: underline;
+}
+
+.human-resources-download svg {
+  width: 16px;
+  height: 16px;
+}
+
+.human-resources-empty-state {
+  margin: 0;
+  padding: 30px;
+  border: 1px solid #eee;
+  color: #666;
+  text-align: center;
+}
+
 .document-download {
   display: inline-flex;
   min-height: 42px;
@@ -665,7 +773,17 @@
     grid-template-columns: 1fr;
   }
 
+  .human-resources-filters {
+    grid-template-columns: 1fr;
+  }
+
   .financial-document-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .human-resources-month {
     align-items: flex-start;
     flex-direction: column;
     gap: 10px;
