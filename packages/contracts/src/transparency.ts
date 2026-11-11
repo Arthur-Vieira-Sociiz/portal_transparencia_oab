@@ -133,6 +133,16 @@ export const AdministrativeEnrollmentSchema = z.object({
   transferringLawyers: NonNegativeIntegerSchema,
 })
 
+export const AdministrativeOrganogramSchema = z.object({
+  description: z.string().trim().min(1),
+  document: TransparencyDocumentSchema,
+})
+
+export const PublicAdministrativePageSchema = z.object({
+  summary: PublicSummarySchema,
+  organogram: AdministrativeOrganogramSchema,
+})
+
 export const PatrimonialFiltersSchema = z.object({
   exercise: ExerciseSchema.optional(),
   informationType: z.string().trim().min(1).optional(),
@@ -157,4 +167,10 @@ export type FinancialTransparency = z.infer<typeof FinancialTransparencySchema>
 export type ContractRecord = z.infer<typeof ContractRecordSchema>
 export type AdministrativeEnrollment = z.infer<
   typeof AdministrativeEnrollmentSchema
+>
+export type AdministrativeOrganogram = z.infer<
+  typeof AdministrativeOrganogramSchema
+>
+export type PublicAdministrativePage = z.infer<
+  typeof PublicAdministrativePageSchema
 >

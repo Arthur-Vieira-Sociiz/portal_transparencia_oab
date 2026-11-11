@@ -64,6 +64,7 @@
 
 .summary-card {
   display: flex;
+  min-width: 0;
   min-height: 108px;
   flex-direction: column;
   padding: 16px 14px;
@@ -74,6 +75,7 @@
 
 .summary-card__label {
   display: flex;
+  min-width: 0;
   align-items: center;
   gap: 8px;
   color: #334155;
@@ -81,6 +83,11 @@
   font-weight: 500;
   line-height: 1.2;
   text-transform: uppercase;
+}
+
+.summary-card__label span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .summary-card__label svg {
@@ -127,6 +134,7 @@
 
 .category-card {
   display: flex;
+  min-width: 0;
   min-height: 120px;
   align-items: center;
   justify-content: center;
@@ -146,6 +154,8 @@
   max-width: 32px;
   height: auto;
   max-height: 25px;
+  filter: brightness(0) saturate(100%) invert(36%) sepia(81%) saturate(3677%)
+    hue-rotate(332deg) brightness(105%) contrast(101%);
 }
 
 .category-card:hover {
@@ -162,10 +172,6 @@
 
 .category-card--active:hover {
   background: linear-gradient(135deg, #61738d, #243b5b);
-}
-
-.category-card--active .category-card__icon {
-  filter: brightness(0) invert(1);
 }
 
 .institutional-content {
@@ -191,6 +197,56 @@
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+.administrative-content {
+  color: #666;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.administrative-content .public-section-title {
+  margin-top: 24px;
+}
+
+.administrative-content p {
+  margin: 0;
+}
+
+.document-download {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  color: #fff;
+  background: #263851;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.document-download:hover {
+  background: #1e293b;
+}
+
+.document-download svg {
+  width: 16px;
+  height: 16px;
+}
+
+.administrative-embed {
+  margin-top: 40px;
+}
+
+.administrative-embed__frame {
+  display: block;
+  width: 100%;
+  height: 800px;
+  background: #fff;
 }
 
 .public-page-state {
@@ -238,9 +294,7 @@
   .category-grid {
     gap: 12px;
   }
-}
 
-@media (max-width: 360px) {
   .summary-grid,
   .category-grid {
     grid-template-columns: 1fr;

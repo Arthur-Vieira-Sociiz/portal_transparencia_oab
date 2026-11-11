@@ -1,6 +1,7 @@
 import { Navigate, createBrowserRouter } from 'react-router-dom'
 
 import { FoundationPage } from '../features/foundation/FoundationPage'
+import { AdministrativePage } from '../features/public/pages/AdministrativePage'
 import { InstitutionalPage } from '../features/public/pages/InstitutionalPage'
 
 export const router = createBrowserRouter([
@@ -15,6 +16,10 @@ export const router = createBrowserRouter([
   {
     path: '/public/institucional',
     element: <InstitutionalPage />,
+  },
+  {
+    path: '/public/administrativo',
+    element: <AdministrativePage />,
   },
   {
     path: '/public/:section',

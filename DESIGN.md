@@ -190,7 +190,7 @@ Controles têm cantos discretos de 4px. Painéis e categorias usam 8px. Cards de
 
 ### Navigation
 
-Categorias formam uma grade de cartões compactos. O estado ativo usa azul institucional com texto branco; os demais usam branco, borda fina e ícone vermelho. Em mobile, a grade vira uma coluna sem reduzir a área de toque.
+Categorias formam uma grade de cartões compactos. O estado ativo usa azul institucional com texto branco; os demais usam branco e borda fina. Os ícones permanecem vermelhos em todos os estados, inclusive no card ativo. Em mobile, a grade vira uma coluna sem reduzir a área de toque.
 
 ### Data Table
 

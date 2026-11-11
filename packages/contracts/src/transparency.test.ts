@@ -4,6 +4,7 @@ import {
   AdministrativeEnrollmentSchema,
   GeneralIndicatorsSchema,
   HumanResourcesRecordSchema,
+  PublicAdministrativePageSchema,
   PublicInstitutionalPageSchema,
   type Month,
 } from './index.js'
@@ -93,6 +94,35 @@ describe('transparency contracts', () => {
       content: {
         introduction: ['Apresentação institucional.'],
         regulations: ['Resolução nº 04/2014'],
+      },
+    })
+
+    expect(result.success).toBe(true)
+  })
+
+  it('parses the public administrative page fixture', () => {
+    const result = PublicAdministrativePageSchema.safeParse({
+      summary: {
+        exercise: 2025,
+        totalExpenses: 0,
+        totalRevenue: 0,
+        budget: 0,
+        patrimony: 0,
+        activeLawyers: 0,
+        activeSocieties: 0,
+        supportRooms: 0,
+        registeredMembers: 0,
+      },
+      organogram: {
+        description: 'Estrutura organizacional da OAB/AL.',
+        document: {
+          id: 'organogram-2025-2027',
+          title: 'Organograma OAB-AL 2025–2027',
+          format: 'pdf',
+          url: 'https://example.com/organogram.pdf',
+          category: 'administrative',
+          exercise: 2025,
+        },
       },
     })
 

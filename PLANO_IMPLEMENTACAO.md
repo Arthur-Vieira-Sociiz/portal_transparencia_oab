@@ -75,7 +75,7 @@ O desenvolvimento começa pela reprodução fiel do portal público. Os contrato
 Implementar na ordem abaixo:
 
 1. [x] Institucional.
-2. [ ] Administrativo.
+2. [x] Administrativo.
 3. [ ] Orçamentário.
 4. [ ] Patrimonial.
 5. [ ] Financeiro.
@@ -166,6 +166,6 @@ Rotas previstas:
 
 ## Próxima ação
 
-Continuar a Etapa 3 e iniciar a segunda composição pública: modelar os dados e
-implementar a página Administrativo, reutilizando o shell, os indicadores e a
-navegação criados em Institucional.
+Continuar a Etapa 3 e iniciar a terceira composição pública: modelar os dados e
+implementar a página Orçamentário, reutilizando o shell público. O iframe externo
+de Administrativo permanece como dependência temporária documentada.

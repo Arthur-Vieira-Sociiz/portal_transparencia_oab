@@ -31,8 +31,9 @@ O primeiro ciclo de desenvolvimento será dedicado à reprodução fiel das pág
 Etapa 2 concluída e Etapas 3–5 em andamento: Git, workspace pnpm, Turborepo,
 React/Vite, API Express e pacotes compartilhados estão inicializados. A primeira
 página pública, `/public/institucional`, já usa contratos Zod, fixture validada,
-repositório local e componentes reutilizáveis. Web e API estão preparados para
-projetos separados na Vercel.
+repositório local e componentes reutilizáveis. `/public/administrativo` reutiliza
+esse shell, oferece o organograma e incorpora temporariamente o sistema externo
+de quantitativos. Web e API estão preparados para projetos separados na Vercel.
 
 ## Primeiros comandos
 

@@ -1,20 +1,23 @@
 import {
   PublicInstitutionalPageSchema,
+  PublicSummarySchema,
   type PublicInstitutionalPage,
 } from '@oab-transparencia/contracts'
 
+export const publicSummaryFixture = PublicSummarySchema.parse({
+  exercise: 2025,
+  totalExpenses: 0,
+  totalRevenue: 0,
+  budget: 0,
+  patrimony: 0,
+  activeLawyers: 0,
+  activeSocieties: 0,
+  supportRooms: 0,
+  registeredMembers: 0,
+})
+
 const institutionalFixture = {
-  summary: {
-    exercise: 2025,
-    totalExpenses: 0,
-    totalRevenue: 0,
-    budget: 0,
-    patrimony: 0,
-    activeLawyers: 0,
-    activeSocieties: 0,
-    supportRooms: 0,
-    registeredMembers: 0,
-  },
+  summary: publicSummaryFixture,
   content: {
     introduction: [
       'O Portal da Transparência da OAB Alagoas foi criado para ampliar o acesso da advocacia e da sociedade às informações institucionais da Seccional, fortalecendo a publicidade dos atos de gestão, o controle social e o compromisso permanente da Ordem com a ética, a responsabilidade e a boa governança.',

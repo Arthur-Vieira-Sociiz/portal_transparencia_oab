@@ -1,8 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 
-import { CategoryNavigation } from '../components/CategoryNavigation'
-import { PublicPortalHero } from '../components/PublicPortalHero'
-import { SummaryGrid } from '../components/SummaryGrid'
+import { PublicPortalLayout } from '../components/PublicPortalLayout'
 import { localPublicTransparencyRepository } from '../data/public.repository'
 import '../public-portal.css'
 
@@ -26,11 +24,7 @@ export function InstitutionalPage() {
   }
 
   return (
-    <main className="public-page">
-      <PublicPortalHero />
-      <SummaryGrid summary={page.data.summary} />
-      <CategoryNavigation />
-
+    <PublicPortalLayout summary={page.data.summary}>
       <section
         aria-labelledby="institutional-presentation"
         className="institutional-content"
@@ -51,6 +45,6 @@ export function InstitutionalPage() {
           ))}
         </ul>
       </section>
-    </main>
+    </PublicPortalLayout>
   )
 }

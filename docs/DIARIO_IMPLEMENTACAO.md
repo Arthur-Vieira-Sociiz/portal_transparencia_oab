@@ -206,3 +206,56 @@ pnpm --filter @oab-transparencia/web add @fontsource/inter
 
 Aqui, `--filter` seleciona o workspace e `add` registra a dependência no
 `package.json` desse aplicativo, atualizando também o lockfile da raiz.
+
+## 2026-11-11 — Segunda página pública: Administrativo
+
+### Reutilização comprovada
+
+Depois da segunda página, o padrão repetido deixou de ser uma hipótese. Banner,
+indicadores e navegação por categorias foram extraídos para
+`PublicPortalLayout`. Institucional e Administrativo agora fornecem somente seu
+conteúdo específico como `children`.
+
+### Conteúdo específico
+
+A página Administrativo possui:
+
+- fixture validada por `PublicAdministrativePageSchema`;
+- descrição e link do organograma 2025–2027;
+- botão acessível que abre o PDF oficial em nova aba;
+- iframe de 800 px apontando para `https://oab-transparencia.netlify.app`.
+
+O WordPress atual usa a tag de iframe e o shortcode `[wpcode id="125193"]`. O
+React não executa shortcodes WordPress; ele reproduz somente a tag HTML do iframe.
+O domínio externo respondeu HTTP 200 e não enviou `X-Frame-Options` nem uma
+política CSP que bloqueie a incorporação.
+
+> **Dependência temporária:** o quantitativo administrativo ainda é renderizado
+> pelo projeto Netlify. Quando essa funcionalidade migrar para a API nova, o
+> iframe poderá ser substituído sem alterar o shell compartilhado.
+
+### HTML e JSX
+
+No HTML, o estilo aparece como texto:
+
+```html
+style="border:none;"
+```
+
+No React/JSX, `style` recebe um objeto JavaScript:
+
+```tsx
+style={{ border: 'none' }}
+```
+
+As duas formas produzem a mesma declaração CSS no navegador.
+
+### Verificação
+
+- rota `/public/administrativo` criada;
+- estado ativo da categoria confirmado;
+- endpoint do iframe respondeu e permite incorporação;
+- typecheck, lint, testes e build aprovados;
+- 12 testes aprovados no monorepo;
+- comparação visual desktop executada;
+- correção compartilhada aplicada aos rótulos longos em telas estreitas.
