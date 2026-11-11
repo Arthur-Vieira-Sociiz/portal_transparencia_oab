@@ -22,6 +22,9 @@ logs/
 *-debug.log*
 *.tsbuildinfo
 
+# Prisma Client é regenerado pelos scripts do backend.
+apps/api/src/generated/prisma/
+
 # Editores e sistema operacional
 .idea/
 .vscode/*

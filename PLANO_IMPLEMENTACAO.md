@@ -62,6 +62,7 @@ O desenvolvimento começa pela reprodução fiel do portal público. Os contrato
 
 ## Etapa 4 — Componentes compartilhados
 
+- [x] Configurar Tailwind CSS e shadcn/ui como a base obrigatória de novos componentes React.
 - [ ] Implementar tokens e componentes básicos em `packages/ui`.
 - [x] Implementar o primeiro shell público, grade de indicadores e navegação por categoria.
 - [ ] Implementar filtros, tabela responsiva, documentos, downloads e estados vazios.
@@ -116,10 +117,12 @@ Rotas previstas:
 
 - [ ] Inventariar os snippets PHP por categoria e comportamento.
 - [ ] Transformar regras observadas nos snippets em contratos e testes comparativos.
-- [ ] Configurar Express, Prisma e NeonDB/PostgreSQL.
-- [ ] Criar migrations e seed de desenvolvimento.
+- [x] Configurar Express, Prisma e NeonDB/PostgreSQL.
+- [x] Criar a migration inicial de usuários e sessões; aguarda aplicação no Neon.
 - [ ] Implementar endpoints públicos somente de leitura.
-- [ ] Implementar endpoints administrativos protegidos.
+- [x] Implementar os endpoints iniciais de cadastro, login, sessão e logout.
+- [x] Publicar uma coleção Insomnia para autenticação, com cenários de sucesso e erro.
+- [ ] Publicar/atualizar a coleção Insomnia de cada módulo CRUD junto com suas rotas.
 - [ ] Integrar armazenamento de PDF, CSV e XLSX.
 - [ ] Armazenar checksum, MIME type, tamanho, versão e autoria dos documentos.
 - [ ] Implementar versionamento por exercício e status `rascunho`, `em_revisao`, `publicado` e `arquivado`.
@@ -130,16 +133,19 @@ Rotas previstas:
 
 ## Etapa 8 — Autenticação e portal administrativo
 
-- [ ] Implementar `/login` e recuperação segura de acesso.
+- [ ] Implementar a interface `/login` e recuperação segura de acesso.
 - [ ] Definir perfis e permissões.
 - [ ] Implementar dashboard administrativo.
+- [ ] Criar uma jornada guiada por categoria e exercício: escolher módulo → preencher dados → anexar documentos → revisar → publicar.
 - [ ] Criar formulários por módulo reutilizando contratos e componentes públicos.
+- [ ] Exibir pré-visualização pública ao vivo, com os mesmos componentes de `/public`, antes da publicação.
+- [ ] Permitir alternar entre formulário e visualização lado a lado sem perder rascunho.
 - [ ] Implementar upload, substituição e validação de documentos.
-- [ ] Implementar pré-visualização da página pública antes da publicação.
 - [ ] Implementar revisão, publicação, arquivamento e histórico.
 - [ ] Prevenir edição concorrente e submissão duplicada.
 
-**Saída:** equipe da OAB-AL capaz de manter o portal sem alteração de código.
+**Saída:** equipe da OAB-AL capaz de manter o portal sem alteração de código,
+vendo exatamente o resultado público antes de publicar.
 
 ## Etapa 9 — Publicação e embed no WordPress
 

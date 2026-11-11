@@ -1,6 +1,8 @@
 import { Navigate, createBrowserRouter } from 'react-router-dom'
 
 import { FoundationPage } from '../features/foundation/FoundationPage'
+import { AdminHomePage } from '../features/auth/AdminHomePage'
+import { LoginPage } from '../features/auth/LoginPage'
 import { AdministrativePage } from '../features/public/pages/AdministrativePage'
 import { BudgetPage } from '../features/public/pages/BudgetPage'
 import { ContractsPage } from '../features/public/pages/ContractsPage'
@@ -72,22 +74,11 @@ export const router = createBrowserRouter([
   },
   {
     path: '/login',
-    element: (
-      <FoundationPage
-        description="A autenticação será implementada após a API e o banco."
-        title="Entrar no portal administrativo"
-      />
-    ),
+    element: <LoginPage />,
   },
   {
     path: '/admin',
-    element: (
-      <FoundationPage
-        description="A equipe da OAB-AL usará esta área para revisar e publicar informações."
-        showApiStatus
-        title="Gestão da transparência"
-      />
-    ),
+    element: <AdminHomePage />,
   },
   {
     path: '*',

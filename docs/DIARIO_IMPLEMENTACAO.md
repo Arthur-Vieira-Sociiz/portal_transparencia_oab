@@ -434,3 +434,22 @@ para comparativos, linhas para tendências e área preenchida para o valor total
 contratado. Com isso, as legendas, escalas e tooltips no hover passam a se
 comportar como no dashboard de referência. A biblioteca é importada apenas ao
 montar cada gráfico, preservando o carregamento inicial da página pública.
+
+## 2026-11-11 — Base de autenticação administrativa
+
+Foi criada a primeira migration Prisma para `User` e `Session`, além dos
+contratos Zod e endpoints de cadastro, login, consulta de sessão e logout. As
+senhas são derivadas com `scrypt`; apenas o hash da sessão é persistido no
+banco. O cadastro exige `ADMIN_REGISTRATION_KEY` do ambiente: a primeira conta
+é `ADMIN` e as posteriores recebem `EDITOR` até que o painel de permissões seja
+concluído.
+
+A conexão direta do Neon fica reservada à migration, enquanto a URL com pool é
+usada pela API. O guia operacional está em `docs/AUTENTICACAO.md`.
+
+### Interface inicial de login
+
+O frontend passou a usar Tailwind CSS 4 com o plugin oficial do Vite e
+componentes locais do shadcn/ui. A rota `/login` consome a API de autenticação,
+exibe erros de credenciais e salva a sessão apenas na aba atual; `/admin` é uma
+área temporária protegida para confirmar login e logout antes dos CRUDes.

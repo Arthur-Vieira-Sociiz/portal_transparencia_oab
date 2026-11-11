@@ -1,0 +1,147 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-11-11T18:00:00.000Z",
+  "__export_source": "portal-transparencia-oab",
+  "resources": [
+    {
+      "_id": "wrk_portal_transparencia_auth",
+      "_type": "workspace",
+      "name": "Portal da Transparência OAB — Autenticação",
+      "description": "Coleção inicial para testar cadastro, login e sessão da API."
+    },
+    {
+      "_id": "env_portal_transparencia_auth",
+      "parentId": "wrk_portal_transparencia_auth",
+      "_type": "environment",
+      "name": "Base Environment",
+      "data": {
+        "base_url": "http://localhost:3333",
+        "registration_key": "SUBSTITUA_PELA_ADMIN_REGISTRATION_KEY",
+        "access_token": "COLE_O_TOKEN_DO_LOGIN_AQUI"
+      },
+      "dataPropertyOrder": null,
+      "color": null,
+      "isPrivate": false,
+      "metaSortKey": 1
+    },
+    {
+      "_id": "fld_auth_sucesso",
+      "parentId": "wrk_portal_transparencia_auth",
+      "_type": "request_group",
+      "name": "Sucesso",
+      "description": "Execute na ordem indicada: cadastro inicial, login, me e logout."
+    },
+    {
+      "_id": "req_auth_register",
+      "parentId": "fld_auth_sucesso",
+      "_type": "request",
+      "name": "01 — Criar primeiro administrador",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/auth/register",
+      "headers": [{ "name": "Content-Type", "value": "application/json" }],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Administrador OAB\",\n  \"email\": \"admin@oab-al.org.br\",\n  \"password\": \"uma-senha-longa-de-teste\",\n  \"registrationKey\": \"{{ _.registration_key }}\"\n}"
+      },
+      "description": "Esperado: 201. Copie o campo token da resposta para access_token no ambiente. A primeira conta recebe o perfil ADMIN."
+    },
+    {
+      "_id": "req_auth_login",
+      "parentId": "fld_auth_sucesso",
+      "_type": "request",
+      "name": "02 — Login",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/auth/login",
+      "headers": [{ "name": "Content-Type", "value": "application/json" }],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"admin@oab-al.org.br\",\n  \"password\": \"uma-senha-longa-de-teste\"\n}"
+      },
+      "description": "Esperado: 200. Copie token para access_token."
+    },
+    {
+      "_id": "req_auth_me",
+      "parentId": "fld_auth_sucesso",
+      "_type": "request",
+      "name": "03 — Consultar sessão",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/auth/me",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.access_token }}" }
+      ],
+      "description": "Esperado: 200 e os dados seguros do usuário, sem senha nem hash."
+    },
+    {
+      "_id": "req_auth_logout",
+      "parentId": "fld_auth_sucesso",
+      "_type": "request",
+      "name": "04 — Encerrar sessão",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/auth/logout",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.access_token }}" }
+      ],
+      "description": "Esperado: 204. Depois, repetir Consultar sessão deve retornar 401."
+    },
+    {
+      "_id": "fld_auth_erros",
+      "parentId": "wrk_portal_transparencia_auth",
+      "_type": "request_group",
+      "name": "Casos de erro",
+      "description": "Validações e respostas que a interface administrativa deverá tratar."
+    },
+    {
+      "_id": "req_auth_bad_key",
+      "parentId": "fld_auth_erros",
+      "_type": "request",
+      "name": "Cadastro com chave inválida",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/auth/register",
+      "headers": [{ "name": "Content-Type", "value": "application/json" }],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Usuário Teste\",\n  \"email\": \"erro-chave@oab-al.org.br\",\n  \"password\": \"uma-senha-longa-de-teste\",\n  \"registrationKey\": \"chave-incorreta\"\n}"
+      },
+      "description": "Esperado: 403 e { message: 'Chave de cadastro inválida.' }."
+    },
+    {
+      "_id": "req_auth_invalid_payload",
+      "parentId": "fld_auth_erros",
+      "_type": "request",
+      "name": "Cadastro com dados inválidos",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/auth/register",
+      "headers": [{ "name": "Content-Type", "value": "application/json" }],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"A\",\n  \"email\": \"email-invalido\",\n  \"password\": \"curta\",\n  \"registrationKey\": \"{{ _.registration_key }}\"\n}"
+      },
+      "description": "Esperado: 400, com message 'Dados inválidos.' e issues por campo."
+    },
+    {
+      "_id": "req_auth_bad_login",
+      "parentId": "fld_auth_erros",
+      "_type": "request",
+      "name": "Login com senha incorreta",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/auth/login",
+      "headers": [{ "name": "Content-Type", "value": "application/json" }],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"admin@oab-al.org.br\",\n  \"password\": \"senha-errada-com-12-caracteres\"\n}"
+      },
+      "description": "Esperado: 401 e mensagem genérica, sem revelar se o e-mail existe."
+    },
+    {
+      "_id": "req_auth_no_token",
+      "parentId": "fld_auth_erros",
+      "_type": "request",
+      "name": "Sessão sem token",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/auth/me",
+      "headers": [],
+      "description": "Esperado: 401 e { message: 'Autenticação necessária.' }."
+    }
+  ]
+}

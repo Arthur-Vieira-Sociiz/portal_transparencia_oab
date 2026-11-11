@@ -1,3 +1,21 @@
+@import 'tailwindcss/theme.css';
+@import 'tailwindcss/utilities.css';
+
+@theme {
+  --color-background: #ffffff;
+  --color-foreground: #071d48;
+  --color-card: #ffffff;
+  --color-card-foreground: #071d48;
+  --color-primary: #071d48;
+  --color-primary-foreground: #ffffff;
+  --color-muted: #f6f8fb;
+  --color-muted-foreground: #53647d;
+  --color-border: #dce4ef;
+  --color-input: #b7c5d8;
+  --color-destructive: #9f1239;
+  --color-destructive-background: #fff1f2;
+}
+
 :root {
   --color-institutional: #071d48;
   --color-institutional-deep: #1e293b;

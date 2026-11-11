@@ -16,6 +16,10 @@
       "types": "./src/common.ts",
       "default": "./dist/common.js"
     },
+    "./auth": {
+      "types": "./src/auth.ts",
+      "default": "./dist/auth.js"
+    },
     "./health": {
       "types": "./src/health.ts",
       "default": "./dist/health.js"
