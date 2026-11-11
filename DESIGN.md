@@ -107,7 +107,7 @@ A paleta combina azul institucional, branco e cinzas frios, com acentos controla
 
 ### Primary
 
-- **Azul institucional:** estrutura do portal, títulos, estados ativos, rodapé e navegação.
+- **Azul institucional:** estrutura do miolo do portal, títulos, estados ativos e navegação entre categorias.
 - **Azul institucional profundo:** apoio para áreas densas e variações de contraste.
 
 ### Secondary
@@ -125,6 +125,10 @@ A paleta combina azul institucional, branco e cinzas frios, com acentos controla
 - **Borda fria:** delimitação de tabelas, cards e controles.
 
 **The Public Record Rule.** Cor nunca substitui rótulo, valor, legenda ou estado textual em tabelas e gráficos.
+
+### Limite da reprodução
+
+As capturas completas servem para localizar o conteúdo no site atual, mas somente o miolo do Portal da Transparência é contrato visual. Cabeçalho, menus globais, banners institucionais externos ao módulo, localização e rodapé do WordPress ficam fora da aplicação React.
 
 ## Typography
 

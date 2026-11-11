@@ -23,7 +23,7 @@ web
 
 Retirar o Portal da Transparência da dependência do WordPress, preservar o acesso público às informações e oferecer à OAB-AL uma área administrativa própria para manter dados e documentos sem alteração de código.
 
-O produto é bem-sucedido quando as dez categorias públicas são reproduzidas com fidelidade, funcionam dentro do WordPress e podem ser atualizadas com segurança pelo portal administrativo.
+O produto é bem-sucedido quando o conteúdo interno das dez categorias públicas é reproduzido com fidelidade, funciona dentro do WordPress e pode ser atualizado com segurança pelo portal administrativo. O cabeçalho e o rodapé institucionais permanecem responsabilidade do WordPress e não fazem parte da reprodução React.
 
 ## Positioning
 
@@ -52,7 +52,8 @@ Uma única plataforma mantém administração e consulta pública sobre a mesma 
 ## Brand Commitments
 
 - Preservar a identidade institucional reconhecível da OAB-AL.
-- A primeira versão pública é uma reprodução fiel das páginas existentes, não um redesign livre.
+- A primeira versão pública reproduz fielmente o miolo funcional das páginas existentes, não o cabeçalho ou o rodapé globais do site.
+- A fidelidade cobre títulos e conteúdos da seção, indicadores, navegação entre categorias, filtros, tabelas, documentos, gráficos e estados.
 - Linguagem clara, sóbria e adequada à prestação pública de contas.
 
 ## Evidence on Hand

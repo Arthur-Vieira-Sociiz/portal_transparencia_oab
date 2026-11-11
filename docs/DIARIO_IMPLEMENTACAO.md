@@ -110,3 +110,15 @@ relativos do pacote de contratos não tinham a extensão `.js`. Depois da corre�
 criamos também subcaminhos como `@oab-transparencia/contracts/health`. Isso evita
 que o frontend carregue schemas que não usa e devolveu o bundle ao tamanho
 anterior.
+
+### Falha do primeiro deploy da API
+
+O build do Turborepo passou na Vercel, mas o adaptador Express fez uma segunda
+transpiração da Function. O `tsconfig.json` de runtime listava explicitamente
+`vitest/globals` e `node`; nessa etapa isolada, a Vercel não resolveu esses tipos
+pelos mesmos links do workspace local.
+
+Removemos a lista explícita. Os tipos de Node agora são descobertos pela presença
+de `@types/node`, e os testes importam suas funções diretamente do Vitest. Também
+declaramos `WEB_ORIGIN`, `VITE_API_URL` e `DATABASE_URL` no ambiente da tarefa de
+build do Turborepo, eliminando o aviso de variáveis omitidas do cache.

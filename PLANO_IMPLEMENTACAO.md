@@ -12,6 +12,8 @@ Construir uma plataforma única em `transparencia.orbiapp.com.br`, composta por:
 
 O desenvolvimento começa pela reprodução fiel do portal público. Os contratos e componentes serão preparados para o backend e o administrativo seguintes.
 
+> **Limite visual:** “reprodução fiel” significa o conteúdo interno das dez páginas. Cabeçalho e rodapé globais continuam no WordPress e ficam fora do frontend React.
+
 ## Etapa 0 — Decisões e baseline
 
 - [x] Mapear as dez páginas públicas atuais.

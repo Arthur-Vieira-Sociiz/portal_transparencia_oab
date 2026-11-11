@@ -3,6 +3,7 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
+      "env": ["DATABASE_URL", "VITE_API_URL", "WEB_ORIGIN"],
       "outputs": ["dist/**"]
     },
     "typecheck": {

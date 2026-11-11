@@ -1,8 +1,7 @@
 {
   "extends": "@oab-transparencia/typescript-config/node.json",
   "compilerOptions": {
-    "noEmit": true,
-    "types": ["node", "vitest/globals"]
+    "noEmit": true
   },
   "include": ["src"]
 }

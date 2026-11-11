@@ -1,5 +1,13 @@
 # Auditoria das páginas atuais
 
+## Escopo da fidelidade
+
+A reprodução considera somente o conteúdo interno do Portal da Transparência:
+títulos e textos da seção, indicadores, navegação entre categorias, filtros,
+tabelas, documentos, gráficos e estados. Cabeçalho, menus globais e rodapé do
+WordPress aparecem nas capturas apenas como contexto e não serão implementados no
+React.
+
 As dez páginas foram inspecionadas em 11 de novembro de 2026. Elas compartilham indicadores, navegação por categorias e estrutura visual, permitindo forte reutilização de componentes.
 
 | Rota atual                 | Conteúdo específico                | Padrão principal             |
