@@ -4,6 +4,7 @@ import {
   AdministrativeEnrollmentSchema,
   GeneralIndicatorsSchema,
   HumanResourcesRecordSchema,
+  PublicInstitutionalPageSchema,
   type Month,
 } from './index.js'
 
@@ -74,5 +75,27 @@ describe('transparency contracts', () => {
     })
 
     expect(result.success).toBe(false)
+  })
+
+  it('parses the public institutional page fixture', () => {
+    const result = PublicInstitutionalPageSchema.safeParse({
+      summary: {
+        exercise: 2025,
+        totalExpenses: 0,
+        totalRevenue: 0,
+        budget: 0,
+        patrimony: 0,
+        activeLawyers: 0,
+        activeSocieties: 0,
+        supportRooms: 0,
+        registeredMembers: 0,
+      },
+      content: {
+        introduction: ['Apresentação institucional.'],
+        regulations: ['Resolução nº 04/2014'],
+      },
+    })
+
+    expect(result.success).toBe(true)
   })
 })

@@ -134,3 +134,53 @@ O pacote de contratos agora possui build próprio em `dist`, mantém o código f
 somente para resolução de tipos e aponta os exports de runtime para JavaScript
 compilado. O Turborepo constrói dependências antes da API e inicia um watcher dos
 contratos durante o desenvolvimento.
+
+## 2026-11-11 — Primeiro recorte público: Institucional
+
+### Limite visual confirmado
+
+O frontend React reproduz somente o miolo mostrado na referência: começa no
+banner azul “Portal da Transparência” e inclui indicadores, categorias e o
+conteúdo da seção. Cabeçalho, menus globais e rodapé continuam sendo
+responsabilidade do WordPress.
+
+### Fluxo de dados implementado
+
+```text
+fixture → validação Zod → repositório local → React Query → componentes → página
+```
+
+Esse fluxo evita ligar os componentes diretamente a objetos estáticos. Quando a
+API estiver pronta, a implementação local do repositório poderá ser trocada por
+HTTP sem mudar a composição visual da página.
+
+Foram criados os contratos `PublicSummarySchema` e
+`PublicInstitutionalPageSchema`, a fixture institucional, os formatadores de
+moeda e número e os componentes reutilizáveis de banner, indicadores, ícones e
+navegação por categoria.
+
+### Conceito: `satisfies` e `parse`
+
+A fixture usa `satisfies PublicInstitutionalPage` para receber feedback do
+TypeScript durante a escrita e `PublicInstitutionalPageSchema.parse(...)` para
+validar o objeto também em tempo de execução. TypeScript desaparece depois do
+build; Zod continua protegendo a fronteira quando os dados vierem de JSON ou da
+API.
+
+### Comando útil por workspace
+
+```powershell
+pnpm --filter @oab-transparencia/web dev
+```
+
+`--filter` seleciona somente o workspace informado. É útil quando se quer
+trabalhar apenas no frontend, sem iniciar a API e os outros pacotes.
+
+### Verificação
+
+- `pnpm typecheck`: aprovado;
+- `pnpm lint`: aprovado, sem avisos;
+- `pnpm test`: 9 testes aprovados;
+- `pnpm build`: aprovado;
+- comparação visual manual da rota `/public/institucional`: aprovada em desktop;
+- comportamento responsivo definido para 820 px, 520 px e 360 px.

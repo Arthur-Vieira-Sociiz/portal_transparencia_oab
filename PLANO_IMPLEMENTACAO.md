@@ -54,8 +54,8 @@ O desenvolvimento começa pela reprodução fiel do portal público. Os contrato
 - [x] Criar a base Zod compartilhada para indicadores, documentos, RH, patrimônio, financeiro, contratos e quantitativos administrativos.
 - [ ] Modelar com Zod indicadores, documentos, orçamento, patrimônio, contratos, RH, relatórios, glossário e LGPD.
 - [ ] Criar fixtures equivalentes ao conteúdo atual.
-- [ ] Implementar uma interface de repositório de dados com adapter local.
-- [ ] Centralizar moeda, percentual, datas e exercícios.
+- [x] Implementar a base da interface de repositório de dados com adapter local.
+- [x] Centralizar a primeira formatação de moeda e números inteiros.
 - [ ] Garantir que a futura troca para HTTP não altere as páginas.
 
 **Saída:** frontend público funcional sem depender do backend.
@@ -63,7 +63,7 @@ O desenvolvimento começa pela reprodução fiel do portal público. Os contrato
 ## Etapa 4 — Componentes compartilhados
 
 - [ ] Implementar tokens e componentes básicos em `packages/ui`.
-- [ ] Implementar shell, breadcrumb, grade de indicadores e navegação por categoria.
+- [x] Implementar o primeiro shell público, grade de indicadores e navegação por categoria.
 - [ ] Implementar filtros, tabela responsiva, documentos, downloads e estados vazios.
 - [ ] Implementar cards de estatística, progresso, gráficos, índice alfabético e accordion.
 - [ ] Implementar estados de foco, hover, loading, erro e desabilitado.
@@ -74,7 +74,7 @@ O desenvolvimento começa pela reprodução fiel do portal público. Os contrato
 
 Implementar na ordem abaixo:
 
-1. [ ] Institucional.
+1. [x] Institucional.
 2. [ ] Administrativo.
 3. [ ] Orçamentário.
 4. [ ] Patrimonial.
@@ -166,4 +166,6 @@ Rotas previstas:
 
 ## Próxima ação
 
-Executar a Etapa 3: modelar os contratos Zod e criar as primeiras fixtures públicas.
+Continuar a Etapa 3 e iniciar a segunda composição pública: modelar os dados e
+implementar a página Administrativo, reutilizando o shell, os indicadores e a
+navegação criados em Institucional.

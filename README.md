@@ -28,11 +28,11 @@ O primeiro ciclo de desenvolvimento será dedicado à reprodução fiel das pág
 
 ## Estado atual
 
-Etapa 2 concluída e Etapa 3 iniciada: Git, workspace pnpm, Turborepo,
-React/Vite, API Express e pacotes compartilhados estão inicializados. As
-rotas-base `/public`, `/admin` e `/login` já existem, os primeiros contratos Zod
-foram extraídos dos snippets legados e web/API estão preparados para projetos
-separados na Vercel.
+Etapa 2 concluída e Etapas 3–5 em andamento: Git, workspace pnpm, Turborepo,
+React/Vite, API Express e pacotes compartilhados estão inicializados. A primeira
+página pública, `/public/institucional`, já usa contratos Zod, fixture validada,
+repositório local e componentes reutilizáveis. Web e API estão preparados para
+projetos separados na Vercel.
 
 ## Primeiros comandos
 

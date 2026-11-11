@@ -1,8 +1,10 @@
 :root {
-  --color-institutional: #263851;
+  --color-institutional: #071d48;
   --color-institutional-deep: #1e293b;
-  --color-action: #0284c7;
-  --color-oab-red: #cc3366;
+  --color-action: #0097e8;
+  --color-oab-red: #ff3557;
+  --color-public-text: #071d48;
+  --color-public-border: #0c2859;
   --color-surface: #ffffff;
   --color-surface-subtle: #edeff1;
   --color-text: #333333;
@@ -10,7 +12,7 @@
 
   color: var(--color-text);
   background: var(--color-surface);
-  font-family: Inter, 'Segoe UI', sans-serif;
+  font-family: Arial, 'Helvetica Neue', sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;

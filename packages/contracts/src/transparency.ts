@@ -9,6 +9,28 @@ import {
 const NonNegativeIntegerSchema = z.number().int().nonnegative()
 const NonNegativeAmountSchema = z.number().finite().nonnegative()
 
+export const PublicSummarySchema = z.object({
+  exercise: ExerciseSchema,
+  totalExpenses: NonNegativeAmountSchema,
+  totalRevenue: NonNegativeAmountSchema,
+  budget: NonNegativeAmountSchema,
+  patrimony: NonNegativeAmountSchema,
+  activeLawyers: NonNegativeIntegerSchema,
+  activeSocieties: NonNegativeIntegerSchema,
+  supportRooms: NonNegativeIntegerSchema,
+  registeredMembers: NonNegativeIntegerSchema,
+})
+
+export const InstitutionalContentSchema = z.object({
+  introduction: z.array(z.string().trim().min(1)).min(1),
+  regulations: z.array(z.string().trim().min(1)).min(1),
+})
+
+export const PublicInstitutionalPageSchema = z.object({
+  summary: PublicSummarySchema,
+  content: InstitutionalContentSchema,
+})
+
 export const GeneralIndicatorsSchema = z.object({
   exercise: ExerciseSchema,
   totalRevenue: NonNegativeAmountSchema,
@@ -124,6 +146,11 @@ export const ContractFiltersSchema = z.object({
 })
 
 export type GeneralIndicators = z.infer<typeof GeneralIndicatorsSchema>
+export type PublicSummary = z.infer<typeof PublicSummarySchema>
+export type InstitutionalContent = z.infer<typeof InstitutionalContentSchema>
+export type PublicInstitutionalPage = z.infer<
+  typeof PublicInstitutionalPageSchema
+>
 export type HumanResourcesRecord = z.infer<typeof HumanResourcesRecordSchema>
 export type PatrimonialAsset = z.infer<typeof PatrimonialAssetSchema>
 export type FinancialTransparency = z.infer<typeof FinancialTransparencySchema>

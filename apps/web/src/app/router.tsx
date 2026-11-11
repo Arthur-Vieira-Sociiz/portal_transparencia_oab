@@ -1,6 +1,7 @@
 import { Navigate, createBrowserRouter } from 'react-router-dom'
 
 import { FoundationPage } from '../features/foundation/FoundationPage'
+import { InstitutionalPage } from '../features/public/pages/InstitutionalPage'
 
 export const router = createBrowserRouter([
   {
@@ -12,10 +13,14 @@ export const router = createBrowserRouter([
     element: <Navigate replace to="/public/institucional" />,
   },
   {
+    path: '/public/institucional',
+    element: <InstitutionalPage />,
+  },
+  {
     path: '/public/:section',
     element: (
       <FoundationPage
-        description="A reprodução fiel das dez páginas públicas começa na próxima etapa."
+        description="Esta categoria será reproduzida a partir do mesmo conjunto de componentes da página Institucional."
         title="Portal da Transparência OAB-AL"
       />
     ),
