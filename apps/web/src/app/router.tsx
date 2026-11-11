@@ -3,6 +3,7 @@ import { Navigate, createBrowserRouter } from 'react-router-dom'
 import { FoundationPage } from '../features/foundation/FoundationPage'
 import { AdministrativePage } from '../features/public/pages/AdministrativePage'
 import { BudgetPage } from '../features/public/pages/BudgetPage'
+import { ContractsPage } from '../features/public/pages/ContractsPage'
 import { FinancialPage } from '../features/public/pages/FinancialPage'
 import { InstitutionalPage } from '../features/public/pages/InstitutionalPage'
 import { HumanResourcesPage } from '../features/public/pages/HumanResourcesPage'
@@ -40,6 +41,10 @@ export const router = createBrowserRouter([
   {
     path: '/public/recursos-humanos',
     element: <HumanResourcesPage />,
+  },
+  {
+    path: '/public/contratos-e-licitacoes',
+    element: <ContractsPage />,
   },
   {
     path: '/public/:section',

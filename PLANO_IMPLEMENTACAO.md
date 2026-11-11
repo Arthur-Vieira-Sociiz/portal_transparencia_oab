@@ -80,7 +80,7 @@ Implementar na ordem abaixo:
 4. [x] Financeiro.
 5. [x] Patrimonial.
 6. [x] Recursos Humanos.
-7. [ ] Contratos e Licitações.
+7. [x] Contratos e Licitações.
 8. [ ] Glossário.
 9. [ ] LGPD.
 10. [ ] Relatórios e Indicadores.
@@ -166,6 +166,6 @@ Rotas previstas:
 
 ## Próxima ação
 
-Continuar a Etapa 3 e iniciar a sétima composição pública: modelar os dados e
-implementar a página Contratos e Licitações, reutilizando o shell público. O iframe externo
+Continuar a Etapa 3 e iniciar a oitava composição pública: modelar os dados e
+implementar a página Glossário, reutilizando o shell público. O iframe externo
 de Administrativo permanece como dependência temporária documentada.

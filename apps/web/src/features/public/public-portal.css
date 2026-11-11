@@ -706,6 +706,227 @@
   text-align: center;
 }
 
+.contracts-content {
+  color: #4b5563;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.contracts-top-bar {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.contracts-top-bar .public-section-title {
+  margin-top: 10px;
+}
+
+.contracts-top-bar p {
+  margin: 0;
+}
+
+.contracts-search {
+  display: flex;
+  min-width: 220px;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 8px 0;
+  border: 0;
+  border-bottom: 1px solid #cbd5e1;
+}
+
+.contracts-search svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  stroke: #64748b;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.contracts-search input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  color: #374151;
+  background: transparent;
+}
+
+.contracts-filters {
+  display: grid;
+  grid-template-columns: 120px minmax(200px, 300px);
+  gap: 15px;
+  margin: 12px 0 30px;
+}
+
+.contracts-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.contracts-filter select {
+  min-height: 38px;
+  padding: 8px 35px 8px 12px;
+  border: 1px solid #f5f4f4;
+  border-radius: 4px;
+  color: #374151;
+  background: #f5f4f4;
+}
+
+.contracts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 410px));
+  gap: 24px;
+}
+
+.contract-card {
+  display: flex;
+  gap: 20px;
+  padding: 24px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #edeff1;
+}
+
+.contract-card__document {
+  position: relative;
+  display: flex;
+  min-width: 85px;
+  align-items: center;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.contract-card__document > svg {
+  width: 48px;
+  height: 48px;
+  color: #cbd5e1;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+}
+
+.contract-card__pdf-badge {
+  position: absolute;
+  top: 23px;
+  left: 10px;
+  padding: 2px 5px;
+  border-radius: 2px;
+  color: #fff;
+  background: #f35448;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.contract-card__info {
+  min-width: 0;
+  flex: 1;
+}
+
+.contract-card__info h3 {
+  margin: 0 0 10px;
+  color: #263851;
+  font-size: 15px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.contract-card__info p {
+  margin: 4px 0;
+  font-size: 13px;
+}
+
+.contract-card__info strong {
+  color: #374151;
+  font-weight: 600;
+}
+
+.contracts-document-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #0099ff;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.contracts-document-link:hover {
+  text-decoration: underline;
+}
+
+.contracts-document-link svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.contract-amendment-link {
+  display: inline-flex;
+  color: #f35448;
+}
+
+.contract-amendment-link svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.contract-card__amendments {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 15px;
+  padding-top: 12px;
+  border-top: 1px solid #d1d5db;
+}
+
+.contract-card__amendments > span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.contracts-empty-state {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 60px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  color: #94a3b8;
+  background: #f8fafc;
+  font-size: 16px;
+  text-align: center;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
 .document-download {
   display: inline-flex;
   min-height: 42px;
@@ -774,6 +995,24 @@
   }
 
   .human-resources-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .contracts-top-bar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .contracts-search {
+    width: 100%;
+  }
+
+  .contracts-filters {
+    grid-template-columns: 90px minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .contracts-grid {
     grid-template-columns: 1fr;
   }
 

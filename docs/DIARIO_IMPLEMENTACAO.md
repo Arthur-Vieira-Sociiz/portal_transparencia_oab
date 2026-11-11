@@ -360,3 +360,31 @@ A página `/public/recursos-humanos` reproduz os filtros, o cabeçalho da sede, 
 lista mensal e os downloads. Foram criados dados de desenvolvimento para
 Jacarecica (2026) e Maceió Centro (2025), exclusivamente para exercitar os
 estados de filtro e a futura publicação.
+
+## 2026-11-11 — Sétima página pública: Contratos e Licitações
+
+### Estrutura encontrada no portal atual
+
+A página combina busca textual, filtros de ano e fornecedor, e uma grade de
+cards. Cada card reúne fornecedor, CNPJ, objeto, data, vigência, valor, contrato
+principal e aditivos. A fonte atual lista fornecedores, mas responde com estado
+vazio para os filtros consultados.
+
+### Contrato preparado para o admin
+
+`ContractRecordSchema` passou a exigir `objectDescription` e `signedAt`, além de
+fornecedor, CNPJ, vigência, valor, exercício, documento principal e aditivos.
+`PublicContractsPageSchema` agrupa os exercícios e contratos publicados.
+
+Foram criados dois registros de desenvolvimento para exercitar pesquisa, filtro
+por exercício e exibição de aditivo. Eles são mocks e não representam contratos
+reais da OAB/AL.
+
+### Ajuste de fidelidade visual
+
+A composição pública foi revisada contra a referência do WordPress: título e
+descrição sem acentuação, busca apenas com sublinhado, filtros compactos e card
+de 410px. O card mostra exclusivamente os campos que aparecem na referência
+(fornecedor, CNPJ, vigência, valor e aditivo); `objectDescription` e `signedAt`
+continuam no contrato compartilhado para o formulário administrativo futuro,
+mas não são inventados na tela pública.

@@ -151,11 +151,18 @@ export const ContractRecordSchema = z.object({
   id: z.string().min(1),
   supplier: z.string().trim().min(1),
   cnpj: z.string().trim().min(14).max(18),
+  objectDescription: z.string().trim().min(1),
+  signedAt: z.string().trim().min(1),
   term: z.string().trim().min(1),
   value: NonNegativeAmountSchema,
   exercise: ExerciseSchema,
   contractDocument: TransparencyDocumentSchema.optional(),
   amendments: z.array(TransparencyDocumentSchema),
+})
+
+export const PublicContractsPageSchema = z.object({
+  availableExercises: z.array(ExerciseSchema).min(1),
+  contracts: z.array(ContractRecordSchema),
 })
 
 export const AdministrativeEnrollmentSchema = z.object({
@@ -213,6 +220,7 @@ export type PublicFinancialPage = z.infer<typeof PublicFinancialPageSchema>
 export type BudgetTransparency = z.infer<typeof BudgetTransparencySchema>
 export type BudgetRecord = z.infer<typeof BudgetRecordSchema>
 export type ContractRecord = z.infer<typeof ContractRecordSchema>
+export type PublicContractsPage = z.infer<typeof PublicContractsPageSchema>
 export type AdministrativeEnrollment = z.infer<
   typeof AdministrativeEnrollmentSchema
 >
