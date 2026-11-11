@@ -1,0 +1,108 @@
+:root {
+  --color-institutional: #263851;
+  --color-institutional-deep: #1e293b;
+  --color-action: #0284c7;
+  --color-oab-red: #cc3366;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #edeff1;
+  --color-text: #333333;
+  --color-text-muted: #69727d;
+
+  color: var(--color-text);
+  background: var(--color-surface);
+  font-family: Inter, 'Segoe UI', sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+button,
+a,
+select,
+input {
+  font: inherit;
+}
+
+button:not(:disabled),
+a,
+select:not(:disabled) {
+  cursor: pointer;
+}
+
+::selection {
+  color: var(--color-surface);
+  background: var(--color-institutional);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-action);
+  outline-offset: 3px;
+}
+
+.foundation-page {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 32px;
+  background:
+    linear-gradient(90deg, var(--color-oab-red) 0 64px, transparent 64px) top /
+      100% 4px no-repeat,
+    var(--color-surface);
+}
+
+.foundation-page__content {
+  width: min(100%, 760px);
+  padding-block: 48px;
+  border-block: 1px solid var(--color-surface-subtle);
+}
+
+.foundation-page h1 {
+  max-width: 18ch;
+  margin: 0;
+  color: var(--color-institutional);
+  font-size: clamp(32px, 6vw, 64px);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+}
+
+.foundation-page__description {
+  max-width: 64ch;
+  margin: 24px 0 0;
+  color: var(--color-text-muted);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.foundation-page__status {
+  width: fit-content;
+  margin: 32px 0 0;
+  padding: 10px 16px;
+  border: 1px solid var(--color-institutional);
+  border-radius: 4px;
+  color: var(--color-institutional);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .foundation-page {
+    place-items: start;
+    padding: 24px 20px;
+  }
+
+  .foundation-page__content {
+    padding-block: 40px;
+  }
+}

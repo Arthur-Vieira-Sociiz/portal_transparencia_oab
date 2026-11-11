@@ -1,0 +1,39 @@
+# Dependências e artefatos de build
+node_modules/
+dist/
+dist-ssr/
+coverage/
+.turbo/
+.cache/
+
+# Relatórios de testes locais
+playwright-report/
+test-results/
+
+# Variáveis de ambiente e configurações locais
+.env
+.env.*
+!.env.example
+*.local
+
+# Arquivos temporários e logs
+logs/
+*.log
+*-debug.log*
+*.tsbuildinfo
+
+# Editores e sistema operacional
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+*.suo
+*.sw?
+
+# Evidências temporárias das revisões visuais
+.impeccable/review/
+
+# Snippets legados brutos: revisar e remover segredos antes de versionar
+docs/referencias/snippets/raw/
+

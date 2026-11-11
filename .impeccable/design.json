@@ -1,0 +1,170 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-11T12:40:00-03:00",
+  "title": "Design System: Portal da Transparência OAB-AL",
+  "extensions": {
+    "colorMeta": {
+      "institutional-navy": {
+        "role": "primary",
+        "displayName": "Azul institucional",
+        "canonical": "#263851",
+        "tonalRamp": [
+          "#0D141D",
+          "#162130",
+          "#263851",
+          "#3E5574",
+          "#60799B",
+          "#91A4BD",
+          "#C4CFDD",
+          "#EEF2F6"
+        ]
+      },
+      "oab-red": {
+        "role": "secondary",
+        "displayName": "Vermelho OAB",
+        "canonical": "#CC3366",
+        "tonalRamp": [
+          "#3D0F1F",
+          "#661A33",
+          "#8F2447",
+          "#CC3366",
+          "#DA668C",
+          "#E699B1",
+          "#F2CCD8",
+          "#FBEFF3"
+        ]
+      },
+      "public-action": {
+        "role": "tertiary",
+        "displayName": "Azul de ação pública",
+        "canonical": "#0284C7",
+        "tonalRamp": [
+          "#042536",
+          "#063C59",
+          "#075C86",
+          "#0284C7",
+          "#38A4DB",
+          "#7BC4E6",
+          "#B9E1F1",
+          "#EDF8FC"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Títulos de blocos principais."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Títulos institucionais e compactos."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Parágrafos, descrições e células."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Filtros, cabeçalhos e metadados."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "state-transition",
+        "value": "150ms ease-out",
+        "purpose": "Mudanças de hover, foco e estado ativo."
+      }
+    ],
+    "breakpoints": [
+      { "name": "reference-mobile", "value": "390px" },
+      { "name": "reference-tablet", "value": "768px" },
+      { "name": "reference-desktop", "value": "1440px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Category Card",
+      "kind": "nav",
+      "refersTo": "category-card",
+      "description": "Navegação compacta entre categorias públicas.",
+      "html": "<a class=\"ds-category-card\" href=\"#\">Institucional</a>",
+      "css": ".ds-category-card { display:flex; min-height:72px; align-items:center; justify-content:center; padding:16px; border:1px solid #263851; border-radius:8px; background:#fff; color:#263851; font:600 13px/1.5 Inter,sans-serif; text-decoration:none; transition:background 150ms ease-out,color 150ms ease-out; } .ds-category-card:hover { background:#E2ECF8; } .ds-category-card:focus-visible { outline:3px solid #0284C7; outline-offset:2px; }"
+    },
+    {
+      "name": "Active Category Card",
+      "kind": "nav",
+      "refersTo": "category-card-active",
+      "description": "Categoria atualmente selecionada.",
+      "html": "<a class=\"ds-category-card-active\" href=\"#\" aria-current=\"page\">Financeiro</a>",
+      "css": ".ds-category-card-active { display:flex; min-height:72px; align-items:center; justify-content:center; padding:16px; border:1px solid #263851; border-radius:8px; background:#263851; color:#fff; font:600 13px/1.5 Inter,sans-serif; text-decoration:none; } .ds-category-card-active:hover { background:#1E293B; } .ds-category-card-active:focus-visible { outline:3px solid #0284C7; outline-offset:2px; }"
+    },
+    {
+      "name": "Metric Card",
+      "kind": "card",
+      "refersTo": "metric-card",
+      "description": "Resumo comparável de indicador e exercício.",
+      "html": "<article class=\"ds-metric-card\"><span>RECEITAS TOTAIS</span><strong>R$ 0,00</strong><small>Exercício 2025</small></article>",
+      "css": ".ds-metric-card { display:grid; gap:4px; padding:12px 16px; border:1px solid #263851; border-radius:12px; background:#fff; color:#263851; font-family:Inter,sans-serif; } .ds-metric-card span { font-size:13px; font-weight:600; } .ds-metric-card strong { font-size:20px; line-height:1.2; } .ds-metric-card small { color:#69727D; font-size:12px; } .ds-metric-card:focus-within { outline:3px solid #0284C7; outline-offset:2px; }"
+    },
+    {
+      "name": "Filter Field",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "Filtro por exercício, tipo, fornecedor ou localidade.",
+      "html": "<label class=\"ds-field-label\">Exercício/Ano<select class=\"ds-field\"><option>2026</option></select></label>",
+      "css": ".ds-field-label { display:grid; gap:6px; color:#333; font:600 13px/1.5 Inter,sans-serif; } .ds-field { min-height:43px; padding:10px 36px 10px 16px; border:1px solid #E5E7EB; border-radius:4px; background:#EDEFF1; color:#333; font:400 14px/1.5 Inter,sans-serif; } .ds-field:focus-visible { outline:3px solid #0284C7; outline-offset:2px; border-color:#263851; } .ds-field:disabled { cursor:not-allowed; opacity:.65; }"
+    },
+    {
+      "name": "Data Table",
+      "kind": "custom",
+      "description": "Tabela institucional densa e legível.",
+      "html": "<table class=\"ds-table\"><thead><tr><th>TIPO DE INFORMAÇÃO</th><th>VALOR PREVISTO</th></tr></thead><tbody><tr><td>Orçamento</td><td>R$ 14.500.000,00</td></tr></tbody></table>",
+      "css": ".ds-table { width:100%; border-collapse:collapse; color:#374151; font:400 14px/1.5 Inter,sans-serif; } .ds-table th { padding:12px 16px; background:#EDEFF1; color:#263851; font-size:13px; font-weight:600; text-align:left; } .ds-table td { padding:12px 16px; border:1px solid #E5E7EB; background:#fff; font-weight:500; } .ds-table tr:focus-within { outline:3px solid #0284C7; outline-offset:-3px; }"
+    },
+    {
+      "name": "Download Action",
+      "kind": "button",
+      "description": "Ação pública explícita para baixar um documento.",
+      "html": "<a class=\"ds-download\" href=\"#\">BAIXAR PDF</a>",
+      "css": ".ds-download { display:inline-flex; min-height:40px; align-items:center; padding:8px 12px; border-radius:4px; color:#0284C7; font:600 13px/1.5 Inter,sans-serif; text-decoration:none; } .ds-download:hover { background:#E2ECF8; color:#263851; } .ds-download:focus-visible { outline:3px solid #0284C7; outline-offset:2px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Quadro Público de Prestação de Contas",
+    "overview": "O sistema visual herda a identidade já reconhecida no portal da OAB-AL. Ele deve se comportar como um quadro público bem organizado: institucional, direto, verificável e denso o bastante para permitir comparação sem transformar cada informação em decoração. A reprodução é deliberadamente fiel; o valor está em consistência, responsividade, acessibilidade e manutenção.",
+    "keyCharacteristics": [
+      "Azul institucional como estrutura e estado ativo.",
+      "Superfícies planas, brancas e delimitadas por borda.",
+      "Números e rótulos compactos com hierarquia por peso e contraste.",
+      "Componentes repetíveis para categorias, filtros, tabelas, documentos e indicadores."
+    ],
+    "rules": [
+      {
+        "name": "Public Record Rule",
+        "body": "Cor nunca substitui rótulo, valor, legenda ou estado textual em tabelas e gráficos.",
+        "section": "colors"
+      },
+      {
+        "name": "Numbers First Rule",
+        "body": "Indicadores priorizam alinhamento, tabulação e leitura dos valores; o rótulo contextualiza sem competir.",
+        "section": "typography"
+      },
+      {
+        "name": "Flat Record Rule",
+        "body": "Cards, tabelas e filtros repousam sem sombra; interação é comunicada por borda, cor, foco e contraste.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do preservar a mesma ordem de indicadores e categorias nas dez páginas.",
+      "Do usar tokens semânticos para todos os valores visuais compartilhados.",
+      "Do representar gráficos também por legenda, rótulo e resumo acessível."
+    ],
+    "donts": [
+      "Don't introduzir gradientes genéricos, glassmorphism ou sombras de SaaS.",
+      "Don't esconder colunas ou dados no mobile sem alternativa equivalente.",
+      "Don't duplicar cabeçalho e rodapé do WordPress no modo público incorporado."
+    ]
+  }
+}
