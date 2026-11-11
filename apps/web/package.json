@@ -15,6 +15,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fontsource/inter": "^5.3.0",
     "@oab-transparencia/contracts": "workspace:*",
     "@oab-transparencia/ui": "workspace:*",
     "@tanstack/react-query": "^5.107.1",

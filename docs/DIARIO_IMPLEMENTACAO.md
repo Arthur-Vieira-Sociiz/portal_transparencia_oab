@@ -184,3 +184,25 @@ trabalhar apenas no frontend, sem iniciar a API e os outros pacotes.
 - `pnpm build`: aprovado;
 - comparação visual manual da rota `/public/institucional`: aprovada em desktop;
 - comportamento responsivo definido para 820 px, 520 px e 360 px.
+
+### Refinamento após comparação com o portal original
+
+A primeira captura local revelou que a escala tipográfica tinha sido estimada a
+partir de uma imagem reduzida. A inspeção do CSS publicado mostrou os valores
+reais: 13 px nos rótulos dos indicadores, 17 px nos valores, 11 px no exercício,
+16 px nos títulos e 14 px/20 px no conteúdo.
+
+Também substituímos os desenhos aproximados das categorias pelos dez arquivos de
+ícone usados no WordPress. Os indicadores mantêm SVG inline, agora com os mesmos
+paths do portal original. A fonte Inter passou a ser empacotada localmente com
+`@fontsource/inter`, evitando depender das fontes disponíveis no computador da
+pessoa que acessa o iframe.
+
+O comando usado para adicionar uma dependência apenas ao frontend foi:
+
+```powershell
+pnpm --filter @oab-transparencia/web add @fontsource/inter
+```
+
+Aqui, `--filter` seleciona o workspace e `add` registra a dependência no
+`package.json` desse aplicativo, atualizando também o lockfile da raiz.

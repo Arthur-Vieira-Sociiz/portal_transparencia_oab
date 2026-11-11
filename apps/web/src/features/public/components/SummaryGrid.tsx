@@ -60,7 +60,7 @@ export function SummaryGrid({ summary }: SummaryGridProps) {
     },
     {
       accent: 'blue',
-      icon: 'lawyers',
+      icon: 'subscribers',
       label: 'Qts. de inscritos',
       value: formatInteger(summary.registeredMembers),
     },
