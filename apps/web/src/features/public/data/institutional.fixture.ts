@@ -6,14 +6,14 @@ import {
 
 export const publicSummaryFixture = PublicSummarySchema.parse({
   exercise: 2025,
-  totalExpenses: 0,
-  totalRevenue: 0,
-  budget: 0,
-  patrimony: 0,
-  activeLawyers: 0,
-  activeSocieties: 0,
-  supportRooms: 0,
-  registeredMembers: 0,
+  totalExpenses: 17_111_470.67,
+  totalRevenue: 17_436_491.03,
+  budget: 17_600_000,
+  patrimony: 24_506_669,
+  activeLawyers: 17_345,
+  activeSocieties: 347,
+  supportRooms: 95,
+  registeredMembers: 18_574,
 })
 
 const institutionalFixture = {

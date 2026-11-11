@@ -83,7 +83,7 @@ Implementar na ordem abaixo:
 7. [x] Contratos e Licitações.
 8. [x] Glossário.
 9. [x] LGPD.
-10. [ ] Relatórios e Indicadores.
+10. [x] Relatórios e Indicadores.
 
 Rotas previstas:
 
@@ -166,6 +166,6 @@ Rotas previstas:
 
 ## Próxima ação
 
-Continuar a Etapa 3 e iniciar a décima composição pública: modelar os dados e
-implementar a página Relatórios e Indicadores, reutilizando o shell público. O
-iframe externo de Administrativo permanece como dependência temporária documentada.
+Concluir a comparação visual das dez telas em desktop, tablet e mobile antes de
+iniciar a Etapa 6. O iframe externo de Administrativo permanece como dependência
+temporária documentada.

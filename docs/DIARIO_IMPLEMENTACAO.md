@@ -419,3 +419,18 @@ grupo é iniciada aberta, como na referência.
 `LgpdSectionSchema` separa título e conteúdo. O painel administrativo poderá
 atualizar seções ou grupos individualmente, mantendo a interface pública e sua
 ordem sem código específico por tópico.
+
+## 2026-11-11 — Décima página pública: Relatórios e Indicadores
+
+O dashboard PHP fornecido foi traduzido para `PublicReportsPageSchema`, usando
+o histórico de `GeneralIndicators` por exercício. A página inclui filtros,
+indicadores financeiros e orçamentários, progresso, indicadores administrativos,
+contratos, recursos humanos e gráficos visuais leves sem depender de CDN.
+
+### Revisão de fidelidade dos gráficos
+
+Os gráficos de demonstração foram substituídos por Chart.js: barras agrupadas
+para comparativos, linhas para tendências e área preenchida para o valor total
+contratado. Com isso, as legendas, escalas e tooltips no hover passam a se
+comportar como no dashboard de referência. A biblioteca é importada apenas ao
+montar cada gráfico, preservando o carregamento inicial da página pública.

@@ -10,6 +10,7 @@ import { HumanResourcesPage } from '../features/public/pages/HumanResourcesPage'
 import { LgpdPage } from '../features/public/pages/LgpdPage'
 import { GlossaryPage } from '../features/public/pages/GlossaryPage'
 import { PatrimonialPage } from '../features/public/pages/PatrimonialPage'
+import { ReportsIndicatorsPage } from '../features/public/pages/ReportsIndicatorsPage'
 
 export const router = createBrowserRouter([
   {
@@ -55,6 +56,10 @@ export const router = createBrowserRouter([
   {
     path: '/public/lgpd',
     element: <LgpdPage />,
+  },
+  {
+    path: '/public/relatorios-e-indicadores',
+    element: <ReportsIndicatorsPage />,
   },
   {
     path: '/public/:section',

@@ -191,6 +191,11 @@ export const PublicLgpdPageSchema = z.object({
   groups: z.array(LgpdSectionGroupSchema).min(1),
 })
 
+export const PublicReportsPageSchema = z.object({
+  availableExercises: z.array(ExerciseSchema).min(1),
+  indicators: z.array(GeneralIndicatorsSchema).min(1),
+})
+
 export const AdministrativeEnrollmentSchema = z.object({
   id: z.string().min(1),
   exercise: ExerciseSchema,
@@ -252,6 +257,7 @@ export type PublicGlossaryPage = z.infer<typeof PublicGlossaryPageSchema>
 export type LgpdSection = z.infer<typeof LgpdSectionSchema>
 export type LgpdSectionGroup = z.infer<typeof LgpdSectionGroupSchema>
 export type PublicLgpdPage = z.infer<typeof PublicLgpdPageSchema>
+export type PublicReportsPage = z.infer<typeof PublicReportsPageSchema>
 export type AdministrativeEnrollment = z.infer<
   typeof AdministrativeEnrollmentSchema
 >
