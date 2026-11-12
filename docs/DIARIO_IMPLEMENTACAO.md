@@ -545,3 +545,24 @@ claro que ele afeta apenas o formulário atual e os valores ainda não salvos.
 Antes de limpar, o admin solicita confirmação em modal. A publicação também
 exige confirmação e apresenta os oito cards da prévia com os valores atuais,
 para que o operador revise o conteúdo antes de torná-lo público.
+
+O link `Ver tela pública` do `AdminShell` acompanha o módulo administrativo
+aberto e leva à rota pública correspondente. Em Dados gerais, o destino é
+Institucional, pois os indicadores compõem a página inicial.
+
+### Módulo de acesso: Usuários
+
+O shell exibe `Usuários` somente para perfis `ADMIN`. O cadastro tem nome,
+e-mail, perfil e senha, com gerador de senha aleatória. Após cadastrar, um
+modal exibe e-mail e senha separadamente, cada um com botão de copiar, sem
+expor a senha novamente na listagem. A API devolve a senha temporária apenas
+nessa resposta de criação e armazena somente o hash.
+
+### CRUD Orçamentário
+
+O módulo Orçamentário passou a cadastrar tipo de informação, exercício,
+orçamento anual, valor previsto, valor executado e metadados opcionais do
+documento. O percentual de execução é calculado pela API, os registros começam
+como rascunho e a publicação ocorre por exercício. A página pública consulta
+somente registros publicados, sem manter valores mockados como fonte oficial.
+

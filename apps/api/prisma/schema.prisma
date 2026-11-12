@@ -36,6 +36,8 @@ model User {
   sessions            Session[]
   createdGeneralData  GeneralData[] @relation("GeneralDataCreatedBy")
   updatedGeneralData  GeneralData[] @relation("GeneralDataUpdatedBy")
+  createdBudgetRecords BudgetRecord[] @relation("BudgetCreatedBy")
+  updatedBudgetRecords BudgetRecord[] @relation("BudgetUpdatedBy")
 }
 
 model GeneralData {
@@ -62,6 +64,28 @@ model GeneralData {
   @@index([status, exercise])
   @@index([createdById])
   @@index([updatedById])
+}
+
+model BudgetRecord {
+  id                  String            @id @default(cuid())
+  informationType     String
+  annualBudget        Decimal           @db.Decimal(14, 2)
+  plannedAmount       Decimal           @db.Decimal(14, 2)
+  executedAmount      Decimal           @db.Decimal(14, 2)
+  exercise            Int
+  documentTitle       String?
+  documentUrl         String?
+  status              GeneralDataStatus @default(DRAFT)
+  publishedAt         DateTime?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  createdById         String
+  updatedById         String
+  createdBy           User              @relation("BudgetCreatedBy", fields: [createdById], references: [id])
+  updatedBy           User              @relation("BudgetUpdatedBy", fields: [updatedById], references: [id])
+
+  @@unique([informationType, exercise])
+  @@index([status, exercise])
 }
 
 model Session {

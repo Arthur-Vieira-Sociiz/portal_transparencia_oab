@@ -6,6 +6,10 @@ import {
   CreateGeneralDataRequestSchema,
   UpdateGeneralDataRequestSchema,
 } from '@oab-transparencia/contracts/transparency'
+import {
+  AdminCreateUserRequestSchema,
+  AdminCreatedUserResponseSchema,
+} from '@oab-transparencia/contracts/auth'
 import { ExerciseSchema } from '@oab-transparencia/contracts/common'
 import { HealthResponseSchema } from '@oab-transparencia/contracts/health'
 import cors from 'cors'
@@ -26,10 +30,22 @@ import {
   type GeneralDataService,
 } from './general-data/general-data-service.js'
 import { createPrismaGeneralDataRepository } from './general-data/prisma-general-data-repository.js'
+import {
+  BudgetError,
+  createBudgetService,
+  type BudgetService,
+} from './budget/budget-service.js'
+import { createPrismaBudgetRepository } from './budget/prisma-budget-repository.js'
+import {
+  CreateBudgetRecordRequestSchema,
+  PublicBudgetRecordsSchema,
+  UpdateBudgetRecordRequestSchema,
+} from '@oab-transparencia/contracts/transparency'
 
 type AppOptions = {
   authService?: AuthService
   generalDataService?: GeneralDataService
+  budgetService?: BudgetService
 }
 
 function authenticationErrorResponse(
@@ -42,6 +58,7 @@ function authenticationErrorResponse(
     INVALID_REGISTRATION_KEY: [403, 'Chave de cadastro inválida.'],
     REGISTRATION_UNAVAILABLE: [503, 'Cadastro inicial indisponível.'],
     UNAUTHENTICATED: [401, 'Autenticação necessária.'],
+    FORBIDDEN: [403, 'Apenas administradores podem gerenciar usuários.'],
   } as const
   const [status, message] = responses[error.code]
   response.status(status).json({ message })
@@ -98,11 +115,22 @@ export function createApp(options: AppOptions = {}): Express {
     )
     return generalDataService
   }
+  let budgetService = options.budgetService
+  function getBudgetService() {
+    budgetService ??= createBudgetService(createPrismaBudgetRepository())
+    return budgetService
+  }
 
   async function requireUser(request: Request) {
     const token = readBearerToken(request.headers.authorization)
     if (!token) throw new AuthenticationError('UNAUTHENTICATED')
     return getAuthService().getAuthenticatedUser(token)
+  }
+
+  async function requireAdmin(request: Request) {
+    const user = await requireUser(request)
+    if (user.role !== 'ADMIN') throw new AuthenticationError('FORBIDDEN')
+    return user
   }
 
   app.get('/api/health', (_request, response) => {
@@ -151,6 +179,31 @@ export function createApp(options: AppOptions = {}): Express {
       if (!token) throw new AuthenticationError('UNAUTHENTICATED')
       await getAuthService().logout(token)
       response.status(204).send()
+    } catch (error) {
+      next(error)
+    }
+  })
+
+  app.get('/api/admin/users', async (request, response, next) => {
+    try {
+      await requireAdmin(request)
+      response.json({ users: await getAuthService().listUsers() })
+    } catch (error) {
+      next(error)
+    }
+  })
+
+  app.post('/api/admin/users', async (request, response, next) => {
+    try {
+      await requireAdmin(request)
+      const input = AdminCreateUserRequestSchema.parse(request.body)
+      const user = await getAuthService().createUserByAdmin(input)
+      response.status(201).json(
+        AdminCreatedUserResponseSchema.parse({
+          user,
+          temporaryPassword: input.password,
+        }),
+      )
     } catch (error) {
       next(error)
     }
@@ -227,6 +280,72 @@ export function createApp(options: AppOptions = {}): Express {
     },
   )
 
+  app.get('/api/public/budget', async (request, response, next) => {
+    try {
+      const exercise = request.query.exercise
+        ? ExerciseSchema.parse(Number(request.query.exercise))
+        : undefined
+      const type =
+        typeof request.query.informationType === 'string'
+          ? request.query.informationType
+          : undefined
+      response.json(
+        PublicBudgetRecordsSchema.parse(
+          await getBudgetService().getPublished(exercise, type),
+        ),
+      )
+    } catch (error) {
+      next(error)
+    }
+  })
+  app.get('/api/admin/budget', async (request, response, next) => {
+    try {
+      await requireUser(request)
+      response.json({ records: await getBudgetService().list() })
+    } catch (error) {
+      next(error)
+    }
+  })
+  app.post('/api/admin/budget', async (request, response, next) => {
+    try {
+      const user = await requireUser(request)
+      const input = CreateBudgetRecordRequestSchema.parse(request.body)
+      response
+        .status(201)
+        .json(await getBudgetService().create({ ...input, userId: user.id }))
+    } catch (error) {
+      next(error)
+    }
+  })
+  app.patch('/api/admin/budget/:id', async (request, response, next) => {
+    try {
+      const user = await requireUser(request)
+      const input = UpdateBudgetRecordRequestSchema.parse(request.body)
+      response.json(
+        await getBudgetService().update(request.params.id, {
+          ...input,
+          userId: user.id,
+        }),
+      )
+    } catch (error) {
+      next(error)
+    }
+  })
+  app.post(
+    '/api/admin/budget/:exercise/publish',
+    async (request, response, next) => {
+      try {
+        const user = await requireUser(request)
+        const exercise = ExerciseSchema.parse(Number(request.params.exercise))
+        response.json(
+          await getBudgetService().publishExercise(exercise, user.id),
+        )
+      } catch (error) {
+        next(error)
+      }
+    },
+  )
+
   app.use(
     (
       error: unknown,
@@ -250,6 +369,18 @@ export function createApp(options: AppOptions = {}): Express {
       }
       if (error instanceof GeneralDataError) {
         generalDataErrorResponse(error, response)
+        return
+      }
+      if (error instanceof BudgetError) {
+        const messages = {
+          BUDGET_RECORD_ALREADY_EXISTS:
+            'Já existe um registro para este tipo e exercício.',
+          BUDGET_RECORD_NOT_FOUND: 'Registro orçamentário não encontrado.',
+          BUDGET_EXERCISE_NOT_FOUND:
+            'Nenhum registro orçamentário encontrado para este exercício.',
+        } as const
+        const status = error.code === 'BUDGET_RECORD_ALREADY_EXISTS' ? 409 : 404
+        response.status(status).json({ message: messages[error.code] })
         return
       }
 

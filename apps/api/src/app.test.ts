@@ -57,6 +57,9 @@ function createMemoryAuthRepository(): AuthRepository {
     async findUserByEmail(email) {
       return users.get(email) ?? null
     },
+    async listUsers() {
+      return [...users.values()]
+    },
     async findActiveSession(tokenHash) {
       const userId = sessions.get(tokenHash)
       if (!userId) return null

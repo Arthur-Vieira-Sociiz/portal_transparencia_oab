@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Navigate, NavLink, useNavigate } from 'react-router-dom'
+import { Navigate, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import {
   BarChart3,
   BookOpen,
@@ -48,6 +48,20 @@ const menuItems = [
   { label: 'LGPD', path: '/admin/lgpd', icon: ShieldCheck },
 ]
 
+const publicPathByAdminPath: Record<string, string> = {
+  '/admin': '/public/institucional',
+  '/admin/dashboard': '/public/institucional',
+  '/admin/administrativo': '/public/administrativo',
+  '/admin/orcamentario': '/public/orcamentario',
+  '/admin/financeiro': '/public/financeiro',
+  '/admin/patrimonial': '/public/patrimonial',
+  '/admin/contratos-e-licitacoes': '/public/contratos-e-licitacoes',
+  '/admin/recursos-humanos': '/public/recursos-humanos',
+  '/admin/relatorios-e-indicadores': '/public/relatorios-e-indicadores',
+  '/admin/glossario': '/public/glossario',
+  '/admin/lgpd': '/public/lgpd',
+}
+
 export function AdminShell({
   children,
   title,
@@ -55,7 +69,10 @@ export function AdminShell({
   eyebrow = 'PAINEL ADMINISTRATIVO • OAB/AL',
 }: AdminShellProps) {
   const navigate = useNavigate()
+  const location = useLocation()
   const session = getStoredAuthSession()
+  const publicPath =
+    publicPathByAdminPath[location.pathname] ?? '/public/institucional'
 
   if (!session) return <Navigate replace to="/login" />
 
@@ -79,8 +96,10 @@ export function AdminShell({
               OAB
             </span>
             <div>
-              <strong className="block text-sm">OAB Alagoas</strong>
-              <span className="text-xs text-white/60">
+              <strong className="block text-[15px] font-semibold tracking-[-0.01em]">
+                OAB Alagoas
+              </strong>
+              <span className="text-[11px] tracking-[0.02em] text-white/60">
                 Gestão da transparência
               </span>
             </div>
@@ -90,7 +109,12 @@ export function AdminShell({
           aria-label="Módulos administrativos"
           className="flex-1 space-y-1 overflow-y-auto px-3 py-5"
         >
-          {menuItems.map((item) => (
+          {[
+            ...menuItems,
+            ...(session.user.role === 'ADMIN'
+              ? [{ label: 'Usuários', path: '/admin/usuarios', icon: Users }]
+              : []),
+          ].map((item) => (
             <AdminNavLink item={item} key={item.path} />
           ))}
         </nav>
@@ -100,10 +124,10 @@ export function AdminShell({
         <header className="sticky top-0 z-20 h-[88px] border-b border-[#dfe4ea] bg-white px-5 md:px-8 lg:px-10">
           <div className="mx-auto flex h-full max-w-[1440px] items-center justify-between gap-6">
             <div>
-              <p className="text-xs font-semibold tracking-[0.08em] text-[#52617a]">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#52617a]">
                 {eyebrow}
               </p>
-              <h1 className="mt-1 text-xl font-semibold tracking-[-0.02em] text-[#223149]">
+              <h1 className="mt-1 text-[22px] font-semibold tracking-[-0.025em] text-[#223149]">
                 {title}
               </h1>
               <p className="sr-only">{description}</p>
@@ -118,10 +142,10 @@ export function AdminShell({
                     .join('') ?? 'OA'}
                 </span>
                 <div className="hidden text-right md:block">
-                  <strong className="block text-xs text-[#223149]">
+                  <strong className="block text-[13px] font-semibold tracking-[-0.01em] text-[#223149]">
                     {session?.user.name}
                   </strong>
-                  <span className="text-xs text-[#69727d]">
+                  <span className="text-[11px] uppercase tracking-[0.08em] text-[#69727d]">
                     {session?.user.role}
                   </span>
                 </div>
@@ -133,8 +157,9 @@ export function AdminShell({
                 |
               </span>
               <a
-                className="hidden min-h-10 items-center gap-2 rounded-md border border-[#d1d9e4] px-3 text-xs font-semibold text-[#223149] transition-colors hover:border-[#223149] hover:bg-[#f4f6f9] md:flex"
-                href="/public/institucional"
+                aria-label="Ver tela pública deste módulo"
+                className="hidden min-h-10 items-center gap-2 rounded-md border border-[#d1d9e4] px-3 text-[13px] font-semibold tracking-[-0.005em] text-[#223149] transition-colors hover:border-[#223149] hover:bg-[#f4f6f9] md:flex"
+                href={publicPath}
                 rel="noreferrer"
                 target="_blank"
               >
@@ -158,7 +183,12 @@ export function AdminShell({
             aria-label="Módulos administrativos"
             className="flex gap-2 overflow-x-auto pb-1"
           >
-            {menuItems.map((item) => (
+            {[
+              ...menuItems,
+              ...(session.user.role === 'ADMIN'
+                ? [{ label: 'Usuários', path: '/admin/usuarios', icon: Users }]
+                : []),
+            ].map((item) => (
               <AdminNavLink item={item} key={item.path} mobile />
             ))}
           </nav>
@@ -183,7 +213,7 @@ function AdminNavLink({
     <NavLink
       className={({ isActive }) =>
         cn(
-          'group flex shrink-0 items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors',
+          'group flex shrink-0 items-center gap-3 rounded-lg px-3 py-3 text-[13px] font-semibold leading-5 tracking-[0.005em] transition-colors',
           mobile
             ? 'border border-[#dfe4ea] py-2 text-xs'
             : 'text-white/75 hover:bg-white/10 hover:text-white',

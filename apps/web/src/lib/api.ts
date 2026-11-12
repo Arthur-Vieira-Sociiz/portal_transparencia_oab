@@ -4,12 +4,26 @@ import {
 } from '@oab-transparencia/contracts/health'
 import {
   AuthSessionSchema,
+  AdminCreateUserRequestSchema,
+  AdminCreatedUserResponseSchema,
+  AdminUserSchema,
   type AuthSession,
+  type AdminCreateUserRequest,
+  type AdminCreatedUserResponse,
+  type AdminUser,
   type AuthenticatedUser,
 } from '@oab-transparencia/contracts/auth'
 import {
   CreateGeneralDataRequestSchema,
   GeneralDataSchema,
+  AdminBudgetRecordSchema,
+  CreateBudgetRecordRequestSchema,
+  PublicBudgetRecordsSchema,
+  UpdateBudgetRecordRequestSchema,
+  type AdminBudgetRecord,
+  type CreateBudgetRecordRequest,
+  type PublicBudgetRecords,
+  type UpdateBudgetRecordRequest,
   type CreateGeneralDataRequest,
   type GeneralData,
   type UpdateGeneralDataRequest,
@@ -70,6 +84,29 @@ export async function getCurrentUser(
   if (!response.ok) throw await getApiError(response)
   const payload = (await response.json()) as { user: AuthenticatedUser }
   return payload.user
+}
+
+export async function listAdminUsers(token: string): Promise<AdminUser[]> {
+  const payload = await authenticatedRequest(
+    token,
+    '/admin/users',
+    {},
+    (value) => value as { users: unknown[] },
+  )
+  return payload.users.map((user) => AdminUserSchema.parse(user))
+}
+
+export async function createAdminUser(
+  token: string,
+  input: AdminCreateUserRequest,
+): Promise<AdminCreatedUserResponse> {
+  const valid = AdminCreateUserRequestSchema.parse(input)
+  return authenticatedRequest(
+    token,
+    '/admin/users',
+    { body: JSON.stringify(valid), method: 'POST' },
+    (value) => AdminCreatedUserResponseSchema.parse(value),
+  )
 }
 
 async function authenticatedRequest<T>(
@@ -145,4 +182,61 @@ export async function getPublicGeneralData(
   const response = await fetch(`${apiBaseUrl}/public/general-data${query}`)
   if (!response.ok) throw await getApiError(response)
   return GeneralDataSchema.parse(await response.json())
+}
+
+export async function listBudgetRecords(
+  token: string,
+): Promise<AdminBudgetRecord[]> {
+  const payload = await authenticatedRequest(
+    token,
+    '/admin/budget',
+    {},
+    (value) => value as { records: unknown[] },
+  )
+  return payload.records.map((record) => AdminBudgetRecordSchema.parse(record))
+}
+export async function createBudgetRecord(
+  token: string,
+  input: CreateBudgetRecordRequest,
+): Promise<AdminBudgetRecord> {
+  const valid = CreateBudgetRecordRequestSchema.parse(input)
+  return authenticatedRequest(
+    token,
+    '/admin/budget',
+    { body: JSON.stringify(valid), method: 'POST' },
+    (value) => AdminBudgetRecordSchema.parse(value),
+  )
+}
+export async function updateBudgetRecord(
+  token: string,
+  id: string,
+  input: UpdateBudgetRecordRequest,
+): Promise<AdminBudgetRecord> {
+  const valid = UpdateBudgetRecordRequestSchema.parse(input)
+  return authenticatedRequest(
+    token,
+    `/admin/budget/${id}`,
+    { body: JSON.stringify(valid), method: 'PATCH' },
+    (value) => AdminBudgetRecordSchema.parse(value),
+  )
+}
+export async function publishBudgetExercise(
+  token: string,
+  exercise: number,
+): Promise<AdminBudgetRecord[]> {
+  const payload = await authenticatedRequest(
+    token,
+    `/admin/budget/${exercise}/publish`,
+    { method: 'POST' },
+    (value) => value as unknown[],
+  )
+  return payload.map((record) => AdminBudgetRecordSchema.parse(record))
+}
+export async function getPublicBudgetRecords(
+  exercise?: number,
+): Promise<PublicBudgetRecords> {
+  const query = exercise ? `?exercise=${exercise}` : ''
+  const response = await fetch(`${apiBaseUrl}/public/budget${query}`)
+  if (!response.ok) throw await getApiError(response)
+  return PublicBudgetRecordsSchema.parse(await response.json())
 }

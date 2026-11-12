@@ -1,0 +1,14 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-11-12T00:00:00.000Z",
+  "__export_source": "portal-transparencia-oab",
+  "resources": [
+    { "_id": "wrk_portal_transparencia_users", "_type": "workspace", "name": "Portal da Transparência OAB — Usuários", "description": "Cadastro administrativo de usuários por um administrador." },
+    { "_id": "env_portal_transparencia_users", "parentId": "wrk_portal_transparencia_users", "_type": "environment", "name": "Base Environment", "data": { "base_url": "http://localhost:3333", "access_token": "COLE_O_TOKEN_DO_ADMIN_AQUI" }, "dataPropertyOrder": null, "isPrivate": false, "metaSortKey": 1 },
+    { "_id": "req_users_list", "parentId": "wrk_portal_transparencia_users", "_type": "request", "name": "Listar usuários", "method": "GET", "url": "{{ _.base_url }}/api/admin/users", "headers": [{ "name": "Authorization", "value": "Bearer {{ _.access_token }}" }], "description": "Somente ADMIN. Esperado: 200 sem senhas." },
+    { "_id": "req_users_create", "parentId": "wrk_portal_transparencia_users", "_type": "request", "name": "Cadastrar usuário", "method": "POST", "url": "{{ _.base_url }}/api/admin/users", "headers": [{ "name": "Authorization", "value": "Bearer {{ _.access_token }}" }, { "name": "Content-Type", "value": "application/json" }], "body": { "mimeType": "application/json", "text": "{\n  \"name\": \"Nome da pessoa\",\n  \"email\": \"pessoa@oab-al.org.br\",\n  \"password\": \"SenhaTemporaria123!\",\n  \"role\": \"EDITOR\"\n}" }, "description": "Esperado: 201 com user e temporaryPassword. Guarde a senha com segurança; ela não é retornada novamente." },
+    { "_id": "req_users_no_auth", "parentId": "wrk_portal_transparencia_users", "_type": "request", "name": "Sem autenticação", "method": "GET", "url": "{{ _.base_url }}/api/admin/users", "headers": [], "description": "Esperado: 401." },
+    { "_id": "req_users_invalid", "parentId": "wrk_portal_transparencia_users", "_type": "request", "name": "Dados inválidos", "method": "POST", "url": "{{ _.base_url }}/api/admin/users", "headers": [{ "name": "Authorization", "value": "Bearer {{ _.access_token }}" }, { "name": "Content-Type", "value": "application/json" }], "body": { "mimeType": "application/json", "text": "{\n  \"name\": \"A\",\n  \"email\": \"nao-e-email\",\n  \"password\": \"curta\"\n}" }, "description": "Esperado: 400 com issues de nome, e-mail e senha." }
+  ]
+}

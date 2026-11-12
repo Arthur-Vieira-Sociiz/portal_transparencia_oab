@@ -73,9 +73,6 @@ export function LoginPage() {
                 type="email"
                 value={email}
               />
-              <span className="text-xs text-muted-foreground">
-                O e-mail não diferencia maiúsculas de minúsculas.
-              </span>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="password">Senha</Label>
@@ -89,9 +86,6 @@ export function LoginPage() {
                 type="password"
                 value={password}
               />
-              <span className="text-xs text-muted-foreground">
-                A senha diferencia maiúsculas de minúsculas.
-              </span>
             </div>
 
             {errorMessage ? (

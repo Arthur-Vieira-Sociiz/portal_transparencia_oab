@@ -1,4 +1,4 @@
-import { useEffect, useState, type KeyboardEvent } from 'react'
+import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import {
   Building2,
@@ -24,9 +24,14 @@ import type {
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { NumericInput } from '@/components/ui/numeric-input'
 import { useToast } from '@/components/ui/use-toast'
+import {
+  formatNumericInput,
+  parseNumericInput,
+  sanitizeNumericInput,
+} from '@/lib/numeric-format'
 import {
   createGeneralData,
   listGeneralData,
@@ -73,86 +78,13 @@ const fields: Array<{
 
 type NumericFieldKey = (typeof fields)[number]['key']
 
-function parseLocalizedNumber(value: string, kind: 'amount' | 'integer') {
-  const trimmed = value.trim()
-  if (!trimmed) return 0
-  if (kind === 'integer') {
-    return Number(trimmed.replace(/\D/g, '')) || 0
-  }
-
-  const looksLikeThousands = /^-?\d{1,3}(\.\d{3})+$/.test(trimmed)
-  const normalized = looksLikeThousands
-    ? trimmed.replace(/\./g, '')
-    : trimmed.includes(',')
-      ? trimmed.replace(/\./g, '').replace(',', '.')
-      : trimmed
-  const parsed = Number(normalized.replace(/[^\d.-]/g, ''))
-  return Number.isFinite(parsed) ? parsed : 0
-}
-
-function sanitizeNumericInput(value: string, kind: 'amount' | 'integer') {
-  if (kind === 'integer') return value.replace(/\D/g, '')
-  const sanitized = value.replace(/[^\d,.]/g, '')
-  const commaIndex = sanitized.indexOf(',')
-  if (commaIndex < 0) return sanitized
-  return `${sanitized.slice(0, commaIndex)},${sanitized
-    .slice(commaIndex + 1)
-    .replace(/[,.]/g, '')}`
-}
-
-function groupIntegerDigits(value: string) {
-  const digits = value.replace(/\D/g, '')
-  return digits ? Number(digits).toLocaleString('pt-BR') : ''
-}
-
-function formatEditingValue(value: string, kind: 'amount' | 'integer') {
-  const sanitized = sanitizeNumericInput(value, kind)
-  if (kind === 'integer') return groupIntegerDigits(sanitized)
-  const [whole, decimal] = sanitized.split(',')
-  const groupedWhole = groupIntegerDigits(whole ?? '')
-  return decimal === undefined
-    ? groupedWhole
-    : `${groupedWhole},${decimal.slice(0, 2)}`
-}
-
-function preventInvalidNumericKey(
-  event: KeyboardEvent<HTMLInputElement>,
-  kind: 'amount' | 'integer',
-) {
-  if (event.ctrlKey || event.metaKey || event.altKey) return
-  if (
-    [
-      'Backspace',
-      'Delete',
-      'ArrowLeft',
-      'ArrowRight',
-      'Tab',
-      'Home',
-      'End',
-    ].includes(event.key)
-  ) {
-    return
-  }
-  const allowed = kind === 'integer' ? /\d/ : /[\d,.]/
-  if (event.key.length === 1 && !allowed.test(event.key)) event.preventDefault()
-}
-
-function formatInputValue(value: number, kind: 'amount' | 'integer') {
-  return value.toLocaleString(
-    'pt-BR',
-    kind === 'amount'
-      ? { minimumFractionDigits: 2, maximumFractionDigits: 2 }
-      : { maximumFractionDigits: 0 },
-  )
-}
-
 function getNumericInputValues(
   source: CreateGeneralDataRequest,
 ): Record<NumericFieldKey, string> {
   return Object.fromEntries(
     fields.map((field) => [
       field.key,
-      formatInputValue(source[field.key], field.kind),
+      formatNumericInput(source[field.key], field.kind),
     ]),
   ) as Record<NumericFieldKey, string>
 }
@@ -245,8 +177,8 @@ export function AdminHomePage() {
     value: string,
     kind: 'amount' | 'integer',
   ) {
-    const formattedValue = formatEditingValue(value, kind)
-    const numberValue = parseLocalizedNumber(formattedValue, kind)
+    const formattedValue = formatNumericInput(value, kind)
+    const numberValue = parseNumericInput(formattedValue, kind)
     setInputValues((current) => ({ ...current, [key]: formattedValue }))
     setForm((current) => ({
       ...current,
@@ -255,7 +187,7 @@ export function AdminHomePage() {
   }
 
   function updateExercise(value: string) {
-    const exercise = Number(sanitizeNumericInput(value, 'integer'))
+    const exercise = Number(sanitizeNumericInput(value, 'year'))
     setForm((current) => ({
       ...current,
       exercise: Number.isFinite(exercise) ? exercise : current.exercise,
@@ -265,7 +197,7 @@ export function AdminHomePage() {
   function formatFieldOnBlur(key: NumericFieldKey, kind: 'amount' | 'integer') {
     setInputValues((current) => ({
       ...current,
-      [key]: formatInputValue(form[key], kind),
+      [key]: formatNumericInput(form[key], kind),
     }))
   }
 
@@ -427,16 +359,14 @@ export function AdminHomePage() {
             <CardContent className="grid gap-5 pt-6">
               <div className="grid gap-2 sm:max-w-[180px]">
                 <Label htmlFor="exercise">Exercício</Label>
-                <Input
+                <NumericInput
+                  kind="year"
                   id="exercise"
-                  inputMode="numeric"
                   max={2100}
                   min={2000}
-                  onKeyDown={(event) =>
-                    preventInvalidNumericKey(event, 'integer')
+                  onValueChange={(_, numericValue) =>
+                    updateExercise(String(numericValue))
                   }
-                  onChange={(event) => updateExercise(event.target.value)}
-                  type="text"
                   value={form.exercise}
                 />
               </div>
@@ -444,20 +374,14 @@ export function AdminHomePage() {
                 {fields.map((field) => (
                   <div className="grid gap-2" key={field.key}>
                     <Label htmlFor={field.key}>{field.label}</Label>
-                    <Input
+                    <NumericInput
+                      kind={field.kind}
                       id={field.key}
-                      inputMode={
-                        field.kind === 'amount' ? 'decimal' : 'numeric'
-                      }
                       min={0}
-                      onKeyDown={(event) =>
-                        preventInvalidNumericKey(event, field.kind)
-                      }
-                      onChange={(event) =>
-                        updateField(field.key, event.target.value, field.kind)
+                      onValueChange={(formattedValue) =>
+                        updateField(field.key, formattedValue, field.kind)
                       }
                       onBlur={() => formatFieldOnBlur(field.key, field.kind)}
-                      type="text"
                       value={inputValues[field.key]}
                     />
                   </div>

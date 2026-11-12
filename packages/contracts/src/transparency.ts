@@ -159,6 +159,35 @@ export const BudgetRecordSchema = z.object({
   document: TransparencyDocumentSchema.optional(),
 })
 
+export const BudgetRecordStatusSchema = z.enum(['DRAFT', 'PUBLISHED'])
+
+export const AdminBudgetRecordSchema = BudgetRecordSchema.extend({
+  status: BudgetRecordStatusSchema,
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
+  publishedAt: z.iso.datetime().nullable(),
+})
+
+export const CreateBudgetRecordRequestSchema = z.object({
+  informationType: BudgetInformationTypeSchema,
+  annualBudget: NonNegativeAmountSchema,
+  plannedAmount: NonNegativeAmountSchema,
+  executedAmount: NonNegativeAmountSchema,
+  exercise: ExerciseSchema,
+  documentTitle: z.string().trim().max(200).optional(),
+  documentUrl: z.union([z.url(), z.literal('')]).optional(),
+})
+
+export const UpdateBudgetRecordRequestSchema =
+  CreateBudgetRecordRequestSchema.partial().extend({
+    status: BudgetRecordStatusSchema.optional(),
+  })
+
+export const PublicBudgetRecordsSchema = z.object({
+  availableExercises: z.array(ExerciseSchema),
+  records: z.array(BudgetRecordSchema),
+})
+
 export const BudgetTransparencySchema = z.object({
   availableExercises: z.array(ExerciseSchema).min(1),
   records: z.array(BudgetRecordSchema),
@@ -274,6 +303,14 @@ export type FinancialTransparency = z.infer<typeof FinancialTransparencySchema>
 export type PublicFinancialPage = z.infer<typeof PublicFinancialPageSchema>
 export type BudgetTransparency = z.infer<typeof BudgetTransparencySchema>
 export type BudgetRecord = z.infer<typeof BudgetRecordSchema>
+export type AdminBudgetRecord = z.infer<typeof AdminBudgetRecordSchema>
+export type CreateBudgetRecordRequest = z.infer<
+  typeof CreateBudgetRecordRequestSchema
+>
+export type UpdateBudgetRecordRequest = z.infer<
+  typeof UpdateBudgetRecordRequestSchema
+>
+export type PublicBudgetRecords = z.infer<typeof PublicBudgetRecordsSchema>
 export type ContractRecord = z.infer<typeof ContractRecordSchema>
 export type PublicContractsPage = z.infer<typeof PublicContractsPageSchema>
 export type GlossaryEntry = z.infer<typeof GlossaryEntrySchema>

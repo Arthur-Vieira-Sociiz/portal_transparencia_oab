@@ -29,7 +29,30 @@ export const AuthSessionSchema = z.object({
   user: AuthenticatedUserSchema,
 })
 
+export const AdminUserSchema = AuthenticatedUserSchema.extend({
+  status: z.enum(['ACTIVE', 'DISABLED']),
+})
+
+export const AdminCreateUserRequestSchema = z.object({
+  name: z.string().trim().min(2).max(120),
+  email: z.email().transform((email) => email.toLowerCase()),
+  password: PasswordSchema,
+  role: UserRoleSchema.default('EDITOR'),
+})
+
+export const AdminCreatedUserResponseSchema = z.object({
+  user: AdminUserSchema,
+  temporaryPassword: PasswordSchema,
+})
+
 export type AuthenticatedUser = z.infer<typeof AuthenticatedUserSchema>
 export type LoginRequest = z.infer<typeof LoginRequestSchema>
 export type RegisterRequest = z.infer<typeof RegisterRequestSchema>
 export type AuthSession = z.infer<typeof AuthSessionSchema>
+export type AdminUser = z.infer<typeof AdminUserSchema>
+export type AdminCreateUserRequest = z.infer<
+  typeof AdminCreateUserRequestSchema
+>
+export type AdminCreatedUserResponse = z.infer<
+  typeof AdminCreatedUserResponseSchema
+>

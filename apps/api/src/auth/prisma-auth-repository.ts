@@ -43,6 +43,11 @@ export function createPrismaAuthRepository(): AuthRepository {
       return user ? toStoredUser(user) : null
     },
 
+    async listUsers() {
+      const users = await client.user.findMany({ orderBy: { name: 'asc' } })
+      return users.map(toStoredUser)
+    },
+
     async findActiveSession(tokenHash) {
       const session = await client.session.findFirst({
         where: {

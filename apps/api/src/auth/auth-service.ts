@@ -2,6 +2,8 @@ import { createHash, randomBytes, timingSafeEqual } from 'node:crypto'
 import type {
   AuthenticatedUser,
   AuthSession,
+  AdminCreateUserRequest,
+  AdminUser,
   LoginRequest,
   RegisterRequest,
 } from '@oab-transparencia/contracts/auth'
@@ -25,8 +27,9 @@ export type AuthRepository = {
     name: string
     email: string
     passwordHash: string
-    role: 'ADMIN' | 'EDITOR'
+    role: 'ADMIN' | 'EDITOR' | 'REVIEWER'
   }): Promise<StoredUser>
+  listUsers(): Promise<StoredUser[]>
   revokeSession(tokenHash: string): Promise<void>
   updateLastLoginAt(userId: string): Promise<void>
 }
@@ -38,7 +41,8 @@ export class AuthenticationError extends Error {
       | 'INVALID_CREDENTIALS'
       | 'INVALID_REGISTRATION_KEY'
       | 'REGISTRATION_UNAVAILABLE'
-      | 'UNAUTHENTICATED',
+      | 'UNAUTHENTICATED'
+      | 'FORBIDDEN',
   ) {
     super(code)
   }
@@ -94,6 +98,27 @@ export function createAuthService(
   }
 
   return {
+    async listUsers(): Promise<AdminUser[]> {
+      const users = await repository.listUsers()
+      return users.map((user) => ({
+        ...toAuthenticatedUser(user),
+        status: user.status,
+      }))
+    },
+
+    async createUserByAdmin(input: AdminCreateUserRequest): Promise<AdminUser> {
+      if (await repository.findUserByEmail(input.email)) {
+        throw new AuthenticationError('EMAIL_ALREADY_IN_USE')
+      }
+      const user = await repository.createUser({
+        name: input.name,
+        email: input.email,
+        passwordHash: await hashPassword(input.password),
+        role: input.role,
+      })
+      return { ...toAuthenticatedUser(user), status: user.status }
+    },
+
     async register(input: RegisterRequest) {
       if (!options.registrationKey) {
         throw new AuthenticationError('REGISTRATION_UNAVAILABLE')

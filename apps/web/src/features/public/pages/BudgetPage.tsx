@@ -3,10 +3,12 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import type { BudgetRecord } from '@oab-transparencia/contracts'
 
+import { getPublicBudgetRecords } from '../../../lib/api'
 import { formatCurrency } from '../../../lib/formatters'
 import { PublicPortalLayout } from '../components/PublicPortalLayout'
-import { localPublicTransparencyRepository } from '../data/public.repository'
 import '../public-portal.css'
+
+const CURRENT_EXERCISE = new Date().getFullYear()
 
 const informationTypeLabels = {
   'budget-proposal': 'Proposta Orçamentária por Exercício',
@@ -44,14 +46,26 @@ function executionClass(percentage: number) {
 }
 
 export function BudgetPage() {
-  const [exercise, setExercise] = useState(2026)
+  const [exercise, setExercise] = useState(CURRENT_EXERCISE)
   const [informationType, setInformationType] = useState<
     'all' | InformationType
   >('all')
   const page = useQuery({
-    queryFn: () => localPublicTransparencyRepository.getBudgetPage(),
+    queryFn: async () => {
+      try {
+        return await getPublicBudgetRecords()
+      } catch (error) {
+        const status =
+          error instanceof Error && 'status' in error
+            ? (error as Error & { status?: number }).status
+            : undefined
+        if (status === undefined || status === 404)
+          return { availableExercises: [], records: [] }
+        throw error
+      }
+    },
     queryKey: ['public-transparency', 'budget'],
-    staleTime: Number.POSITIVE_INFINITY,
+    staleTime: 30_000,
   })
 
   if (page.isPending) {
@@ -91,7 +105,10 @@ export function BudgetPage() {
               onChange={(event) => setExercise(Number(event.target.value))}
               value={exercise}
             >
-              {page.data.availableExercises.map((year) => (
+              {(page.data.availableExercises.length
+                ? page.data.availableExercises
+                : [exercise]
+              ).map((year) => (
                 <option key={year} value={year}>
                   {year}
                 </option>
