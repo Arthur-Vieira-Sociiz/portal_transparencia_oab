@@ -3,6 +3,7 @@ import { Navigate, createBrowserRouter, useParams } from 'react-router-dom'
 import { FoundationPage } from '../features/foundation/FoundationPage'
 import { AdminHomePage } from '../features/auth/AdminHomePage'
 import { AdminBudgetPage } from '../features/auth/AdminBudgetPage'
+import { AdminFinancialPage } from '../features/auth/AdminFinancialPage'
 import { AdminUsersPage } from '../features/auth/AdminUsersPage'
 import { AdminSectionPlaceholderPage } from '../features/auth/AdminSectionPlaceholderPage'
 import { LoginPage } from '../features/auth/LoginPage'
@@ -86,6 +87,10 @@ export const router = createBrowserRouter([
   {
     path: '/admin/orcamentario',
     element: <AdminBudgetPage />,
+  },
+  {
+    path: '/admin/financeiro',
+    element: <AdminFinancialPage />,
   },
   {
     path: '/admin/usuarios',

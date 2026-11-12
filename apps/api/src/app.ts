@@ -37,15 +37,24 @@ import {
 } from './budget/budget-service.js'
 import { createPrismaBudgetRepository } from './budget/prisma-budget-repository.js'
 import {
+  FinancialDocumentError,
+  createFinancialDocumentService,
+  type FinancialDocumentService,
+} from './financial/financial-document-service.js'
+import { createPrismaFinancialDocumentRepository } from './financial/prisma-financial-document-repository.js'
+import {
   CreateBudgetRecordRequestSchema,
   PublicBudgetRecordsSchema,
   UpdateBudgetRecordRequestSchema,
+  CreateFinancialDocumentRequestSchema,
+  UpdateFinancialDocumentRequestSchema,
 } from '@oab-transparencia/contracts/transparency'
 
 type AppOptions = {
   authService?: AuthService
   generalDataService?: GeneralDataService
   budgetService?: BudgetService
+  financialDocumentService?: FinancialDocumentService
 }
 
 function authenticationErrorResponse(
@@ -119,6 +128,13 @@ export function createApp(options: AppOptions = {}): Express {
   function getBudgetService() {
     budgetService ??= createBudgetService(createPrismaBudgetRepository())
     return budgetService
+  }
+  let financialDocumentService = options.financialDocumentService
+  function getFinancialDocumentService() {
+    financialDocumentService ??= createFinancialDocumentService(
+      createPrismaFinancialDocumentRepository(),
+    )
+    return financialDocumentService
   }
 
   async function requireUser(request: Request) {
@@ -346,6 +362,67 @@ export function createApp(options: AppOptions = {}): Express {
     },
   )
 
+  app.get('/api/admin/financial', async (request, response, next) => {
+    try {
+      await requireUser(request)
+      response.json({ records: await getFinancialDocumentService().list() })
+    } catch (error) {
+      next(error)
+    }
+  })
+  app.get('/api/public/financial', async (_request, response, next) => {
+    try {
+      response.json(await getFinancialDocumentService().listPublished())
+    } catch (error) {
+      next(error)
+    }
+  })
+  app.post('/api/admin/financial', async (request, response, next) => {
+    try {
+      const user = await requireUser(request)
+      const input = CreateFinancialDocumentRequestSchema.parse(request.body)
+      response.status(201).json(
+        await getFinancialDocumentService().create({
+          ...input,
+          userId: user.id,
+        }),
+      )
+    } catch (error) {
+      next(error)
+    }
+  })
+  app.patch('/api/admin/financial/:id', async (request, response, next) => {
+    try {
+      const user = await requireUser(request)
+      const input = UpdateFinancialDocumentRequestSchema.parse(request.body)
+      response.json(
+        await getFinancialDocumentService().update(request.params.id, {
+          ...input,
+          userId: user.id,
+        }),
+      )
+    } catch (error) {
+      next(error)
+    }
+  })
+  app.post(
+    '/api/admin/financial/:exercise/publish',
+    async (request, response, next) => {
+      try {
+        const user = await requireUser(request)
+        const exercise = ExerciseSchema.parse(Number(request.params.exercise))
+        response.json(
+          await getFinancialDocumentService().publishExercise(
+            exercise,
+            user.id,
+          ),
+        )
+      } catch (error) {
+        next(error)
+      }
+    },
+  )
+
   app.use(
     (
       error: unknown,
@@ -380,6 +457,19 @@ export function createApp(options: AppOptions = {}): Express {
             'Nenhum registro orçamentário encontrado para este exercício.',
         } as const
         const status = error.code === 'BUDGET_RECORD_ALREADY_EXISTS' ? 409 : 404
+        response.status(status).json({ message: messages[error.code] })
+        return
+      }
+      if (error instanceof FinancialDocumentError) {
+        const messages = {
+          FINANCIAL_DOCUMENT_ALREADY_EXISTS:
+            'Já existe um documento para este tipo e exercício.',
+          FINANCIAL_DOCUMENT_NOT_FOUND: 'Documento financeiro não encontrado.',
+          FINANCIAL_EXERCISE_NOT_FOUND:
+            'Nenhum documento financeiro encontrado para este exercício.',
+        } as const
+        const status =
+          error.code === 'FINANCIAL_DOCUMENT_ALREADY_EXISTS' ? 409 : 404
         response.status(status).json({ message: messages[error.code] })
         return
       }

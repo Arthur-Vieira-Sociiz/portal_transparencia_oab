@@ -323,6 +323,14 @@ balancetes trimestrais, quatro demonstrativos trimestrais, um relatório de
 receitas e um de despesas. Os links são temporários e serão substituídos pelo
 armazenamento de documentos do novo portal.
 
+Na área administrativa, a primeira versão do Financeiro usa um CRUD de
+documentos por exercício, tipo de informação e período. O período é escolhido
+entre o primeiro e o quarto trimestre; cada registro pode ter links independentes
+para PDF e CSV. A interface pública exibe o tipo junto do período (por exemplo,
+“Balancete - 1º trimestre”) e mostra os dois downloads lado a lado quando
+estiverem cadastrados. O upload para a AWS
+será conectado em uma etapa posterior.
+
 ## 2026-11-11 — Quinta página pública: Patrimonial
 
 ### Estrutura implementada
@@ -565,4 +573,3 @@ orçamento anual, valor previsto, valor executado e metadados opcionais do
 documento. O percentual de execução é calculado pela API, os registros começam
 como rascunho e a publicação ocorre por exercício. A página pública consulta
 somente registros publicados, sem manter valores mockados como fonte oficial.
-

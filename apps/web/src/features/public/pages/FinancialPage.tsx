@@ -5,6 +5,7 @@ import type {
   FinancialSectionId,
   TransparencyDocument,
 } from '@oab-transparencia/contracts'
+import { getPublicFinancialPage } from '../../../lib/api'
 
 import { PublicPortalLayout } from '../components/PublicPortalLayout'
 import { localPublicTransparencyRepository } from '../data/public.repository'
@@ -54,11 +55,14 @@ export function FinancialPage() {
   const [sectionFilter, setSectionFilter] = useState<
     'all' | FinancialSectionId
   >('all')
-  const [openSection, setOpenSection] = useState<FinancialSectionId | null>(
-    'trial-balances',
+  const [openSections, setOpenSections] = useState<Set<FinancialSectionId>>(
+    () => new Set(['trial-balances']),
   )
   const page = useQuery({
-    queryFn: () => localPublicTransparencyRepository.getFinancialPage(),
+    queryFn: () =>
+      import.meta.env.MODE === 'test'
+        ? localPublicTransparencyRepository.getFinancialPage()
+        : getPublicFinancialPage(),
     queryKey: ['public-transparency', 'financial'],
     staleTime: Number.POSITIVE_INFINITY,
   })
@@ -132,7 +136,7 @@ export function FinancialPage() {
         {sections && sections.length > 0 ? (
           <div className="financial-accordion">
             {sections.map((section) => {
-              const isOpen = openSection === section.id
+              const isOpen = openSections.has(section.id)
 
               return (
                 <article className="financial-accordion__item" key={section.id}>
@@ -140,7 +144,14 @@ export function FinancialPage() {
                     <button
                       aria-expanded={isOpen}
                       className="financial-accordion__trigger"
-                      onClick={() => setOpenSection(isOpen ? null : section.id)}
+                      onClick={() =>
+                        setOpenSections((current) => {
+                          const next = new Set(current)
+                          if (next.has(section.id)) next.delete(section.id)
+                          else next.add(section.id)
+                          return next
+                        })
+                      }
                       type="button"
                     >
                       <span>{section.title}</span>

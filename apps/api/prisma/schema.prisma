@@ -38,6 +38,8 @@ model User {
   updatedGeneralData  GeneralData[] @relation("GeneralDataUpdatedBy")
   createdBudgetRecords BudgetRecord[] @relation("BudgetCreatedBy")
   updatedBudgetRecords BudgetRecord[] @relation("BudgetUpdatedBy")
+  createdFinancialDocuments FinancialDocument[] @relation("FinancialCreatedBy")
+  updatedFinancialDocuments FinancialDocument[] @relation("FinancialUpdatedBy")
 }
 
 model GeneralData {
@@ -85,6 +87,28 @@ model BudgetRecord {
   updatedBy           User              @relation("BudgetUpdatedBy", fields: [updatedById], references: [id])
 
   @@unique([informationType, exercise])
+  @@index([status, exercise])
+}
+
+model FinancialDocument {
+  id              String            @id @default(cuid())
+  informationType String
+  period          String
+  exercise        Int
+  documentTitle   String
+  documentUrl     String?
+  pdfUrl          String?
+  csvUrl          String?
+  status          GeneralDataStatus @default(DRAFT)
+  publishedAt     DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  createdById     String
+  updatedById     String
+  createdBy       User              @relation("FinancialCreatedBy", fields: [createdById], references: [id])
+  updatedBy       User              @relation("FinancialUpdatedBy", fields: [updatedById], references: [id])
+
+  @@unique([informationType, period, exercise])
   @@index([status, exercise])
 }
 

@@ -20,6 +20,10 @@ import {
   CreateBudgetRecordRequestSchema,
   PublicBudgetRecordsSchema,
   UpdateBudgetRecordRequestSchema,
+  AdminFinancialDocumentRecordSchema,
+  CreateFinancialDocumentRequestSchema,
+  UpdateFinancialDocumentRequestSchema,
+  PublicFinancialPageSchema,
   type AdminBudgetRecord,
   type CreateBudgetRecordRequest,
   type PublicBudgetRecords,
@@ -27,6 +31,10 @@ import {
   type CreateGeneralDataRequest,
   type GeneralData,
   type UpdateGeneralDataRequest,
+  type AdminFinancialDocumentRecord,
+  type CreateFinancialDocumentRequest,
+  type UpdateFinancialDocumentRequest,
+  type PublicFinancialPage,
 } from '@oab-transparencia/contracts/transparency'
 
 const apiBaseUrl = (import.meta.env.VITE_API_URL ?? '/api').replace(/\/$/, '')
@@ -239,4 +247,66 @@ export async function getPublicBudgetRecords(
   const response = await fetch(`${apiBaseUrl}/public/budget${query}`)
   if (!response.ok) throw await getApiError(response)
   return PublicBudgetRecordsSchema.parse(await response.json())
+}
+
+export async function listFinancialDocuments(
+  token: string,
+): Promise<AdminFinancialDocumentRecord[]> {
+  const payload = await authenticatedRequest(
+    token,
+    '/admin/financial',
+    {},
+    (value) => value as { records: unknown[] },
+  )
+  return payload.records.map((record) =>
+    AdminFinancialDocumentRecordSchema.parse(record),
+  )
+}
+
+export async function createFinancialDocument(
+  token: string,
+  input: CreateFinancialDocumentRequest,
+): Promise<AdminFinancialDocumentRecord> {
+  const valid = CreateFinancialDocumentRequestSchema.parse(input)
+  return authenticatedRequest(
+    token,
+    '/admin/financial',
+    { body: JSON.stringify(valid), method: 'POST' },
+    (value) => AdminFinancialDocumentRecordSchema.parse(value),
+  )
+}
+
+export async function updateFinancialDocument(
+  token: string,
+  id: string,
+  input: UpdateFinancialDocumentRequest,
+): Promise<AdminFinancialDocumentRecord> {
+  const valid = UpdateFinancialDocumentRequestSchema.parse(input)
+  return authenticatedRequest(
+    token,
+    `/admin/financial/${id}`,
+    { body: JSON.stringify(valid), method: 'PATCH' },
+    (value) => AdminFinancialDocumentRecordSchema.parse(value),
+  )
+}
+
+export async function publishFinancialExercise(
+  token: string,
+  exercise: number,
+): Promise<AdminFinancialDocumentRecord[]> {
+  const payload = await authenticatedRequest(
+    token,
+    `/admin/financial/${exercise}/publish`,
+    { method: 'POST' },
+    (value) => value as unknown[],
+  )
+  return payload.map((record) =>
+    AdminFinancialDocumentRecordSchema.parse(record),
+  )
+}
+
+export async function getPublicFinancialPage(): Promise<PublicFinancialPage> {
+  const response = await fetch(`${apiBaseUrl}/public/financial`)
+  if (!response.ok) throw await getApiError(response)
+  return PublicFinancialPageSchema.parse(await response.json())
 }

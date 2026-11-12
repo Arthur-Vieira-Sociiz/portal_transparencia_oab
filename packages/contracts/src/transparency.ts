@@ -135,7 +135,7 @@ export const FinancialTransparencySchema = z.object({
 })
 
 export const PublicFinancialPageSchema = z.object({
-  availableExercises: z.array(ExerciseSchema).min(1),
+  availableExercises: z.array(ExerciseSchema),
   periods: z.array(FinancialTransparencySchema),
 })
 
@@ -192,6 +192,57 @@ export const BudgetTransparencySchema = z.object({
   availableExercises: z.array(ExerciseSchema).min(1),
   records: z.array(BudgetRecordSchema),
 })
+
+export const FinancialInformationTypeSchema = z.enum([
+  'trial-balances',
+  'financial-statements',
+  'revenues',
+  'expenses',
+])
+export const FinancialPeriodSchema = z.enum([
+  '1º trimestre',
+  '2º trimestre',
+  '3º trimestre',
+  '4º trimestre',
+])
+
+export const FinancialDocumentRecordSchema = z.object({
+  id: z.string().min(1),
+  informationType: FinancialInformationTypeSchema,
+  period: FinancialPeriodSchema,
+  exercise: ExerciseSchema,
+  documents: z.array(TransparencyDocumentSchema).min(1).max(2),
+})
+
+export const AdminFinancialDocumentRecordSchema =
+  FinancialDocumentRecordSchema.extend({
+    status: BudgetRecordStatusSchema,
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    publishedAt: z.iso.datetime().nullable(),
+  })
+
+const FinancialDocumentFieldsSchema = z.object({
+  informationType: FinancialInformationTypeSchema,
+  period: FinancialPeriodSchema,
+  exercise: ExerciseSchema,
+  pdfUrl: z.union([z.url(), z.literal('')]),
+  csvUrl: z.union([z.url(), z.literal('')]),
+})
+
+export const CreateFinancialDocumentRequestSchema =
+  FinancialDocumentFieldsSchema.refine(
+    (value) => value.pdfUrl || value.csvUrl,
+    {
+      message: 'Cadastre pelo menos um arquivo PDF ou CSV.',
+      path: ['pdfUrl'],
+    },
+  )
+
+export const UpdateFinancialDocumentRequestSchema =
+  FinancialDocumentFieldsSchema.partial().extend({
+    status: BudgetRecordStatusSchema.optional(),
+  })
 
 export const ContractRecordSchema = z.object({
   id: z.string().min(1),
@@ -311,6 +362,18 @@ export type UpdateBudgetRecordRequest = z.infer<
   typeof UpdateBudgetRecordRequestSchema
 >
 export type PublicBudgetRecords = z.infer<typeof PublicBudgetRecordsSchema>
+export type FinancialDocumentRecord = z.infer<
+  typeof FinancialDocumentRecordSchema
+>
+export type AdminFinancialDocumentRecord = z.infer<
+  typeof AdminFinancialDocumentRecordSchema
+>
+export type CreateFinancialDocumentRequest = z.infer<
+  typeof CreateFinancialDocumentRequestSchema
+>
+export type UpdateFinancialDocumentRequest = z.infer<
+  typeof UpdateFinancialDocumentRequestSchema
+>
 export type ContractRecord = z.infer<typeof ContractRecordSchema>
 export type PublicContractsPage = z.infer<typeof PublicContractsPageSchema>
 export type GlossaryEntry = z.infer<typeof GlossaryEntrySchema>
