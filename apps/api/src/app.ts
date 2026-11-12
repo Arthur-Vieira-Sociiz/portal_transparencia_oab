@@ -49,6 +49,12 @@ import {
 } from './patrimonial/patrimonial-asset-service.js'
 import { createPrismaPatrimonialAssetRepository } from './patrimonial/prisma-patrimonial-asset-repository.js'
 import {
+  ContractError,
+  createContractService,
+  type ContractService,
+} from './contracts/contract-service.js'
+import { createPrismaContractRepository } from './contracts/prisma-contract-repository.js'
+import {
   CreateBudgetRecordRequestSchema,
   PublicBudgetRecordsSchema,
   UpdateBudgetRecordRequestSchema,
@@ -57,6 +63,11 @@ import {
   CreatePatrimonialAssetRequestSchema,
   UpdatePatrimonialAssetRequestSchema,
   PublicPatrimonialPageSchema,
+  CreateContractRecordRequestSchema,
+  UpdateContractRecordRequestSchema,
+  CreateSupplierRequestSchema,
+  UpdateSupplierRequestSchema,
+  PublicContractsPageSchema,
 } from '@oab-transparencia/contracts/transparency'
 
 type AppOptions = {
@@ -65,6 +76,7 @@ type AppOptions = {
   budgetService?: BudgetService
   financialDocumentService?: FinancialDocumentService
   patrimonialAssetService?: PatrimonialAssetService
+  contractService?: ContractService
 }
 
 function authenticationErrorResponse(
@@ -107,6 +119,114 @@ export function createApp(options: AppOptions = {}): Express {
 
   app.disable('x-powered-by')
   app.use(helmet())
+  app.use(express.json())
+  app.get('/api/public/contracts', async (_request, response, next) => {
+    try {
+      response.json(
+        PublicContractsPageSchema.parse(
+          await getContractService().listPublished(),
+        ),
+      )
+    } catch (error) {
+      next(error)
+    }
+  })
+  app.get('/api/admin/contracts', async (request, response, next) => {
+    try {
+      await requireUser(request)
+      response.json({ records: await getContractService().list() })
+    } catch (error) {
+      next(error)
+    }
+  })
+  app.get('/api/admin/suppliers', async (request, response, next) => {
+    try {
+      await requireUser(request)
+      response.json({ suppliers: await getContractService().listSuppliers() })
+    } catch (error) {
+      next(error)
+    }
+  })
+  app.post('/api/admin/suppliers', async (request, response, next) => {
+    try {
+      await requireUser(request)
+      const input = CreateSupplierRequestSchema.parse(request.body)
+      response
+        .status(201)
+        .json(await getContractService().createSupplier(input))
+    } catch (error) {
+      next(error)
+    }
+  })
+  app.delete('/api/admin/suppliers/:id', async (request, response, next) => {
+    try {
+      await requireUser(request)
+      await getContractService().deleteSupplier(request.params.id)
+      response.status(204).send()
+    } catch (error) {
+      next(error)
+    }
+  })
+  app.patch('/api/admin/suppliers/:id', async (request, response, next) => {
+    try {
+      await requireUser(request)
+      const input = UpdateSupplierRequestSchema.parse(request.body)
+      response.json(
+        await getContractService().updateSupplier(request.params.id, input),
+      )
+    } catch (error) {
+      next(error)
+    }
+  })
+  app.post('/api/admin/contracts', async (request, response, next) => {
+    try {
+      const user = await requireUser(request)
+      const input = CreateContractRecordRequestSchema.parse(request.body)
+      response
+        .status(201)
+        .json(await getContractService().create({ ...input, userId: user.id }))
+    } catch (error) {
+      next(error)
+    }
+  })
+  app.patch('/api/admin/contracts/:id', async (request, response, next) => {
+    try {
+      const user = await requireUser(request)
+      const input = UpdateContractRecordRequestSchema.parse(request.body)
+      response.json(
+        await getContractService().update(request.params.id, {
+          ...input,
+          userId: user.id,
+        }),
+      )
+    } catch (error) {
+      next(error)
+    }
+  })
+  app.delete('/api/admin/contracts/:id', async (request, response, next) => {
+    try {
+      await requireUser(request)
+      await getContractService().delete(request.params.id)
+      response.status(204).send()
+    } catch (error) {
+      next(error)
+    }
+  })
+  app.post(
+    '/api/admin/contracts/:exercise/publish',
+    async (request, response, next) => {
+      try {
+        const user = await requireUser(request)
+        const exercise = ExerciseSchema.parse(Number(request.params.exercise))
+        response.json(
+          await getContractService().publishExercise(exercise, user.id),
+        )
+      } catch (error) {
+        next(error)
+      }
+    },
+  )
+
   app.use(
     cors({
       origin(origin, callback) {
@@ -119,8 +239,6 @@ export function createApp(options: AppOptions = {}): Express {
       },
     }),
   )
-  app.use(express.json())
-
   let authService = options.authService
   function getAuthService() {
     authService ??= createPrismaAuthService()
@@ -152,6 +270,11 @@ export function createApp(options: AppOptions = {}): Express {
       createPrismaPatrimonialAssetRepository(),
     )
     return patrimonialAssetService
+  }
+  let contractService = options.contractService
+  function getContractService() {
+    contractService ??= createContractService(createPrismaContractRepository())
+    return contractService
   }
 
   async function requireUser(request: Request) {
@@ -463,14 +586,12 @@ export function createApp(options: AppOptions = {}): Express {
     try {
       const user = await requireUser(request)
       const input = CreatePatrimonialAssetRequestSchema.parse(request.body)
-      response
-        .status(201)
-        .json(
-          await getPatrimonialAssetService().create({
-            ...input,
-            userId: user.id,
-          }),
-        )
+      response.status(201).json(
+        await getPatrimonialAssetService().create({
+          ...input,
+          userId: user.id,
+        }),
+      )
     } catch (error) {
       next(error)
     }
@@ -565,6 +686,25 @@ export function createApp(options: AppOptions = {}): Express {
         const status =
           error.code === 'PATRIMONIAL_ASSET_ALREADY_EXISTS' ? 409 : 404
         response.status(status).json({ message: messages[error.code] })
+        return
+      }
+      if (error instanceof ContractError) {
+        const messages = {
+          CONTRACT_ALREADY_EXISTS:
+            'Já existe um contrato para este fornecedor, data e exercício.',
+          CONTRACT_NOT_FOUND: 'Contrato não encontrado.',
+          CONTRACT_EXERCISE_NOT_FOUND:
+            'Nenhum contrato encontrado para este exercício.',
+          SUPPLIER_ALREADY_EXISTS: 'Este CNPJ já está cadastrado.',
+        } as const
+        response
+          .status(
+            error.code === 'CONTRACT_ALREADY_EXISTS' ||
+              error.code === 'SUPPLIER_ALREADY_EXISTS'
+              ? 409
+              : 404,
+          )
+          .json({ message: messages[error.code] })
         return
       }
 

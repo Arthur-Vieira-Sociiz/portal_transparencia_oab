@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import type { TransparencyDocument } from '@oab-transparencia/contracts'
 
 import { formatCurrency } from '../../../lib/formatters'
+import { getPublicContractsPage } from '../../../lib/api'
 import { PublicPortalLayout } from '../components/PublicPortalLayout'
 import { localPublicTransparencyRepository } from '../data/public.repository'
 import '../public-portal.css'
@@ -62,7 +63,10 @@ export function ContractsPage() {
   const [exercise, setExercise] = useState<'all' | number>(2026)
   const [supplier, setSupplier] = useState('all')
   const page = useQuery({
-    queryFn: () => localPublicTransparencyRepository.getContractsPage(),
+    queryFn: () =>
+      import.meta.env.MODE === 'test'
+        ? localPublicTransparencyRepository.getContractsPage()
+        : getPublicContractsPage(),
     queryKey: ['public-transparency', 'contracts'],
     staleTime: Number.POSITIVE_INFINITY,
   })
@@ -86,7 +90,7 @@ export function ContractsPage() {
   const contracts = page.data.contracts.filter((contract) => {
     const matchesSearch =
       normalizedSearch.length === 0 ||
-      [contract.supplier, contract.cnpj, contract.objectDescription].some(
+      [contract.supplier, contract.cnpj, contract.objectDescription ?? ''].some(
         (value) => value.toLocaleLowerCase('pt-BR').includes(normalizedSearch),
       )
 
@@ -107,8 +111,7 @@ export function ContractsPage() {
             </h2>
             <p>
               Relatorio de contratos vigentes contendo informacoes sobre as
-              partes, o objeto resumido, a data do contrato e sua vigencia e o
-              valor.
+              partes, a data do contrato, sua vigencia e o valor.
             </p>
           </div>
           <label className="contracts-search" htmlFor="contracts-search-input">

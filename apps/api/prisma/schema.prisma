@@ -42,6 +42,8 @@ model User {
   updatedFinancialDocuments FinancialDocument[] @relation("FinancialUpdatedBy")
   createdPatrimonialAssets  PatrimonialAsset[]  @relation("PatrimonialCreatedBy")
   updatedPatrimonialAssets  PatrimonialAsset[]  @relation("PatrimonialUpdatedBy")
+  createdContracts          ContractRecord[]    @relation("ContractCreatedBy")
+  updatedContracts          ContractRecord[]    @relation("ContractUpdatedBy")
 }
 
 model GeneralData {
@@ -148,4 +150,36 @@ model Session {
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+model Supplier {
+  id        String   @id @default(cuid())
+  name      String
+  cnpj      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ContractRecord {
+  id                  String            @id @default(cuid())
+  supplierName        String
+  cnpj                String
+  objectDescription   String?
+  signedAt            String
+  term                String
+  value               Decimal           @db.Decimal(14, 2)
+  exercise            Int
+  contractDocumentUrl String?
+  amendmentUrls       Json
+  statusState         GeneralDataStatus @default(DRAFT)
+  publishedAt         DateTime?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  createdById         String
+  updatedById         String
+  createdBy           User              @relation("ContractCreatedBy", fields: [createdById], references: [id])
+  updatedBy           User              @relation("ContractUpdatedBy", fields: [updatedById], references: [id])
+
+  @@unique([supplierName, signedAt, exercise])
+  @@index([statusState, exercise])
 }

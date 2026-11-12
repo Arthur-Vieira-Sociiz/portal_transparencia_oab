@@ -535,6 +535,15 @@ Recursos Humanos, Glossário, LGPD e Relatórios não enviam mais um resumo pró
 nem alteram o exercício dos cards. O CRUD publicado agora é a única fonte dos
 indicadores repetidos no portal.
 
+## 2026-11-12 — Contratos e fornecedores
+
+A área Contratos e Licitações recebeu CRUD administrativo para fornecedor e
+contrato. O fornecedor é criado automaticamente a partir do nome e CNPJ
+informados no cadastro do contrato, evitando uma etapa separada para o usuário.
+Os contratos são organizados por exercício, podem ser revisados e publicados em
+bloco. A página pública passou a consumir `/api/public/contracts` e exibe os
+contratos publicados com filtros por ano, fornecedor e busca.
+
 ### Regra para os próximos CRUDs
 
 Quando um módulo tiver seu primeiro registro publicado, os valores mockados

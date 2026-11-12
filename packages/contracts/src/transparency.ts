@@ -272,7 +272,7 @@ export const ContractRecordSchema = z.object({
   id: z.string().min(1),
   supplier: z.string().trim().min(1),
   cnpj: z.string().trim().min(14).max(18),
-  objectDescription: z.string().trim().min(1),
+  objectDescription: z.string().trim().optional(),
   signedAt: z.string().trim().min(1),
   term: z.string().trim().min(1),
   value: NonNegativeAmountSchema,
@@ -281,8 +281,46 @@ export const ContractRecordSchema = z.object({
   amendments: z.array(TransparencyDocumentSchema),
 })
 
+export const SupplierSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().trim().min(1),
+  cnpj: z.string().trim().min(14).max(18),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
+})
+
+export const CreateSupplierRequestSchema = z.object({
+  name: z.string().trim().min(1).max(180),
+  cnpj: z.string().trim().min(14).max(18),
+})
+
+export const UpdateSupplierRequestSchema = CreateSupplierRequestSchema
+
+export const CreateContractRecordRequestSchema = z.object({
+  supplierName: z.string().trim().min(1).max(180),
+  cnpj: z.string().trim().min(14).max(18),
+  signedAt: z.string().trim().min(1),
+  term: z.string().trim().min(1),
+  value: NonNegativeAmountSchema,
+  exercise: ExerciseSchema,
+  contractDocumentUrl: z.union([z.url(), z.literal('')]).optional(),
+  amendmentUrls: z.array(z.url()).max(20).default([]),
+})
+
+export const UpdateContractRecordRequestSchema =
+  CreateContractRecordRequestSchema.partial().extend({
+    publicationStatus: GeneralDataStatusSchema.optional(),
+  })
+
+export const AdminContractRecordSchema = ContractRecordSchema.extend({
+  publicationStatus: GeneralDataStatusSchema,
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
+  publishedAt: z.iso.datetime().nullable(),
+})
+
 export const PublicContractsPageSchema = z.object({
-  availableExercises: z.array(ExerciseSchema).min(1),
+  availableExercises: z.array(ExerciseSchema),
   contracts: z.array(ContractRecordSchema),
 })
 
@@ -406,6 +444,16 @@ export type UpdateFinancialDocumentRequest = z.infer<
   typeof UpdateFinancialDocumentRequestSchema
 >
 export type ContractRecord = z.infer<typeof ContractRecordSchema>
+export type Supplier = z.infer<typeof SupplierSchema>
+export type CreateSupplierRequest = z.infer<typeof CreateSupplierRequestSchema>
+export type CreateContractRecordRequest = z.infer<
+  typeof CreateContractRecordRequestSchema
+>
+export type UpdateSupplierRequest = z.infer<typeof UpdateSupplierRequestSchema>
+export type UpdateContractRecordRequest = z.infer<
+  typeof UpdateContractRecordRequestSchema
+>
+export type AdminContractRecord = z.infer<typeof AdminContractRecordSchema>
 export type PublicContractsPage = z.infer<typeof PublicContractsPageSchema>
 export type GlossaryEntry = z.infer<typeof GlossaryEntrySchema>
 export type PublicGlossaryPage = z.infer<typeof PublicGlossaryPageSchema>
