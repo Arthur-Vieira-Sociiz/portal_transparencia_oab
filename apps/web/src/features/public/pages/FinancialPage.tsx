@@ -7,7 +7,6 @@ import type {
 } from '@oab-transparencia/contracts'
 
 import { PublicPortalLayout } from '../components/PublicPortalLayout'
-import { publicSummaryFixture } from '../data/institutional.fixture'
 import { localPublicTransparencyRepository } from '../data/public.repository'
 import '../public-portal.css'
 
@@ -82,7 +81,7 @@ export function FinancialPage() {
   )
 
   return (
-    <PublicPortalLayout summary={{ ...publicSummaryFixture, exercise }}>
+    <PublicPortalLayout>
       <section aria-labelledby="financial-title" className="financial-content">
         <h2 className="public-section-title" id="financial-title">
           Financeiro

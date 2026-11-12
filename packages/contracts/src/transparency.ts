@@ -9,6 +9,8 @@ import {
 const NonNegativeIntegerSchema = z.number().int().nonnegative()
 const NonNegativeAmountSchema = z.number().finite().nonnegative()
 
+export const GeneralDataStatusSchema = z.enum(['DRAFT', 'PUBLISHED'])
+
 export const PublicSummarySchema = z.object({
   exercise: ExerciseSchema,
   totalExpenses: NonNegativeAmountSchema,
@@ -20,6 +22,21 @@ export const PublicSummarySchema = z.object({
   supportRooms: NonNegativeIntegerSchema,
   registeredMembers: NonNegativeIntegerSchema,
 })
+
+export const GeneralDataSchema = PublicSummarySchema.extend({
+  id: z.string().min(1),
+  status: GeneralDataStatusSchema,
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
+  publishedAt: z.iso.datetime().nullable(),
+})
+
+export const CreateGeneralDataRequestSchema = PublicSummarySchema
+
+export const UpdateGeneralDataRequestSchema =
+  PublicSummarySchema.partial().extend({
+    status: GeneralDataStatusSchema.optional(),
+  })
 
 export const InstitutionalContentSchema = z.object({
   introduction: z.array(z.string().trim().min(1)).min(1),
@@ -235,6 +252,13 @@ export const ContractFiltersSchema = z.object({
 
 export type GeneralIndicators = z.infer<typeof GeneralIndicatorsSchema>
 export type PublicSummary = z.infer<typeof PublicSummarySchema>
+export type GeneralData = z.infer<typeof GeneralDataSchema>
+export type CreateGeneralDataRequest = z.infer<
+  typeof CreateGeneralDataRequestSchema
+>
+export type UpdateGeneralDataRequest = z.infer<
+  typeof UpdateGeneralDataRequestSchema
+>
 export type InstitutionalContent = z.infer<typeof InstitutionalContentSchema>
 export type PublicInstitutionalPage = z.infer<
   typeof PublicInstitutionalPageSchema

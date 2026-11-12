@@ -5,7 +5,6 @@ import type { TransparencyDocument } from '@oab-transparencia/contracts'
 
 import { PublicPortalLayout } from '../components/PublicPortalLayout'
 import { humanResourcesMonths } from '../data/human-resources.fixture'
-import { publicSummaryFixture } from '../data/institutional.fixture'
 import { localPublicTransparencyRepository } from '../data/public.repository'
 import '../public-portal.css'
 
@@ -73,7 +72,7 @@ export function HumanResourcesPage() {
   )
 
   return (
-    <PublicPortalLayout summary={{ ...publicSummaryFixture, exercise }}>
+    <PublicPortalLayout>
       <section
         aria-labelledby="human-resources-title"
         className="human-resources-content"

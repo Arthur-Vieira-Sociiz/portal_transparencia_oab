@@ -3,7 +3,6 @@ import { useQuery } from '@tanstack/react-query'
 import type { Chart as ChartInstance, ChartConfiguration } from 'chart.js'
 import { formatCurrency, formatInteger } from '../../../lib/formatters'
 import { PublicPortalLayout } from '../components/PublicPortalLayout'
-import { publicSummaryFixture } from '../data/institutional.fixture'
 import { localPublicTransparencyRepository } from '../data/public.repository'
 import '../public-portal.css'
 
@@ -96,7 +95,7 @@ export function ReportsIndicatorsPage() {
     scales: { x: { grid: { display: false } }, y: { beginAtZero: true } },
   }
   return (
-    <PublicPortalLayout summary={{ ...publicSummaryFixture, exercise }}>
+    <PublicPortalLayout>
       <section className="reports-content" aria-labelledby="reports-title">
         <div className="reports-title">
           <h2 id="reports-title">Relatório Financeiro Consolidado</h2>

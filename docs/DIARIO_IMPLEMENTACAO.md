@@ -453,3 +453,95 @@ O frontend passou a usar Tailwind CSS 4 com o plugin oficial do Vite e
 componentes locais do shadcn/ui. A rota `/login` consome a API de autenticação,
 exibe erros de credenciais e salva a sessão apenas na aba atual; `/admin` é uma
 área temporária protegida para confirmar login e logout antes dos CRUDes.
+
+## 2026-11-12 — Primeiro CRUD administrativo: Dados Gerais
+
+O primeiro módulo operacional do painel permite cadastrar os oito indicadores
+da home por exercício: receitas, despesas, orçamento, patrimônio, advogados,
+sociedades, salas de apoio e inscritos. O formulário usa Tailwind e componentes
+shadcn/ui, com pré-visualização lado a lado para o operador conferir o resultado
+antes de publicar.
+
+Cada exercício é único e começa como `DRAFT`. O endpoint público filtra por
+`PUBLISHED`, então salvar não altera a área pública. A autoria de criação e
+atualização fica relacionada ao usuário autenticado no banco.
+
+Foi aplicada no Neon a migration
+`apps/api/prisma/migrations/20261112120000_add_general_data`. Os testes cobrem
+publicação, consulta pública, duplicidade de exercício e chamada sem
+autenticação. O fluxo manual está documentado na coleção
+`docs/insomnia/portal-transparencia-general-data.insomnia.json`.
+
+## 2026-11-12 — Shell administrativo e navegação por módulos
+
+O painel administrativo deixou de ser uma tela isolada e passou a usar um shell
+com menu lateral no desktop, navegação horizontal no celular, identificação do
+usuário, atalho para a tela pública e encerramento de sessão. O menu já reúne as
+dez áreas que serão alimentadas pela equipe da OAB-AL.
+
+`Dados gerais` continua sendo o primeiro módulo funcional. As demais rotas estão
+organizadas com uma tela de transição, mantendo a mesma experiência enquanto os
+formulários específicos baseados nos snippets PHP são implementados.
+
+### Refinamento visual do painel
+
+Os ícones do menu e da prévia usam o acento vermelho da identidade pública para
+facilitar o reconhecimento das categorias. O formulário passou a comunicar
+sucesso, aviso, erro e informação por toasts acessíveis, sem deslocar o layout
+com mensagens inline. O componente de toast é compartilhado e baseado em
+Tailwind/shadcn, com fechamento manual, leitura por tecnologias assistivas e
+desaparecimento automático.
+
+### Ajuste de operação e viewport
+
+Os campos numéricos agora aceitam a digitação no padrão brasileiro e formatam
+milhares e casas decimais ao sair do campo, mantendo o valor numérico correto
+para a API. A área administrativa usa `100dvh`, rolagem independente do
+conteúdo e área inferior fixa na sidebar, garantindo que o botão de sair não
+seja perdido em telas menores. A sidebar fica reservada à navegação; o logout
+passou a ficar no header, alinhado com a marca institucional.
+
+Os campos numéricos também passaram a aplicar a máscara durante a digitação:
+milhares são agrupados progressivamente e casas decimais seguem o padrão
+brasileiro. O teclado bloqueia letras e a colagem passa por sanitização antes
+de atualizar o valor enviado ao backend.
+
+### Dados Gerais sem fixture de valores
+
+Os valores históricos que apareciam nos cards públicos foram removidos. A
+Institucional consulta `GET /api/public/general-data` e usa apenas um estado
+vazio com zeros quando ainda não existe publicação (ou quando o ambiente local
+está sem a API). Assim, nenhum valor mockado é confundido com dado oficial.
+
+### Dados Gerais como componente único
+
+`PublicPortalLayout` passou a consultar o endpoint de Dados Gerais e renderizar
+`SummaryGrid` uma única vez para todas as páginas públicas. As páginas de
+Institucional, Administrativo, Financeiro, Orçamentário, Patrimonial, Contratos,
+Recursos Humanos, Glossário, LGPD e Relatórios não enviam mais um resumo próprio
+nem alteram o exercício dos cards. O CRUD publicado agora é a única fonte dos
+indicadores repetidos no portal.
+
+### Regra para os próximos CRUDs
+
+Quando um módulo tiver seu primeiro registro publicado, os valores mockados
+daquela categoria devem ser removidos da página pública no mesmo passo. A tela
+passa a consultar somente o endpoint público; na ausência de publicação, usa
+apenas um estado vazio explicitamente neutro. Nenhum fixture de demonstração
+deve permanecer como fallback de dados oficiais.
+
+Em seguida, as ações operacionais foram reposicionadas no header alinhado à
+marca da sidebar: usuário, acesso à tela pública e logout ficam no mesmo eixo
+superior, enquanto a lateral permanece exclusiva para navegação dos módulos. O
+logout é representado apenas pelo ícone, com `aria-label`, tooltip nativo e
+separador visual entre o usuário e o link público.
+
+O header foi refinado para uma faixa compacta de 88px, alinhada ao topo da
+marca da sidebar. A descrição continua disponível para acessibilidade, mas a
+faixa visual prioriza eyebrow, título e ações operacionais.
+
+O botão `Limpar formulário` fica junto das ações de salvar e publicar, deixando
+claro que ele afeta apenas o formulário atual e os valores ainda não salvos.
+Antes de limpar, o admin solicita confirmação em modal. A publicação também
+exige confirmação e apresenta os oito cards da prévia com os valores atuais,
+para que o operador revise o conteúdo antes de torná-lo público.

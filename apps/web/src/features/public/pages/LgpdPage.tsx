@@ -4,7 +4,6 @@ import { useQuery } from '@tanstack/react-query'
 import type { LgpdSectionGroup } from '@oab-transparencia/contracts'
 
 import { PublicPortalLayout } from '../components/PublicPortalLayout'
-import { publicSummaryFixture } from '../data/institutional.fixture'
 import { localPublicTransparencyRepository } from '../data/public.repository'
 import '../public-portal.css'
 
@@ -74,7 +73,7 @@ export function LgpdPage() {
   }
 
   return (
-    <PublicPortalLayout summary={publicSummaryFixture}>
+    <PublicPortalLayout>
       <section aria-labelledby="lgpd-title" className="lgpd-content">
         <h2 className="public-section-title" id="lgpd-title">
           LGPD

@@ -18,6 +18,11 @@ enum UserStatus {
   DISABLED
 }
 
+enum GeneralDataStatus {
+  DRAFT
+  PUBLISHED
+}
+
 model User {
   id           String     @id @default(cuid())
   name         String
@@ -28,7 +33,35 @@ model User {
   lastLoginAt  DateTime?
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
-  sessions     Session[]
+  sessions            Session[]
+  createdGeneralData  GeneralData[] @relation("GeneralDataCreatedBy")
+  updatedGeneralData  GeneralData[] @relation("GeneralDataUpdatedBy")
+}
+
+model GeneralData {
+  id                String            @id @default(cuid())
+  exercise          Int
+  totalExpenses     Decimal           @db.Decimal(14, 2)
+  totalRevenue      Decimal           @db.Decimal(14, 2)
+  budget            Decimal           @db.Decimal(14, 2)
+  patrimony         Decimal           @db.Decimal(14, 2)
+  activeLawyers     Int
+  activeSocieties   Int
+  supportRooms      Int
+  registeredMembers Int
+  status            GeneralDataStatus @default(DRAFT)
+  publishedAt       DateTime?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  createdById       String
+  updatedById       String
+  createdBy         User              @relation("GeneralDataCreatedBy", fields: [createdById], references: [id])
+  updatedBy         User              @relation("GeneralDataUpdatedBy", fields: [updatedById], references: [id])
+
+  @@unique([exercise])
+  @@index([status, exercise])
+  @@index([createdById])
+  @@index([updatedById])
 }
 
 model Session {

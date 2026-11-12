@@ -4,7 +4,6 @@ import { useQuery } from '@tanstack/react-query'
 
 import { formatCurrency } from '../../../lib/formatters'
 import { PublicPortalLayout } from '../components/PublicPortalLayout'
-import { publicSummaryFixture } from '../data/institutional.fixture'
 import { localPublicTransparencyRepository } from '../data/public.repository'
 import '../public-portal.css'
 
@@ -65,14 +64,8 @@ export function PatrimonialPage() {
         asset.informationType === informationType) &&
       (status === 'all' || asset.status === status),
   )
-  const patrimony = page.data.assets
-    .filter((asset) => asset.exercise === exercise)
-    .reduce((total, asset) => total + asset.acquisitionValue, 0)
-
   return (
-    <PublicPortalLayout
-      summary={{ ...publicSummaryFixture, exercise, patrimony }}
-    >
+    <PublicPortalLayout>
       <section
         aria-labelledby="patrimonial-title"
         className="patrimonial-content"

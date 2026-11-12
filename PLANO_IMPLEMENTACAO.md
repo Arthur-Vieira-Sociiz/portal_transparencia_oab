@@ -121,6 +121,9 @@ Rotas previstas:
 - [x] Criar a migration inicial de usuários e sessões; aguarda aplicação no Neon.
 - [ ] Implementar endpoints públicos somente de leitura.
 - [x] Implementar os endpoints iniciais de cadastro, login, sessão e logout.
+- [x] Criar o primeiro CRUD de Dados Gerais com rascunho, publicação e endpoint público.
+- [x] Aplicar a migration de Dados Gerais no NeonDB.
+- [x] Criar a coleção Insomnia de Dados Gerais com cenários de sucesso e erro.
 - [x] Publicar uma coleção Insomnia para autenticação, com cenários de sucesso e erro.
 - [ ] Publicar/atualizar a coleção Insomnia de cada módulo CRUD junto com suas rotas.
 - [ ] Integrar armazenamento de PDF, CSV e XLSX.
@@ -135,7 +138,8 @@ Rotas previstas:
 
 - [ ] Implementar a interface `/login` e recuperação segura de acesso.
 - [ ] Definir perfis e permissões.
-- [ ] Implementar dashboard administrativo.
+- [x] Implementar dashboard administrativo inicial.
+- [x] Criar formulário guiado de Dados Gerais com pré-visualização dos cards.
 - [ ] Criar uma jornada guiada por categoria e exercício: escolher módulo → preencher dados → anexar documentos → revisar → publicar.
 - [ ] Criar formulários por módulo reutilizando contratos e componentes públicos.
 - [ ] Exibir pré-visualização pública ao vivo, com os mesmos componentes de `/public`, antes da publicação.

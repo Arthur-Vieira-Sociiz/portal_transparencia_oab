@@ -5,7 +5,6 @@ import type { TransparencyDocument } from '@oab-transparencia/contracts'
 
 import { formatCurrency } from '../../../lib/formatters'
 import { PublicPortalLayout } from '../components/PublicPortalLayout'
-import { publicSummaryFixture } from '../data/institutional.fixture'
 import { localPublicTransparencyRepository } from '../data/public.repository'
 import '../public-portal.css'
 
@@ -99,12 +98,7 @@ export function ContractsPage() {
   })
 
   return (
-    <PublicPortalLayout
-      summary={{
-        ...publicSummaryFixture,
-        exercise: exercise === 'all' ? 2026 : exercise,
-      }}
-    >
+    <PublicPortalLayout>
       <section aria-labelledby="contracts-title" className="contracts-content">
         <div className="contracts-top-bar">
           <div>

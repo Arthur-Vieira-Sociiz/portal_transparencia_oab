@@ -5,7 +5,6 @@ import type { BudgetRecord } from '@oab-transparencia/contracts'
 
 import { formatCurrency } from '../../../lib/formatters'
 import { PublicPortalLayout } from '../components/PublicPortalLayout'
-import { publicSummaryFixture } from '../data/institutional.fixture'
 import { localPublicTransparencyRepository } from '../data/public.repository'
 import '../public-portal.css'
 
@@ -74,13 +73,7 @@ export function BudgetPage() {
   )
 
   return (
-    <PublicPortalLayout
-      summary={{
-        ...publicSummaryFixture,
-        budget: 14_500_000,
-        exercise,
-      }}
-    >
+    <PublicPortalLayout>
       <section aria-labelledby="budget-title" className="budget-content">
         <h2 className="public-section-title" id="budget-title">
           Visão orçamentária por exercício

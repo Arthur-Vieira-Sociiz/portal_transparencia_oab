@@ -43,7 +43,7 @@ export function AdministrativePage() {
   }
 
   return (
-    <PublicPortalLayout summary={page.data.summary}>
+    <PublicPortalLayout>
       <section
         aria-labelledby="organogram-title"
         className="administrative-content"

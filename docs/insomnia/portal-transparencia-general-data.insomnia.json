@@ -1,0 +1,149 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-11-12T00:00:00.000Z",
+  "__export_source": "portal-transparencia-oab",
+  "resources": [
+    {
+      "_id": "wrk_portal_transparencia_general_data",
+      "_type": "workspace",
+      "name": "Portal da Transparência OAB — Dados Gerais",
+      "description": "CRUD do primeiro cadastro administrativo e publicação dos cards da home."
+    },
+    {
+      "_id": "env_portal_transparencia_general_data",
+      "parentId": "wrk_portal_transparencia_general_data",
+      "_type": "environment",
+      "name": "Base Environment",
+      "data": {
+        "base_url": "http://localhost:3333",
+        "access_token": "COLE_O_TOKEN_DO_LOGIN_AQUI",
+        "general_data_id": "COLE_O_ID_DO_RASCUNHO_AQUI"
+      },
+      "dataPropertyOrder": null,
+      "isPrivate": false,
+      "metaSortKey": 1
+    },
+    {
+      "_id": "fld_general_data_success",
+      "parentId": "wrk_portal_transparencia_general_data",
+      "_type": "request_group",
+      "name": "Sucesso",
+      "description": "Faça login antes, copie o token e execute na ordem: criar, listar, publicar e consultar público."
+    },
+    {
+      "_id": "req_general_data_create",
+      "parentId": "fld_general_data_success",
+      "_type": "request",
+      "name": "01 — Criar rascunho do exercício",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/admin/general-data",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.access_token }}" },
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"exercise\": 2026,\n  \"totalExpenses\": 17111470.67,\n  \"totalRevenue\": 17436491.03,\n  \"budget\": 17600000,\n  \"patrimony\": 24506669,\n  \"activeLawyers\": 17345,\n  \"activeSocieties\": 347,\n  \"supportRooms\": 95,\n  \"registeredMembers\": 18574\n}"
+      },
+      "description": "Esperado: 201 e status DRAFT. Copie o campo id para general_data_id."
+    },
+    {
+      "_id": "req_general_data_list",
+      "parentId": "fld_general_data_success",
+      "_type": "request",
+      "name": "02 — Listar exercícios",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/admin/general-data",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.access_token }}" }
+      ],
+      "description": "Esperado: 200 com records ordenados do exercício mais recente para o mais antigo."
+    },
+    {
+      "_id": "req_general_data_publish",
+      "parentId": "fld_general_data_success",
+      "_type": "request",
+      "name": "03 — Publicar exercício",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/admin/general-data/{{ _.general_data_id }}/publish",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.access_token }}" }
+      ],
+      "description": "Esperado: 200 com status PUBLISHED e publishedAt preenchido."
+    },
+    {
+      "_id": "req_general_data_public",
+      "parentId": "fld_general_data_success",
+      "_type": "request",
+      "name": "04 — Consultar card público",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/public/general-data?exercise=2026",
+      "headers": [],
+      "description": "Esperado: 200. O endpoint público só retorna registros publicados."
+    },
+    {
+      "_id": "fld_general_data_errors",
+      "parentId": "wrk_portal_transparencia_general_data",
+      "_type": "request_group",
+      "name": "Casos de erro",
+      "description": "Respostas esperadas para validar a interface e os limites do CRUD."
+    },
+    {
+      "_id": "req_general_data_no_auth",
+      "parentId": "fld_general_data_errors",
+      "_type": "request",
+      "name": "Sem autenticação",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/admin/general-data",
+      "headers": [],
+      "description": "Esperado: 401 e Autenticação necessária."
+    },
+    {
+      "_id": "req_general_data_duplicate",
+      "parentId": "fld_general_data_errors",
+      "_type": "request",
+      "name": "Duplicar exercício",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/admin/general-data",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.access_token }}" },
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"exercise\": 2026,\n  \"totalExpenses\": 0,\n  \"totalRevenue\": 0,\n  \"budget\": 0,\n  \"patrimony\": 0,\n  \"activeLawyers\": 0,\n  \"activeSocieties\": 0,\n  \"supportRooms\": 0,\n  \"registeredMembers\": 0\n}"
+      },
+      "description": "Esperado: 409 e Já existe um cadastro para este exercício."
+    },
+    {
+      "_id": "req_general_data_invalid",
+      "parentId": "fld_general_data_errors",
+      "_type": "request",
+      "name": "Valores inválidos",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/admin/general-data",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.access_token }}" },
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"exercise\": 1999,\n  \"totalExpenses\": -1\n}"
+      },
+      "description": "Esperado: 400 com issues apontando os campos inválidos."
+    },
+    {
+      "_id": "req_general_data_missing",
+      "parentId": "fld_general_data_errors",
+      "_type": "request",
+      "name": "Publicação de ID inexistente",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/admin/general-data/id-inexistente/publish",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.access_token }}" }
+      ],
+      "description": "Esperado: 404 e Cadastro de dados gerais não encontrado."
+    }
+  ]
+}

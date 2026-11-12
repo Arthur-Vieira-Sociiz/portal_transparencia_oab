@@ -70,6 +70,24 @@ sucesso e erro antes de ser considerado concluído.
 | `GET`  | `/api/auth/me`       | Confere a sessão enviada em `Authorization: Bearer <token>`.                             |
 | `POST` | `/api/auth/logout`   | Revoga a sessão atual.                                                                   |
 
+## Primeiro CRUD: Dados Gerais
+
+O módulo mantém um registro por exercício com os oito valores dos cards da
+página Institucional. O fluxo é: preencher → salvar rascunho → conferir prévia
+→ publicar.
+
+| Método  | Rota                                     | Uso                               |
+| ------- | ---------------------------------------- | --------------------------------- |
+| `GET`   | `/api/admin/general-data`                | Lista rascunhos e publicados.     |
+| `POST`  | `/api/admin/general-data`                | Cria um exercício como `DRAFT`.   |
+| `PATCH` | `/api/admin/general-data/:id`            | Atualiza um registro.             |
+| `POST`  | `/api/admin/general-data/:id/publish`    | Publica o exercício.              |
+| `GET`   | `/api/public/general-data?exercise=2026` | Retorna somente dados publicados. |
+
+Importe `docs/insomnia/portal-transparencia-general-data.insomnia.json` para
+testar sucesso, duplicidade (`409`), payload inválido (`400`), sem autenticação
+(`401`) e ID inexistente (`404`).
+
 > [!warning]
 > O endpoint de cadastro não deve ficar disponível sem
 > `ADMIN_REGISTRATION_KEY`. Em produção, configure todas as variáveis no painel

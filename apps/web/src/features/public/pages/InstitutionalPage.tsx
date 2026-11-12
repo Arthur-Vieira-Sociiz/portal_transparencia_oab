@@ -24,7 +24,7 @@ export function InstitutionalPage() {
   }
 
   return (
-    <PublicPortalLayout summary={page.data.summary}>
+    <PublicPortalLayout>
       <section
         aria-labelledby="institutional-presentation"
         className="institutional-content"

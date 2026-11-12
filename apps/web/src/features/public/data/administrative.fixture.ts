@@ -3,10 +3,10 @@ import {
   type PublicAdministrativePage,
 } from '@oab-transparencia/contracts'
 
-import { publicSummaryFixture } from './institutional.fixture'
+import { emptyPublicSummary } from './institutional.fixture'
 
 const administrativeFixture = {
-  summary: publicSummaryFixture,
+  summary: emptyPublicSummary,
   organogram: {
     description:
       'Acompanhe como a OAB/AL se organiza para melhor atender a advocacia.',

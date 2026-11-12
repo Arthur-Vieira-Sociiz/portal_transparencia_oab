@@ -1,7 +1,8 @@
-import { Navigate, createBrowserRouter } from 'react-router-dom'
+import { Navigate, createBrowserRouter, useParams } from 'react-router-dom'
 
 import { FoundationPage } from '../features/foundation/FoundationPage'
 import { AdminHomePage } from '../features/auth/AdminHomePage'
+import { AdminSectionPlaceholderPage } from '../features/auth/AdminSectionPlaceholderPage'
 import { LoginPage } from '../features/auth/LoginPage'
 import { AdministrativePage } from '../features/public/pages/AdministrativePage'
 import { BudgetPage } from '../features/public/pages/BudgetPage'
@@ -81,6 +82,10 @@ export const router = createBrowserRouter([
     element: <AdminHomePage />,
   },
   {
+    path: '/admin/:section',
+    element: <AdminSectionRoute />,
+  },
+  {
     path: '*',
     element: (
       <FoundationPage
@@ -90,3 +95,8 @@ export const router = createBrowserRouter([
     ),
   },
 ])
+
+function AdminSectionRoute() {
+  const { section = 'dashboard' } = useParams()
+  return <AdminSectionPlaceholderPage section={section} />
+}

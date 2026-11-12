@@ -3,7 +3,6 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 
 import { PublicPortalLayout } from '../components/PublicPortalLayout'
-import { publicSummaryFixture } from '../data/institutional.fixture'
 import { localPublicTransparencyRepository } from '../data/public.repository'
 import '../public-portal.css'
 
@@ -44,7 +43,7 @@ export function GlossaryPage() {
   )
 
   return (
-    <PublicPortalLayout summary={publicSummaryFixture}>
+    <PublicPortalLayout>
       <section aria-labelledby="glossary-title" className="glossary-content">
         <h2 className="public-section-title" id="glossary-title">
           Glossário Contábil e Administrativo
