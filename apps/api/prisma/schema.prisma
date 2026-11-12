@@ -24,22 +24,24 @@ enum GeneralDataStatus {
 }
 
 model User {
-  id           String     @id @default(cuid())
-  name         String
-  email        String     @unique
-  passwordHash String
-  role         UserRole   @default(EDITOR)
-  status       UserStatus @default(ACTIVE)
-  lastLoginAt  DateTime?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  sessions            Session[]
-  createdGeneralData  GeneralData[] @relation("GeneralDataCreatedBy")
-  updatedGeneralData  GeneralData[] @relation("GeneralDataUpdatedBy")
-  createdBudgetRecords BudgetRecord[] @relation("BudgetCreatedBy")
-  updatedBudgetRecords BudgetRecord[] @relation("BudgetUpdatedBy")
+  id                        String              @id @default(cuid())
+  name                      String
+  email                     String              @unique
+  passwordHash              String
+  role                      UserRole            @default(EDITOR)
+  status                    UserStatus          @default(ACTIVE)
+  lastLoginAt               DateTime?
+  createdAt                 DateTime            @default(now())
+  updatedAt                 DateTime            @updatedAt
+  sessions                  Session[]
+  createdGeneralData        GeneralData[]       @relation("GeneralDataCreatedBy")
+  updatedGeneralData        GeneralData[]       @relation("GeneralDataUpdatedBy")
+  createdBudgetRecords      BudgetRecord[]      @relation("BudgetCreatedBy")
+  updatedBudgetRecords      BudgetRecord[]      @relation("BudgetUpdatedBy")
   createdFinancialDocuments FinancialDocument[] @relation("FinancialCreatedBy")
   updatedFinancialDocuments FinancialDocument[] @relation("FinancialUpdatedBy")
+  createdPatrimonialAssets  PatrimonialAsset[]  @relation("PatrimonialCreatedBy")
+  updatedPatrimonialAssets  PatrimonialAsset[]  @relation("PatrimonialUpdatedBy")
 }
 
 model GeneralData {
@@ -69,22 +71,22 @@ model GeneralData {
 }
 
 model BudgetRecord {
-  id                  String            @id @default(cuid())
-  informationType     String
-  annualBudget        Decimal           @db.Decimal(14, 2)
-  plannedAmount       Decimal           @db.Decimal(14, 2)
-  executedAmount      Decimal           @db.Decimal(14, 2)
-  exercise            Int
-  documentTitle       String?
-  documentUrl         String?
-  status              GeneralDataStatus @default(DRAFT)
-  publishedAt         DateTime?
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
-  createdById         String
-  updatedById         String
-  createdBy           User              @relation("BudgetCreatedBy", fields: [createdById], references: [id])
-  updatedBy           User              @relation("BudgetUpdatedBy", fields: [updatedById], references: [id])
+  id              String            @id @default(cuid())
+  informationType String
+  annualBudget    Decimal           @db.Decimal(14, 2)
+  plannedAmount   Decimal           @db.Decimal(14, 2)
+  executedAmount  Decimal           @db.Decimal(14, 2)
+  exercise        Int
+  documentTitle   String?
+  documentUrl     String?
+  status          GeneralDataStatus @default(DRAFT)
+  publishedAt     DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  createdById     String
+  updatedById     String
+  createdBy       User              @relation("BudgetCreatedBy", fields: [createdById], references: [id])
+  updatedBy       User              @relation("BudgetUpdatedBy", fields: [updatedById], references: [id])
 
   @@unique([informationType, exercise])
   @@index([status, exercise])
@@ -112,14 +114,37 @@ model FinancialDocument {
   @@index([status, exercise])
 }
 
+model PatrimonialAsset {
+  id               String            @id @default(cuid())
+  informationType  String
+  description      String
+  location         String
+  acquisitionValue Decimal           @db.Decimal(14, 2)
+  status           String
+  exercise         Int
+  documentTitle    String?
+  documentUrl      String?
+  statusState      GeneralDataStatus @default(DRAFT)
+  publishedAt      DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  createdById      String
+  updatedById      String
+  createdBy        User              @relation("PatrimonialCreatedBy", fields: [createdById], references: [id])
+  updatedBy        User              @relation("PatrimonialUpdatedBy", fields: [updatedById], references: [id])
+
+  @@unique([informationType, description, exercise])
+  @@index([statusState, exercise])
+}
+
 model Session {
-  id        String   @id @default(cuid())
-  tokenHash String   @unique
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
   expiresAt DateTime
   revokedAt DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([expiresAt])

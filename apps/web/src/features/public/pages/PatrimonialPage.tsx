@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 
 import { formatCurrency } from '../../../lib/formatters'
+import { getPublicPatrimonialPage } from '../../../lib/api'
 import { PublicPortalLayout } from '../components/PublicPortalLayout'
 import { localPublicTransparencyRepository } from '../data/public.repository'
 import '../public-portal.css'
@@ -36,7 +37,10 @@ export function PatrimonialPage() {
   const [informationType, setInformationType] = useState('all')
   const [status, setStatus] = useState('all')
   const page = useQuery({
-    queryFn: () => localPublicTransparencyRepository.getPatrimonialPage(),
+    queryFn: () =>
+      import.meta.env.MODE === 'test'
+        ? localPublicTransparencyRepository.getPatrimonialPage()
+        : getPublicPatrimonialPage(),
     queryKey: ['public-transparency', 'patrimonial'],
     staleTime: Number.POSITIVE_INFINITY,
   })
@@ -54,9 +58,11 @@ export function PatrimonialPage() {
   }
 
   const informationTypes = [
-    ...new Set(page.data.assets.map((asset) => asset.informationType)),
+    'Imóvel',
+    'Mobiliário',
+    'Equipamentos de informática',
   ]
-  const statuses = [...new Set(page.data.assets.map((asset) => asset.status))]
+  const statuses = ['Ativo', 'Locado', 'Emprestado']
   const assets = page.data.assets.filter(
     (asset) =>
       asset.exercise === exercise &&

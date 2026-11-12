@@ -339,6 +339,11 @@ O portal atual organiza a área Patrimonial em uma tabela com filtros por ano,
 tipo de bem e situação. A nova rota `/public/patrimonial` reproduz essa estrutura
 com rolagem horizontal em telas estreitas, badges de situação e estado vazio.
 
+O módulo administrativo agora possui CRUD protegido para os mesmos campos da
+tabela: tipo de bem, descrição, localização, valor de aquisição, situação,
+exercício e documento opcional. Registros são salvos como rascunho e publicados
+por exercício; a tela pública consulta somente os registros publicados.
+
 O contrato `PublicPatrimonialPageSchema` agrupa os exercícios e os bens. Cada
 bem tem identificação, tipo, descrição, localização, valor de aquisição,
 situação, exercício e documento opcional. Esse é o mesmo conjunto de campos que

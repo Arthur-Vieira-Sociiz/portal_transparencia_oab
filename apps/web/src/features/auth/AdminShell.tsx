@@ -2,14 +2,10 @@ import type { ReactNode } from 'react'
 import { Navigate, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import {
   BarChart3,
-  BookOpen,
-  Building2,
   ClipboardList,
   FileCheck2,
-  LayoutDashboard,
   LogOut,
   PanelLeft,
-  ShieldCheck,
   Users,
   WalletCards,
 } from 'lucide-react'
@@ -27,9 +23,7 @@ type AdminShellProps = {
 }
 
 const menuItems = [
-  { label: 'Visão geral', path: '/admin/dashboard', icon: LayoutDashboard },
   { label: 'Dados gerais', path: '/admin', icon: BarChart3 },
-  { label: 'Administrativo', path: '/admin/administrativo', icon: Building2 },
   { label: 'Orçamentário', path: '/admin/orcamentario', icon: WalletCards },
   { label: 'Financeiro', path: '/admin/financeiro', icon: WalletCards },
   { label: 'Patrimonial', path: '/admin/patrimonial', icon: ClipboardList },
@@ -44,8 +38,6 @@ const menuItems = [
     path: '/admin/relatorios-e-indicadores',
     icon: BarChart3,
   },
-  { label: 'Glossário', path: '/admin/glossario', icon: BookOpen },
-  { label: 'LGPD', path: '/admin/lgpd', icon: ShieldCheck },
 ]
 
 const publicPathByAdminPath: Record<string, string> = {

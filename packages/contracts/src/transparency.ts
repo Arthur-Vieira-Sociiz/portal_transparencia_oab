@@ -109,6 +109,30 @@ export const PatrimonialAssetSchema = z.object({
   document: TransparencyDocumentSchema.optional(),
 })
 
+export const CreatePatrimonialAssetRequestSchema = z.object({
+  informationType: z.string().trim().min(1).max(120),
+  description: z.string().trim().min(1).max(240),
+  location: z.string().trim().min(1).max(180),
+  acquisitionValue: NonNegativeAmountSchema,
+  status: z.string().trim().min(1).max(60),
+  exercise: ExerciseSchema,
+  documentTitle: z.string().trim().max(200).optional(),
+  documentUrl: z.union([z.url(), z.literal('')]).optional(),
+})
+
+export const UpdatePatrimonialAssetRequestSchema =
+  CreatePatrimonialAssetRequestSchema.partial().extend({
+    status: z.string().trim().min(1).max(60).optional(),
+    publicationStatus: GeneralDataStatusSchema.optional(),
+  })
+
+export const AdminPatrimonialAssetSchema = PatrimonialAssetSchema.extend({
+  publicationStatus: GeneralDataStatusSchema,
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
+  publishedAt: z.iso.datetime().nullable(),
+})
+
 export const FinancialSectionIdSchema = z.enum([
   'trial-balances',
   'financial-statements',
@@ -320,7 +344,7 @@ export const PatrimonialFiltersSchema = z.object({
 })
 
 export const PublicPatrimonialPageSchema = z.object({
-  availableExercises: z.array(ExerciseSchema).min(1),
+  availableExercises: z.array(ExerciseSchema),
   assets: z.array(PatrimonialAssetSchema),
 })
 
@@ -348,6 +372,13 @@ export type PublicHumanResourcesPage = z.infer<
   typeof PublicHumanResourcesPageSchema
 >
 export type PatrimonialAsset = z.infer<typeof PatrimonialAssetSchema>
+export type AdminPatrimonialAsset = z.infer<typeof AdminPatrimonialAssetSchema>
+export type CreatePatrimonialAssetRequest = z.infer<
+  typeof CreatePatrimonialAssetRequestSchema
+>
+export type UpdatePatrimonialAssetRequest = z.infer<
+  typeof UpdatePatrimonialAssetRequestSchema
+>
 export type PublicPatrimonialPage = z.infer<typeof PublicPatrimonialPageSchema>
 export type FinancialSectionId = z.infer<typeof FinancialSectionIdSchema>
 export type FinancialTransparency = z.infer<typeof FinancialTransparencySchema>

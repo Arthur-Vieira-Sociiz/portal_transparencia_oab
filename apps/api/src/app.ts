@@ -43,11 +43,20 @@ import {
 } from './financial/financial-document-service.js'
 import { createPrismaFinancialDocumentRepository } from './financial/prisma-financial-document-repository.js'
 import {
+  PatrimonialAssetError,
+  createPatrimonialAssetService,
+  type PatrimonialAssetService,
+} from './patrimonial/patrimonial-asset-service.js'
+import { createPrismaPatrimonialAssetRepository } from './patrimonial/prisma-patrimonial-asset-repository.js'
+import {
   CreateBudgetRecordRequestSchema,
   PublicBudgetRecordsSchema,
   UpdateBudgetRecordRequestSchema,
   CreateFinancialDocumentRequestSchema,
   UpdateFinancialDocumentRequestSchema,
+  CreatePatrimonialAssetRequestSchema,
+  UpdatePatrimonialAssetRequestSchema,
+  PublicPatrimonialPageSchema,
 } from '@oab-transparencia/contracts/transparency'
 
 type AppOptions = {
@@ -55,6 +64,7 @@ type AppOptions = {
   generalDataService?: GeneralDataService
   budgetService?: BudgetService
   financialDocumentService?: FinancialDocumentService
+  patrimonialAssetService?: PatrimonialAssetService
 }
 
 function authenticationErrorResponse(
@@ -135,6 +145,13 @@ export function createApp(options: AppOptions = {}): Express {
       createPrismaFinancialDocumentRepository(),
     )
     return financialDocumentService
+  }
+  let patrimonialAssetService = options.patrimonialAssetService
+  function getPatrimonialAssetService() {
+    patrimonialAssetService ??= createPatrimonialAssetService(
+      createPrismaPatrimonialAssetRepository(),
+    )
+    return patrimonialAssetService
   }
 
   async function requireUser(request: Request) {
@@ -423,6 +440,70 @@ export function createApp(options: AppOptions = {}): Express {
     },
   )
 
+  app.get('/api/public/patrimonial', async (_request, response, next) => {
+    try {
+      response.json(
+        PublicPatrimonialPageSchema.parse(
+          await getPatrimonialAssetService().listPublished(),
+        ),
+      )
+    } catch (error) {
+      next(error)
+    }
+  })
+  app.get('/api/admin/patrimonial', async (request, response, next) => {
+    try {
+      await requireUser(request)
+      response.json({ records: await getPatrimonialAssetService().list() })
+    } catch (error) {
+      next(error)
+    }
+  })
+  app.post('/api/admin/patrimonial', async (request, response, next) => {
+    try {
+      const user = await requireUser(request)
+      const input = CreatePatrimonialAssetRequestSchema.parse(request.body)
+      response
+        .status(201)
+        .json(
+          await getPatrimonialAssetService().create({
+            ...input,
+            userId: user.id,
+          }),
+        )
+    } catch (error) {
+      next(error)
+    }
+  })
+  app.patch('/api/admin/patrimonial/:id', async (request, response, next) => {
+    try {
+      const user = await requireUser(request)
+      const input = UpdatePatrimonialAssetRequestSchema.parse(request.body)
+      response.json(
+        await getPatrimonialAssetService().update(request.params.id, {
+          ...input,
+          userId: user.id,
+        }),
+      )
+    } catch (error) {
+      next(error)
+    }
+  })
+  app.post(
+    '/api/admin/patrimonial/:exercise/publish',
+    async (request, response, next) => {
+      try {
+        const user = await requireUser(request)
+        const exercise = ExerciseSchema.parse(Number(request.params.exercise))
+        response.json(
+          await getPatrimonialAssetService().publishExercise(exercise, user.id),
+        )
+      } catch (error) {
+        next(error)
+      }
+    },
+  )
+
   app.use(
     (
       error: unknown,
@@ -470,6 +551,19 @@ export function createApp(options: AppOptions = {}): Express {
         } as const
         const status =
           error.code === 'FINANCIAL_DOCUMENT_ALREADY_EXISTS' ? 409 : 404
+        response.status(status).json({ message: messages[error.code] })
+        return
+      }
+      if (error instanceof PatrimonialAssetError) {
+        const messages = {
+          PATRIMONIAL_ASSET_ALREADY_EXISTS:
+            'Já existe um bem patrimonial com esse tipo, descrição e exercício.',
+          PATRIMONIAL_ASSET_NOT_FOUND: 'Bem patrimonial não encontrado.',
+          PATRIMONIAL_EXERCISE_NOT_FOUND:
+            'Nenhum bem patrimonial encontrado para este exercício.',
+        } as const
+        const status =
+          error.code === 'PATRIMONIAL_ASSET_ALREADY_EXISTS' ? 409 : 404
         response.status(status).json({ message: messages[error.code] })
         return
       }

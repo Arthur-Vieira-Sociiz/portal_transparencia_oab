@@ -4,6 +4,7 @@ import { FoundationPage } from '../features/foundation/FoundationPage'
 import { AdminHomePage } from '../features/auth/AdminHomePage'
 import { AdminBudgetPage } from '../features/auth/AdminBudgetPage'
 import { AdminFinancialPage } from '../features/auth/AdminFinancialPage'
+import { AdminPatrimonialPage } from '../features/auth/AdminPatrimonialPage'
 import { AdminUsersPage } from '../features/auth/AdminUsersPage'
 import { AdminSectionPlaceholderPage } from '../features/auth/AdminSectionPlaceholderPage'
 import { LoginPage } from '../features/auth/LoginPage'
@@ -91,6 +92,10 @@ export const router = createBrowserRouter([
   {
     path: '/admin/financeiro',
     element: <AdminFinancialPage />,
+  },
+  {
+    path: '/admin/patrimonial',
+    element: <AdminPatrimonialPage />,
   },
   {
     path: '/admin/usuarios',
