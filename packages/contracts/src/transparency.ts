@@ -94,9 +94,44 @@ export const HumanResourcesRecordSchema = z
   })
 
 export const PublicHumanResourcesPageSchema = z.object({
-  availableExercises: z.array(ExerciseSchema).min(1),
+  availableExercises: z.array(ExerciseSchema),
   records: z.array(HumanResourcesRecordSchema),
 })
+
+const HumanResourcesMonthFieldsSchema = z.object({
+  month: MonthSchema,
+  pdfUrl: z.union([z.url(), z.literal('')]),
+  xlsxUrl: z.union([z.url(), z.literal('')]),
+})
+
+const HumanResourcesFieldsSchema = z.object({
+  exercise: ExerciseSchema,
+  locality: z.string().trim().min(1).max(180),
+  months: z.array(HumanResourcesMonthFieldsSchema).length(12),
+})
+
+export const CreateHumanResourcesRequestSchema =
+  HumanResourcesFieldsSchema.refine(
+    ({ months }) => months.some((month) => month.pdfUrl || month.xlsxUrl),
+    {
+      message: 'Cadastre pelo menos um arquivo PDF ou XLSX.',
+      path: ['months'],
+    },
+  )
+
+export const UpdateHumanResourcesRequestSchema =
+  HumanResourcesFieldsSchema.partial().extend({
+    status: GeneralDataStatusSchema.optional(),
+  })
+
+export const AdminHumanResourcesRecordSchema =
+  HumanResourcesRecordSchema.extend({
+    id: z.string().min(1),
+    status: GeneralDataStatusSchema,
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    publishedAt: z.iso.datetime().nullable(),
+  })
 
 export const PatrimonialAssetSchema = z.object({
   id: z.string().min(1),
@@ -408,6 +443,15 @@ export type PublicInstitutionalPage = z.infer<
 export type HumanResourcesRecord = z.infer<typeof HumanResourcesRecordSchema>
 export type PublicHumanResourcesPage = z.infer<
   typeof PublicHumanResourcesPageSchema
+>
+export type CreateHumanResourcesRequest = z.infer<
+  typeof CreateHumanResourcesRequestSchema
+>
+export type UpdateHumanResourcesRequest = z.infer<
+  typeof UpdateHumanResourcesRequestSchema
+>
+export type AdminHumanResourcesRecord = z.infer<
+  typeof AdminHumanResourcesRecordSchema
 >
 export type PatrimonialAsset = z.infer<typeof PatrimonialAssetSchema>
 export type AdminPatrimonialAsset = z.infer<typeof AdminPatrimonialAssetSchema>

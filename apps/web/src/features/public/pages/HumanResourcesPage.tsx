@@ -2,6 +2,7 @@ import { useState } from 'react'
 
 import { useQuery } from '@tanstack/react-query'
 import type { TransparencyDocument } from '@oab-transparencia/contracts'
+import { getPublicHumanResourcesPage } from '../../../lib/api'
 
 import { PublicPortalLayout } from '../components/PublicPortalLayout'
 import { humanResourcesMonths } from '../data/human-resources.fixture'
@@ -47,7 +48,10 @@ export function HumanResourcesPage() {
   const [exercise, setExercise] = useState(2026)
   const [locality, setLocality] = useState('JACARECICA')
   const page = useQuery({
-    queryFn: () => localPublicTransparencyRepository.getHumanResourcesPage(),
+    queryFn: () =>
+      import.meta.env.MODE === 'test'
+        ? localPublicTransparencyRepository.getHumanResourcesPage()
+        : getPublicHumanResourcesPage(),
     queryKey: ['public-transparency', 'human-resources'],
     staleTime: Number.POSITIVE_INFINITY,
   })
@@ -67,8 +71,15 @@ export function HumanResourcesPage() {
   const localities = [
     ...new Set(page.data.records.map((record) => record.locality)),
   ]
+  const selectedExercise = page.data.availableExercises.includes(exercise)
+    ? exercise
+    : page.data.availableExercises[0]
+  const selectedLocality = localities.includes(locality)
+    ? locality
+    : localities[0]
   const record = page.data.records.find(
-    (item) => item.exercise === exercise && item.locality === locality,
+    (item) =>
+      item.exercise === selectedExercise && item.locality === selectedLocality,
   )
 
   return (
@@ -94,7 +105,7 @@ export function HumanResourcesPage() {
             <select
               id="human-resources-exercise"
               onChange={(event) => setExercise(Number(event.target.value))}
-              value={exercise}
+              value={selectedExercise ?? ''}
             >
               {page.data.availableExercises.map((year) => (
                 <option key={year} value={year}>
@@ -112,7 +123,7 @@ export function HumanResourcesPage() {
             <select
               id="human-resources-locality"
               onChange={(event) => setLocality(event.target.value)}
-              value={locality}
+              value={selectedLocality ?? ''}
             >
               {localities.map((item) => (
                 <option key={item} value={item}>
@@ -130,11 +141,13 @@ export function HumanResourcesPage() {
               {record.months.map((month) => (
                 <div className="human-resources-month" key={month.month}>
                   <span>{monthLabels[month.month]}</span>
-                  <div className="human-resources-month__actions">
-                    {month.documents.map((document) => (
-                      <DownloadLink document={document} key={document.id} />
-                    ))}
-                  </div>
+                  {month.documents.length > 0 && (
+                    <div className="human-resources-month__actions">
+                      {month.documents.map((document) => (
+                        <DownloadLink document={document} key={document.id} />
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

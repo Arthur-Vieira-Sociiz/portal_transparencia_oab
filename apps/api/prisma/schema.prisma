@@ -44,6 +44,8 @@ model User {
   updatedPatrimonialAssets  PatrimonialAsset[]  @relation("PatrimonialUpdatedBy")
   createdContracts          ContractRecord[]    @relation("ContractCreatedBy")
   updatedContracts          ContractRecord[]    @relation("ContractUpdatedBy")
+  createdHumanResources     HumanResourcesRecord[] @relation("HumanResourcesCreatedBy")
+  updatedHumanResources     HumanResourcesRecord[] @relation("HumanResourcesUpdatedBy")
 }
 
 model GeneralData {
@@ -113,6 +115,24 @@ model FinancialDocument {
   updatedBy       User              @relation("FinancialUpdatedBy", fields: [updatedById], references: [id])
 
   @@unique([informationType, period, exercise])
+  @@index([status, exercise])
+}
+
+model HumanResourcesRecord {
+  id          String            @id @default(cuid())
+  exercise    Int
+  locality    String
+  months      Json
+  status      GeneralDataStatus @default(DRAFT)
+  publishedAt DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  createdById String
+  updatedById String
+  createdBy   User              @relation("HumanResourcesCreatedBy", fields: [createdById], references: [id])
+  updatedBy   User              @relation("HumanResourcesUpdatedBy", fields: [updatedById], references: [id])
+
+  @@unique([exercise, locality])
   @@index([status, exercise])
 }
 

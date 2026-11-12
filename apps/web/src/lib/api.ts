@@ -24,6 +24,10 @@ import {
   CreateFinancialDocumentRequestSchema,
   UpdateFinancialDocumentRequestSchema,
   PublicFinancialPageSchema,
+  AdminHumanResourcesRecordSchema,
+  CreateHumanResourcesRequestSchema,
+  UpdateHumanResourcesRequestSchema,
+  PublicHumanResourcesPageSchema,
   AdminPatrimonialAssetSchema,
   CreatePatrimonialAssetRequestSchema,
   UpdatePatrimonialAssetRequestSchema,
@@ -46,6 +50,10 @@ import {
   type CreateFinancialDocumentRequest,
   type UpdateFinancialDocumentRequest,
   type PublicFinancialPage,
+  type AdminHumanResourcesRecord,
+  type CreateHumanResourcesRequest,
+  type UpdateHumanResourcesRequest,
+  type PublicHumanResourcesPage,
   type AdminPatrimonialAsset,
   type CreatePatrimonialAssetRequest,
   type UpdatePatrimonialAssetRequest,
@@ -331,6 +339,73 @@ export async function getPublicFinancialPage(): Promise<PublicFinancialPage> {
   const response = await fetch(`${apiBaseUrl}/public/financial`)
   if (!response.ok) throw await getApiError(response)
   return PublicFinancialPageSchema.parse(await response.json())
+}
+
+export async function listHumanResources(
+  token: string,
+): Promise<AdminHumanResourcesRecord[]> {
+  const payload = await authenticatedRequest(
+    token,
+    '/admin/human-resources',
+    {},
+    (value) => value as { records: unknown[] },
+  )
+  return payload.records.map((record) =>
+    AdminHumanResourcesRecordSchema.parse(record),
+  )
+}
+export async function createHumanResources(
+  token: string,
+  input: CreateHumanResourcesRequest,
+): Promise<AdminHumanResourcesRecord> {
+  const valid = CreateHumanResourcesRequestSchema.parse(input)
+  return authenticatedRequest(
+    token,
+    '/admin/human-resources',
+    { body: JSON.stringify(valid), method: 'POST' },
+    (value) => AdminHumanResourcesRecordSchema.parse(value),
+  )
+}
+export async function updateHumanResources(
+  token: string,
+  id: string,
+  input: UpdateHumanResourcesRequest,
+): Promise<AdminHumanResourcesRecord> {
+  const valid = UpdateHumanResourcesRequestSchema.parse(input)
+  return authenticatedRequest(
+    token,
+    `/admin/human-resources/${id}`,
+    { body: JSON.stringify(valid), method: 'PATCH' },
+    (value) => AdminHumanResourcesRecordSchema.parse(value),
+  )
+}
+export async function deleteHumanResources(
+  token: string,
+  id: string,
+): Promise<void> {
+  await authenticatedRequest(
+    token,
+    `/admin/human-resources/${id}`,
+    { method: 'DELETE' },
+    () => undefined,
+  )
+}
+export async function publishHumanResourcesExercise(
+  token: string,
+  exercise: number,
+): Promise<AdminHumanResourcesRecord[]> {
+  const payload = await authenticatedRequest(
+    token,
+    `/admin/human-resources/${exercise}/publish`,
+    { method: 'POST' },
+    (value) => value as unknown[],
+  )
+  return payload.map((record) => AdminHumanResourcesRecordSchema.parse(record))
+}
+export async function getPublicHumanResourcesPage(): Promise<PublicHumanResourcesPage> {
+  const response = await fetch(`${apiBaseUrl}/public/human-resources`)
+  if (!response.ok) throw await getApiError(response)
+  return PublicHumanResourcesPageSchema.parse(await response.json())
 }
 
 export async function listPatrimonialAssets(

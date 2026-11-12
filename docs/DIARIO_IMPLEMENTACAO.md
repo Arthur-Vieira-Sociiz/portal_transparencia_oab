@@ -587,3 +587,16 @@ orçamento anual, valor previsto, valor executado e metadados opcionais do
 documento. O percentual de execução é calculado pela API, os registros começam
 como rascunho e a publicação ocorre por exercício. A página pública consulta
 somente registros publicados, sem manter valores mockados como fonte oficial.
+
+### CRUD Recursos Humanos
+
+Recursos Humanos passou a usar um cadastro administrativo por exercício e
+localidade. Cada registro contém os 12 meses do ano, com URL opcional para PDF
+e XLSX em cada mês, além das ações de edição, exclusão e publicação por
+exercício. A página pública consulta `GET /api/public/human-resources` e
+seleciona automaticamente o primeiro exercício/localidade disponíveis.
+
+O formulário mensal foi refinado para um fluxo compacto: o usuário escolhe um
+mês por vez em um select, edita apenas os links daquele mês e acompanha abaixo
+quais meses já possuem arquivos. Isso evita uma lista vertical extensa e
+mantém a edição escaneável.

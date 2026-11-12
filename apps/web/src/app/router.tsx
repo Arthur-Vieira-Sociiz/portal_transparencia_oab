@@ -6,6 +6,7 @@ import { AdminBudgetPage } from '../features/auth/AdminBudgetPage'
 import { AdminFinancialPage } from '../features/auth/AdminFinancialPage'
 import { AdminPatrimonialPage } from '../features/auth/AdminPatrimonialPage'
 import { AdminContractsPage } from '../features/auth/AdminContractsPage'
+import { AdminHumanResourcesPage } from '../features/auth/AdminHumanResourcesPage'
 import { AdminUsersPage } from '../features/auth/AdminUsersPage'
 import { AdminSectionPlaceholderPage } from '../features/auth/AdminSectionPlaceholderPage'
 import { LoginPage } from '../features/auth/LoginPage'
@@ -101,6 +102,10 @@ export const router = createBrowserRouter([
   {
     path: '/admin/contratos-e-licitacoes',
     element: <AdminContractsPage />,
+  },
+  {
+    path: '/admin/recursos-humanos',
+    element: <AdminHumanResourcesPage />,
   },
   {
     path: '/admin/usuarios',

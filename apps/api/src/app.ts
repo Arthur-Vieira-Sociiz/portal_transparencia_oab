@@ -43,6 +43,12 @@ import {
 } from './financial/financial-document-service.js'
 import { createPrismaFinancialDocumentRepository } from './financial/prisma-financial-document-repository.js'
 import {
+  HumanResourcesError,
+  createHumanResourcesService,
+  type HumanResourcesService,
+} from './human-resources/human-resources-service.js'
+import { createPrismaHumanResourcesRepository } from './human-resources/prisma-human-resources-repository.js'
+import {
   PatrimonialAssetError,
   createPatrimonialAssetService,
   type PatrimonialAssetService,
@@ -60,6 +66,9 @@ import {
   UpdateBudgetRecordRequestSchema,
   CreateFinancialDocumentRequestSchema,
   UpdateFinancialDocumentRequestSchema,
+  CreateHumanResourcesRequestSchema,
+  UpdateHumanResourcesRequestSchema,
+  PublicHumanResourcesPageSchema,
   CreatePatrimonialAssetRequestSchema,
   UpdatePatrimonialAssetRequestSchema,
   PublicPatrimonialPageSchema,
@@ -75,6 +84,7 @@ type AppOptions = {
   generalDataService?: GeneralDataService
   budgetService?: BudgetService
   financialDocumentService?: FinancialDocumentService
+  humanResourcesService?: HumanResourcesService
   patrimonialAssetService?: PatrimonialAssetService
   contractService?: ContractService
 }
@@ -264,6 +274,13 @@ export function createApp(options: AppOptions = {}): Express {
     )
     return financialDocumentService
   }
+  let humanResourcesService = options.humanResourcesService
+  function getHumanResourcesService() {
+    humanResourcesService ??= createHumanResourcesService(
+      createPrismaHumanResourcesRepository(),
+    )
+    return humanResourcesService
+  }
   let patrimonialAssetService = options.patrimonialAssetService
   function getPatrimonialAssetService() {
     patrimonialAssetService ??= createPatrimonialAssetService(
@@ -429,6 +446,83 @@ export function createApp(options: AppOptions = {}): Express {
         const user = await requireUser(request)
         response.json(
           await getGeneralDataService().publish(request.params.id, user.id),
+        )
+      } catch (error) {
+        next(error)
+      }
+    },
+  )
+
+  app.get('/api/admin/human-resources', async (request, response, next) => {
+    try {
+      await requireUser(request)
+      response.json({ records: await getHumanResourcesService().list() })
+    } catch (error) {
+      next(error)
+    }
+  })
+  app.get('/api/public/human-resources', async (_request, response, next) => {
+    try {
+      response.json(
+        PublicHumanResourcesPageSchema.parse(
+          await getHumanResourcesService().listPublished(),
+        ),
+      )
+    } catch (error) {
+      next(error)
+    }
+  })
+  app.post('/api/admin/human-resources', async (request, response, next) => {
+    try {
+      const user = await requireUser(request)
+      const input = CreateHumanResourcesRequestSchema.parse(request.body)
+      response.status(201).json(
+        await getHumanResourcesService().create({
+          ...input,
+          userId: user.id,
+        }),
+      )
+    } catch (error) {
+      next(error)
+    }
+  })
+  app.patch(
+    '/api/admin/human-resources/:id',
+    async (request, response, next) => {
+      try {
+        const user = await requireUser(request)
+        const input = UpdateHumanResourcesRequestSchema.parse(request.body)
+        response.json(
+          await getHumanResourcesService().update(request.params.id, {
+            ...input,
+            userId: user.id,
+          }),
+        )
+      } catch (error) {
+        next(error)
+      }
+    },
+  )
+  app.delete(
+    '/api/admin/human-resources/:id',
+    async (request, response, next) => {
+      try {
+        await requireUser(request)
+        await getHumanResourcesService().delete(request.params.id)
+        response.status(204).send()
+      } catch (error) {
+        next(error)
+      }
+    },
+  )
+  app.post(
+    '/api/admin/human-resources/:exercise/publish',
+    async (request, response, next) => {
+      try {
+        const user = await requireUser(request)
+        const exercise = ExerciseSchema.parse(Number(request.params.exercise))
+        response.json(
+          await getHumanResourcesService().publishExercise(exercise, user.id),
         )
       } catch (error) {
         next(error)
@@ -673,6 +767,20 @@ export function createApp(options: AppOptions = {}): Express {
         const status =
           error.code === 'FINANCIAL_DOCUMENT_ALREADY_EXISTS' ? 409 : 404
         response.status(status).json({ message: messages[error.code] })
+        return
+      }
+      if (error instanceof HumanResourcesError) {
+        const messages = {
+          HUMAN_RESOURCES_ALREADY_EXISTS:
+            'Já existe um cadastro de recursos humanos para este exercício e localidade.',
+          HUMAN_RESOURCES_NOT_FOUND:
+            'Cadastro de recursos humanos não encontrado.',
+          HUMAN_RESOURCES_EXERCISE_NOT_FOUND:
+            'Nenhum cadastro de recursos humanos encontrado para este exercício.',
+        } as const
+        response
+          .status(error.code === 'HUMAN_RESOURCES_ALREADY_EXISTS' ? 409 : 404)
+          .json({ message: messages[error.code] })
         return
       }
       if (error instanceof PatrimonialAssetError) {
