@@ -1279,7 +1279,7 @@
   color: #2563eb;
   font-weight: 700;
 }
-.reports-progress > div {
+.reports-progress > div:not(.reports-progress__summary) {
   height: 14px;
   margin: 12px 0;
   overflow: hidden;

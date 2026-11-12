@@ -5,6 +5,9 @@ import {
 import {
   CreateGeneralDataRequestSchema,
   UpdateGeneralDataRequestSchema,
+  CreateReportsIndicatorRequestSchema,
+  UpdateReportsIndicatorRequestSchema,
+  PublicReportsPageSchema,
 } from '@oab-transparencia/contracts/transparency'
 import {
   AdminCreateUserRequestSchema,
@@ -30,6 +33,12 @@ import {
   type GeneralDataService,
 } from './general-data/general-data-service.js'
 import { createPrismaGeneralDataRepository } from './general-data/prisma-general-data-repository.js'
+import {
+  ReportsIndicatorsError,
+  createReportsIndicatorsService,
+  type ReportsIndicatorsService,
+} from './reports-indicators/reports-indicators-service.js'
+import { createPrismaReportsIndicatorsRepository } from './reports-indicators/prisma-reports-indicators-repository.js'
 import {
   BudgetError,
   createBudgetService,
@@ -82,6 +91,7 @@ import {
 type AppOptions = {
   authService?: AuthService
   generalDataService?: GeneralDataService
+  reportsIndicatorsService?: ReportsIndicatorsService
   budgetService?: BudgetService
   financialDocumentService?: FinancialDocumentService
   humanResourcesService?: HumanResourcesService
@@ -261,6 +271,13 @@ export function createApp(options: AppOptions = {}): Express {
       createPrismaGeneralDataRepository(),
     )
     return generalDataService
+  }
+  let reportsIndicatorsService = options.reportsIndicatorsService
+  function getReportsIndicatorsService() {
+    reportsIndicatorsService ??= createReportsIndicatorsService(
+      createPrismaReportsIndicatorsRepository(),
+    )
+    return reportsIndicatorsService
   }
   let budgetService = options.budgetService
   function getBudgetService() {
@@ -446,6 +463,86 @@ export function createApp(options: AppOptions = {}): Express {
         const user = await requireUser(request)
         response.json(
           await getGeneralDataService().publish(request.params.id, user.id),
+        )
+      } catch (error) {
+        next(error)
+      }
+    },
+  )
+
+  app.get('/api/public/reports', async (_request, response, next) => {
+    try {
+      response.json(
+        PublicReportsPageSchema.parse(
+          await getReportsIndicatorsService().listPublished(),
+        ),
+      )
+    } catch (error) {
+      next(error)
+    }
+  })
+
+  app.get('/api/admin/reports', async (request, response, next) => {
+    try {
+      await requireUser(request)
+      response.json({ indicators: await getReportsIndicatorsService().list() })
+    } catch (error) {
+      next(error)
+    }
+  })
+
+  app.post('/api/admin/reports', async (request, response, next) => {
+    try {
+      const user = await requireUser(request)
+      const input = CreateReportsIndicatorRequestSchema.parse(request.body)
+      response
+        .status(201)
+        .json(
+          await getReportsIndicatorsService().create({
+            ...input,
+            userId: user.id,
+          }),
+        )
+    } catch (error) {
+      next(error)
+    }
+  })
+
+  app.patch('/api/admin/reports/:id', async (request, response, next) => {
+    try {
+      const user = await requireUser(request)
+      const input = UpdateReportsIndicatorRequestSchema.parse(request.body)
+      response.json(
+        await getReportsIndicatorsService().update(request.params.id, {
+          ...input,
+          userId: user.id,
+        }),
+      )
+    } catch (error) {
+      next(error)
+    }
+  })
+
+  app.delete('/api/admin/reports/:id', async (request, response, next) => {
+    try {
+      await requireUser(request)
+      await getReportsIndicatorsService().delete(request.params.id)
+      response.status(204).send()
+    } catch (error) {
+      next(error)
+    }
+  })
+
+  app.post(
+    '/api/admin/reports/:exercise/publish',
+    async (request, response, next) => {
+      try {
+        const user = await requireUser(request)
+        response.json(
+          await getReportsIndicatorsService().publish(
+            ExerciseSchema.parse(Number(request.params.exercise)),
+            user.id,
+          ),
         )
       } catch (error) {
         next(error)
@@ -742,6 +839,20 @@ export function createApp(options: AppOptions = {}): Express {
       }
       if (error instanceof GeneralDataError) {
         generalDataErrorResponse(error, response)
+        return
+      }
+      if (error instanceof ReportsIndicatorsError) {
+        const messages = {
+          REPORTS_INDICATOR_ALREADY_EXISTS:
+            'Já existe um cadastro de indicadores para este exercício.',
+          REPORTS_INDICATOR_NOT_FOUND:
+            'Cadastro de indicadores não encontrado.',
+          REPORTS_INDICATOR_EXERCISE_NOT_FOUND:
+            'Nenhum cadastro de indicadores encontrado para este exercício.',
+        } as const
+        response
+          .status(error.code === 'REPORTS_INDICATOR_ALREADY_EXISTS' ? 409 : 404)
+          .json({ message: messages[error.code] })
         return
       }
       if (error instanceof BudgetError) {

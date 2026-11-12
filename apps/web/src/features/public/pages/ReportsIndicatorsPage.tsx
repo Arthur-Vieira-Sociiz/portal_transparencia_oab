@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import type { Chart as ChartInstance, ChartConfiguration } from 'chart.js'
 import { formatCurrency, formatInteger } from '../../../lib/formatters'
+import { getPublicReportsPage } from '../../../lib/api'
 import { PublicPortalLayout } from '../components/PublicPortalLayout'
 import { localPublicTransparencyRepository } from '../data/public.repository'
 import '../public-portal.css'
@@ -63,9 +64,12 @@ function ChartBox({
 }
 
 export function ReportsIndicatorsPage() {
-  const [exercise, setExercise] = useState(2025)
+  const [exercise, setExercise] = useState<number | null>(null)
   const page = useQuery({
-    queryFn: () => localPublicTransparencyRepository.getReportsPage(),
+    queryFn: () =>
+      import.meta.env.MODE === 'test'
+        ? localPublicTransparencyRepository.getReportsPage()
+        : getPublicReportsPage(),
     queryKey: ['public-transparency', 'reports'],
     staleTime: Number.POSITIVE_INFINITY,
   })
@@ -77,13 +81,40 @@ export function ReportsIndicatorsPage() {
         Não foi possível carregar as informações.
       </p>
     )
-  const current =
-    page.data.indicators.find((item) => item.exercise === exercise) ??
-    page.data.indicators.at(-1)
-  if (!current) return null
+  const selectedExercise =
+    exercise !== null && page.data.availableExercises.includes(exercise)
+      ? exercise
+      : page.data.availableExercises.at(-1)
+  const current = page.data.indicators.find(
+    (item) => item.exercise === selectedExercise,
+  )
+  if (!current) {
+    return (
+      <PublicPortalLayout>
+        <p className="public-page-state">
+          Nenhum relatório ou indicador foi publicado ainda.
+        </p>
+      </PublicPortalLayout>
+    )
+  }
   const available = current.plannedBudget - current.executedBudget
   const history = page.data.indicators
   const labels = history.map((item) => String(item.exercise))
+  const previous = history
+    .filter((item) => item.exercise < current.exercise)
+    .at(-1)
+  const growth = (value: number, previousValue?: number) => {
+    if (!previousValue) return 0
+    return ((value - previousValue) / previousValue) * 100
+  }
+  const growthLabel = (value: number, previousValue?: number) => {
+    const percentage = growth(value, previousValue)
+    return `${percentage >= 0 ? '+' : ''}${percentage.toFixed(1).replace('.', ',')}%`
+  }
+  const currentMembers = current.activeLawyers + current.interns
+  const previousMembers = previous
+    ? previous.activeLawyers + previous.interns
+    : undefined
   const chartOptions = {
     responsive: true,
     plugins: {
@@ -102,12 +133,14 @@ export function ReportsIndicatorsPage() {
           <label>
             Ano
             <select
-              value={exercise}
+              value={selectedExercise ?? ''}
               onChange={(event) => setExercise(Number(event.target.value))}
             >
-              {page.data.availableExercises.map((year) => (
-                <option key={year}>{year}</option>
-              ))}
+              {[...page.data.availableExercises]
+                .sort((a, b) => b - a)
+                .map((year) => (
+                  <option key={year}>{year}</option>
+                ))}
             </select>
           </label>
         </div>
@@ -115,19 +148,19 @@ export function ReportsIndicatorsPage() {
           <Metric
             label="Receita Total"
             value={formatCurrency(current.totalRevenue)}
-            subtitle={`Exercício ${exercise}`}
+            subtitle={`Exercício ${selectedExercise}`}
             tone="green"
           />
           <Metric
             label="Despesa Total"
             value={formatCurrency(current.totalExpense)}
-            subtitle={`Exercício ${exercise}`}
+            subtitle={`Exercício ${selectedExercise}`}
             tone="orange"
           />
           <Metric
             label="Resultado do Exercício"
             value={formatCurrency(current.exerciseResult)}
-            subtitle={`Exercício ${exercise}`}
+            subtitle={`Exercício ${selectedExercise}`}
           />
         </div>
         <ChartBox
@@ -167,7 +200,7 @@ export function ReportsIndicatorsPage() {
           <Metric
             label="Orçamento Previsto"
             value={formatCurrency(current.plannedBudget)}
-            subtitle={`Dotação inicial - ${exercise}`}
+            subtitle={`Dotação inicial - ${selectedExercise}`}
             tone="orange"
           />
           <Metric
@@ -185,7 +218,7 @@ export function ReportsIndicatorsPage() {
         <div className="reports-progress">
           <strong>Progresso da Execução Orçamentária</strong>
           <div className="reports-progress__summary">
-            <span>Execução do exercício {exercise}</span>
+            <span>Execução do exercício {selectedExercise}</span>
             <b>{current.executionPercentage.toFixed(2).replace('.', ',')}%</b>
           </div>
           <div>
@@ -310,10 +343,28 @@ export function ReportsIndicatorsPage() {
         </p>
         <h3>Taxa de Crescimento Anual</h3>
         <div className="reports-grid reports-grid--four reports-growth">
-          <Metric label="Advogados" value="+0,0%" />
-          <Metric label="Estagiários" value="+0,0%" tone="purple" />
-          <Metric label="Sociedades registradas" value="+0,0%" tone="orange" />
-          <Metric label="Total Inscritos" value="+0,0%" tone="green" />
+          <Metric
+            label="Advogados"
+            value={growthLabel(current.activeLawyers, previous?.activeLawyers)}
+          />
+          <Metric
+            label="Estagiários"
+            value={growthLabel(current.interns, previous?.interns)}
+            tone="purple"
+          />
+          <Metric
+            label="Sociedades registradas"
+            value={growthLabel(
+              current.registeredSocieties,
+              previous?.registeredSocieties,
+            )}
+            tone="orange"
+          />
+          <Metric
+            label="Total inscritos"
+            value={growthLabel(currentMembers, previousMembers)}
+            tone="green"
+          />
         </div>
         <h3>Indicadores Administrativos</h3>
         <div className="reports-grid reports-grid--four">
@@ -339,7 +390,9 @@ export function ReportsIndicatorsPage() {
           />
         </div>
         <div className="reports-banner">
-          <span>Total de Serviços Prestados à Advocacia em {exercise}</span>
+          <span>
+            Total de Serviços Prestados à Advocacia em {selectedExercise}
+          </span>
           <strong>
             {formatInteger(
               current.appointments +
@@ -354,7 +407,7 @@ export function ReportsIndicatorsPage() {
           <Metric
             label="Contratos Ativos"
             value={formatInteger(current.activeContracts)}
-            subtitle={`Em vigência - ${exercise}`}
+            subtitle={`Em vigência - ${selectedExercise}`}
           />
           <Metric
             label="Valor Total"
@@ -365,7 +418,7 @@ export function ReportsIndicatorsPage() {
           <Metric
             label="Novos contratos"
             value={formatInteger(current.newBids)}
-            subtitle={`Processos em ${exercise}`}
+            subtitle={`Processos em ${selectedExercise}`}
             tone="green"
           />
           <Metric
@@ -435,7 +488,7 @@ export function ReportsIndicatorsPage() {
         </p>
         <h3>Recursos Humanos</h3>
         <div className="reports-banner">
-          <span>Total de Colaboradores em {exercise}</span>
+          <span>Total de Colaboradores em {selectedExercise}</span>
           <strong>{formatInteger(current.employees)}</strong>
         </div>
         <p className="reports-note">

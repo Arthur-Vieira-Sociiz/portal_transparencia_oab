@@ -39,6 +39,10 @@ import {
   CreateSupplierRequestSchema,
   UpdateSupplierRequestSchema,
   PublicContractsPageSchema,
+  ReportsIndicatorSchema,
+  CreateReportsIndicatorRequestSchema,
+  UpdateReportsIndicatorRequestSchema,
+  PublicReportsPageSchema,
   type AdminBudgetRecord,
   type CreateBudgetRecordRequest,
   type PublicBudgetRecords,
@@ -64,6 +68,10 @@ import {
   type Supplier,
   type CreateSupplierRequest,
   type PublicContractsPage,
+  type ReportsIndicator,
+  type CreateReportsIndicatorRequest,
+  type UpdateReportsIndicatorRequest,
+  type PublicReportsPage,
 } from '@oab-transparencia/contracts/transparency'
 
 const apiBaseUrl = (import.meta.env.VITE_API_URL ?? '/api').replace(/\/$/, '')
@@ -568,4 +576,69 @@ export async function getPublicContractsPage(): Promise<PublicContractsPage> {
   const response = await fetch(`${apiBaseUrl}/public/contracts`)
   if (!response.ok) throw await getApiError(response)
   return PublicContractsPageSchema.parse(await response.json())
+}
+
+export async function listReportsIndicators(
+  token: string,
+): Promise<ReportsIndicator[]> {
+  const payload = await authenticatedRequest(
+    token,
+    '/admin/reports',
+    {},
+    (value) => value as { indicators: unknown[] },
+  )
+  return payload.indicators.map((item) => ReportsIndicatorSchema.parse(item))
+}
+export async function createReportsIndicator(
+  token: string,
+  input: CreateReportsIndicatorRequest,
+): Promise<ReportsIndicator> {
+  const valid = CreateReportsIndicatorRequestSchema.parse(input)
+  return authenticatedRequest(
+    token,
+    '/admin/reports',
+    { body: JSON.stringify(valid), method: 'POST' },
+    (value) => ReportsIndicatorSchema.parse(value),
+  )
+}
+export async function updateReportsIndicator(
+  token: string,
+  id: string,
+  input: UpdateReportsIndicatorRequest,
+): Promise<ReportsIndicator> {
+  const valid = UpdateReportsIndicatorRequestSchema.parse(input)
+  return authenticatedRequest(
+    token,
+    `/admin/reports/${id}`,
+    { body: JSON.stringify(valid), method: 'PATCH' },
+    (value) => ReportsIndicatorSchema.parse(value),
+  )
+}
+export async function deleteReportsIndicator(
+  token: string,
+  id: string,
+): Promise<void> {
+  await authenticatedRequest(
+    token,
+    `/admin/reports/${id}`,
+    { method: 'DELETE' },
+    () => undefined,
+  )
+}
+export async function publishReportsExercise(
+  token: string,
+  exercise: number,
+): Promise<ReportsIndicator[]> {
+  const payload = await authenticatedRequest(
+    token,
+    `/admin/reports/${exercise}/publish`,
+    { method: 'POST' },
+    (value) => value as unknown[],
+  )
+  return payload.map((item) => ReportsIndicatorSchema.parse(item))
+}
+export async function getPublicReportsPage(): Promise<PublicReportsPage> {
+  const response = await fetch(`${apiBaseUrl}/public/reports`)
+  if (!response.ok) throw await getApiError(response)
+  return PublicReportsPageSchema.parse(await response.json())
 }

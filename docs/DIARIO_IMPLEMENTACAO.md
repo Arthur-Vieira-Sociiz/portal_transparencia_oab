@@ -600,3 +600,12 @@ O formulário mensal foi refinado para um fluxo compacto: o usuário escolhe um
 mês por vez em um select, edita apenas os links daquele mês e acompanha abaixo
 quais meses já possuem arquivos. Isso evita uma lista vertical extensa e
 mantém a edição escaneável.
+
+### CRUD Relatórios e Indicadores
+
+Relatórios e Indicadores usa um cadastro único por exercício, com os valores
+financeiros, administrativos, contratuais e de recursos humanos que alimentam
+os gráficos da página pública. O percentual de execução é calculado por
+`valor executado / valor previsto * 100`, limitado a 100%, e os registros
+começam como rascunho. A publicação ocorre por exercício e a página pública
+consulta `GET /api/public/reports`.

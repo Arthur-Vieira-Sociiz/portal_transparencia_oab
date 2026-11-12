@@ -55,7 +55,7 @@ export const GeneralIndicatorsSchema = z.object({
   exerciseResult: z.number().finite(),
   plannedBudget: NonNegativeAmountSchema,
   executedBudget: NonNegativeAmountSchema,
-  executionPercentage: NonNegativeAmountSchema,
+  executionPercentage: z.number().finite().min(0).max(100),
   activeLawyers: NonNegativeIntegerSchema,
   interns: NonNegativeIntegerSchema,
   registeredSocieties: NonNegativeIntegerSchema,
@@ -69,6 +69,21 @@ export const GeneralIndicatorsSchema = z.object({
   closedContracts: NonNegativeIntegerSchema,
   employees: NonNegativeIntegerSchema,
 })
+
+export const ReportsIndicatorSchema = GeneralIndicatorsSchema.extend({
+  id: z.string().min(1),
+  status: GeneralDataStatusSchema,
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
+  publishedAt: z.iso.datetime().nullable(),
+})
+
+export const CreateReportsIndicatorRequestSchema = GeneralIndicatorsSchema
+
+export const UpdateReportsIndicatorRequestSchema =
+  GeneralIndicatorsSchema.partial().extend({
+    status: GeneralDataStatusSchema.optional(),
+  })
 
 export const MonthlyDocumentsSchema = z.object({
   month: MonthSchema,
@@ -386,8 +401,8 @@ export const PublicLgpdPageSchema = z.object({
 })
 
 export const PublicReportsPageSchema = z.object({
-  availableExercises: z.array(ExerciseSchema).min(1),
-  indicators: z.array(GeneralIndicatorsSchema).min(1),
+  availableExercises: z.array(ExerciseSchema),
+  indicators: z.array(GeneralIndicatorsSchema),
 })
 
 export const AdministrativeEnrollmentSchema = z.object({
@@ -428,6 +443,13 @@ export const ContractFiltersSchema = z.object({
 })
 
 export type GeneralIndicators = z.infer<typeof GeneralIndicatorsSchema>
+export type ReportsIndicator = z.infer<typeof ReportsIndicatorSchema>
+export type CreateReportsIndicatorRequest = z.infer<
+  typeof CreateReportsIndicatorRequestSchema
+>
+export type UpdateReportsIndicatorRequest = z.infer<
+  typeof UpdateReportsIndicatorRequestSchema
+>
 export type PublicSummary = z.infer<typeof PublicSummarySchema>
 export type GeneralData = z.infer<typeof GeneralDataSchema>
 export type CreateGeneralDataRequest = z.infer<

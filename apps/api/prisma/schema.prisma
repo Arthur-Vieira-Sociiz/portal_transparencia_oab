@@ -46,6 +46,8 @@ model User {
   updatedContracts          ContractRecord[]    @relation("ContractUpdatedBy")
   createdHumanResources     HumanResourcesRecord[] @relation("HumanResourcesCreatedBy")
   updatedHumanResources     HumanResourcesRecord[] @relation("HumanResourcesUpdatedBy")
+  createdReportsIndicators  ReportsIndicator[] @relation("ReportsIndicatorCreatedBy")
+  updatedReportsIndicators  ReportsIndicator[] @relation("ReportsIndicatorUpdatedBy")
 }
 
 model GeneralData {
@@ -133,6 +135,39 @@ model HumanResourcesRecord {
   updatedBy   User              @relation("HumanResourcesUpdatedBy", fields: [updatedById], references: [id])
 
   @@unique([exercise, locality])
+  @@index([status, exercise])
+}
+
+model ReportsIndicator {
+  id                   String            @id @default(cuid())
+  exercise             Int               @unique
+  totalRevenue         Decimal           @db.Decimal(14, 2)
+  totalExpense         Decimal           @db.Decimal(14, 2)
+  exerciseResult       Decimal           @db.Decimal(14, 2)
+  plannedBudget        Decimal           @db.Decimal(14, 2)
+  executedBudget       Decimal           @db.Decimal(14, 2)
+  executionPercentage  Decimal           @db.Decimal(5, 2)
+  activeLawyers        Int
+  interns              Int
+  registeredSocieties  Int
+  appointments         Int
+  protocols            Int
+  certificates         Int
+  ombudsmanRequests    Int
+  activeContracts      Int
+  totalContractValue   Decimal           @db.Decimal(14, 2)
+  newBids              Int
+  closedContracts      Int
+  employees            Int
+  status               GeneralDataStatus @default(DRAFT)
+  publishedAt          DateTime?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  createdById          String
+  updatedById          String
+  createdBy            User              @relation("ReportsIndicatorCreatedBy", fields: [createdById], references: [id])
+  updatedBy            User              @relation("ReportsIndicatorUpdatedBy", fields: [updatedById], references: [id])
+
   @@index([status, exercise])
 }
 

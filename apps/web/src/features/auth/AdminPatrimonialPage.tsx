@@ -355,7 +355,7 @@ export function AdminPatrimonialPage() {
             </div>
           </CardContent>
         </Card>
-        <Card className="lg:col-span-2">
+        <Card className="min-w-0 lg:col-span-1">
           <CardHeader>
             <CardTitle>Bens cadastrados</CardTitle>
             <p className="text-sm text-muted-foreground">
