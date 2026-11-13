@@ -14,56 +14,42 @@ import {
   AdminCreatedUserResponseSchema,
 } from '@oab-transparencia/contracts/auth'
 import { ExerciseSchema } from '@oab-transparencia/contracts/common'
-import cors from 'cors'
-import express, {
-  type Express,
-  type NextFunction,
-  type Request,
-  type Response,
-} from 'express'
+import express, { type Express } from 'express'
 import helmet from 'helmet'
-import { ZodError } from 'zod'
 import { AuthenticationError, type AuthService } from './auth/auth-service.js'
 import { readBearerToken } from './auth/bearer-token.js'
 import { createPrismaAuthService } from './auth/prisma-auth-service.js'
 import {
-  GeneralDataError,
   createGeneralDataService,
   type GeneralDataService,
 } from './general-data/general-data-service.js'
 import { createPrismaGeneralDataRepository } from './general-data/prisma-general-data-repository.js'
 import {
-  ReportsIndicatorsError,
   createReportsIndicatorsService,
   type ReportsIndicatorsService,
 } from './reports-indicators/reports-indicators-service.js'
 import { createPrismaReportsIndicatorsRepository } from './reports-indicators/prisma-reports-indicators-repository.js'
 import {
-  BudgetError,
   createBudgetService,
   type BudgetService,
 } from './budget/budget-service.js'
 import { createPrismaBudgetRepository } from './budget/prisma-budget-repository.js'
 import {
-  FinancialDocumentError,
   createFinancialDocumentService,
   type FinancialDocumentService,
 } from './financial/financial-document-service.js'
 import { createPrismaFinancialDocumentRepository } from './financial/prisma-financial-document-repository.js'
 import {
-  HumanResourcesError,
   createHumanResourcesService,
   type HumanResourcesService,
 } from './human-resources/human-resources-service.js'
 import { createPrismaHumanResourcesRepository } from './human-resources/prisma-human-resources-repository.js'
 import {
-  PatrimonialAssetError,
   createPatrimonialAssetService,
   type PatrimonialAssetService,
 } from './patrimonial/patrimonial-asset-service.js'
 import { createPrismaPatrimonialAssetRepository } from './patrimonial/prisma-patrimonial-asset-repository.js'
 import {
-  ContractError,
   createContractService,
   type ContractService,
 } from './contracts/contract-service.js'
@@ -86,6 +72,10 @@ import {
   UpdateSupplierRequestSchema,
   PublicContractsPageSchema,
 } from '@oab-transparencia/contracts/transparency'
+import { errorHandler } from './errors/error-handlers.js'
+import { createCorsMiddleware } from './middlewares/cors.js'
+import { createRequireAdmin } from './middlewares/require-admin.js'
+import { createRequireUser } from './middlewares/require-user.js'
 import { healthRoutes } from './routes/health/health.routes.js'
 
 type AppOptions = {
@@ -99,43 +89,8 @@ type AppOptions = {
   contractService?: ContractService
 }
 
-function authenticationErrorResponse(
-  error: AuthenticationError,
-  response: Response,
-) {
-  const responses = {
-    EMAIL_ALREADY_IN_USE: [409, 'Este e-mail já está cadastrado.'],
-    INVALID_CREDENTIALS: [401, 'E-mail ou senha inválidos.'],
-    INVALID_REGISTRATION_KEY: [403, 'Chave de cadastro inválida.'],
-    REGISTRATION_UNAVAILABLE: [503, 'Cadastro inicial indisponível.'],
-    UNAUTHENTICATED: [401, 'Autenticação necessária.'],
-    FORBIDDEN: [403, 'Apenas administradores podem gerenciar usuários.'],
-  } as const
-  const [status, message] = responses[error.code]
-  response.status(status).json({ message })
-}
-
-function generalDataErrorResponse(error: GeneralDataError, response: Response) {
-  const responses = {
-    EXERCISE_ALREADY_EXISTS: [
-      409,
-      'Já existe um cadastro para este exercício.',
-    ],
-    GENERAL_DATA_NOT_FOUND: [404, 'Cadastro de dados gerais não encontrado.'],
-    GENERAL_DATA_ALREADY_PUBLISHED: [409, 'Este cadastro já foi publicado.'],
-  } as const
-  const [status, message] = responses[error.code]
-  response.status(status).json({ message })
-}
-
 export function createApp(options: AppOptions = {}): Express {
   const app = express()
-  const allowedOrigins = new Set(
-    (process.env.WEB_ORIGIN ?? 'http://localhost:5173')
-      .split(',')
-      .map((origin) => origin.trim())
-      .filter(Boolean),
-  )
 
   app.disable('x-powered-by')
   app.use(helmet())
@@ -247,18 +202,7 @@ export function createApp(options: AppOptions = {}): Express {
     },
   )
 
-  app.use(
-    cors({
-      origin(origin, callback) {
-        if (!origin || allowedOrigins.has(origin)) {
-          callback(null, true)
-          return
-        }
-
-        callback(new Error('Origem não autorizada pelo CORS.'))
-      },
-    }),
-  )
+  app.use(createCorsMiddleware())
   let authService = options.authService
   function getAuthService() {
     authService ??= createPrismaAuthService()
@@ -311,17 +255,8 @@ export function createApp(options: AppOptions = {}): Express {
     return contractService
   }
 
-  async function requireUser(request: Request) {
-    const token = readBearerToken(request.headers.authorization)
-    if (!token) throw new AuthenticationError('UNAUTHENTICATED')
-    return getAuthService().getAuthenticatedUser(token)
-  }
-
-  async function requireAdmin(request: Request) {
-    const user = await requireUser(request)
-    if (user.role !== 'ADMIN') throw new AuthenticationError('FORBIDDEN')
-    return user
-  }
+  const requireUser = createRequireUser(getAuthService)
+  const requireAdmin = createRequireAdmin(requireUser)
 
   app.use(healthRoutes)
 
@@ -809,120 +744,7 @@ export function createApp(options: AppOptions = {}): Express {
     },
   )
 
-  app.use(
-    (
-      error: unknown,
-      _request: Request,
-      response: Response,
-      _next: NextFunction,
-    ) => {
-      if (error instanceof ZodError) {
-        response.status(400).json({
-          message: 'Dados inválidos.',
-          issues: error.issues.map((issue) => ({
-            path: issue.path.join('.'),
-            message: issue.message,
-          })),
-        })
-        return
-      }
-      if (error instanceof AuthenticationError) {
-        authenticationErrorResponse(error, response)
-        return
-      }
-      if (error instanceof GeneralDataError) {
-        generalDataErrorResponse(error, response)
-        return
-      }
-      if (error instanceof ReportsIndicatorsError) {
-        const messages = {
-          REPORTS_INDICATOR_ALREADY_EXISTS:
-            'Já existe um cadastro de indicadores para este exercício.',
-          REPORTS_INDICATOR_NOT_FOUND:
-            'Cadastro de indicadores não encontrado.',
-          REPORTS_INDICATOR_EXERCISE_NOT_FOUND:
-            'Nenhum cadastro de indicadores encontrado para este exercício.',
-        } as const
-        response
-          .status(error.code === 'REPORTS_INDICATOR_ALREADY_EXISTS' ? 409 : 404)
-          .json({ message: messages[error.code] })
-        return
-      }
-      if (error instanceof BudgetError) {
-        const messages = {
-          BUDGET_RECORD_ALREADY_EXISTS:
-            'Já existe um registro para este tipo e exercício.',
-          BUDGET_RECORD_NOT_FOUND: 'Registro orçamentário não encontrado.',
-          BUDGET_EXERCISE_NOT_FOUND:
-            'Nenhum registro orçamentário encontrado para este exercício.',
-        } as const
-        const status = error.code === 'BUDGET_RECORD_ALREADY_EXISTS' ? 409 : 404
-        response.status(status).json({ message: messages[error.code] })
-        return
-      }
-      if (error instanceof FinancialDocumentError) {
-        const messages = {
-          FINANCIAL_DOCUMENT_ALREADY_EXISTS:
-            'Já existe um documento para este tipo e exercício.',
-          FINANCIAL_DOCUMENT_NOT_FOUND: 'Documento financeiro não encontrado.',
-          FINANCIAL_EXERCISE_NOT_FOUND:
-            'Nenhum documento financeiro encontrado para este exercício.',
-        } as const
-        const status =
-          error.code === 'FINANCIAL_DOCUMENT_ALREADY_EXISTS' ? 409 : 404
-        response.status(status).json({ message: messages[error.code] })
-        return
-      }
-      if (error instanceof HumanResourcesError) {
-        const messages = {
-          HUMAN_RESOURCES_ALREADY_EXISTS:
-            'Já existe um cadastro de recursos humanos para este exercício e localidade.',
-          HUMAN_RESOURCES_NOT_FOUND:
-            'Cadastro de recursos humanos não encontrado.',
-          HUMAN_RESOURCES_EXERCISE_NOT_FOUND:
-            'Nenhum cadastro de recursos humanos encontrado para este exercício.',
-        } as const
-        response
-          .status(error.code === 'HUMAN_RESOURCES_ALREADY_EXISTS' ? 409 : 404)
-          .json({ message: messages[error.code] })
-        return
-      }
-      if (error instanceof PatrimonialAssetError) {
-        const messages = {
-          PATRIMONIAL_ASSET_ALREADY_EXISTS:
-            'Já existe um bem patrimonial com esse tipo, descrição e exercício.',
-          PATRIMONIAL_ASSET_NOT_FOUND: 'Bem patrimonial não encontrado.',
-          PATRIMONIAL_EXERCISE_NOT_FOUND:
-            'Nenhum bem patrimonial encontrado para este exercício.',
-        } as const
-        const status =
-          error.code === 'PATRIMONIAL_ASSET_ALREADY_EXISTS' ? 409 : 404
-        response.status(status).json({ message: messages[error.code] })
-        return
-      }
-      if (error instanceof ContractError) {
-        const messages = {
-          CONTRACT_ALREADY_EXISTS:
-            'Já existe um contrato para este fornecedor, data e exercício.',
-          CONTRACT_NOT_FOUND: 'Contrato não encontrado.',
-          CONTRACT_EXERCISE_NOT_FOUND:
-            'Nenhum contrato encontrado para este exercício.',
-          SUPPLIER_ALREADY_EXISTS: 'Este CNPJ já está cadastrado.',
-        } as const
-        response
-          .status(
-            error.code === 'CONTRACT_ALREADY_EXISTS' ||
-              error.code === 'SUPPLIER_ALREADY_EXISTS'
-              ? 409
-              : 404,
-          )
-          .json({ message: messages[error.code] })
-        return
-      }
-
-      response.status(500).json({ message: 'Erro interno do servidor.' })
-    },
-  )
+  app.use(errorHandler)
 
   return app
 }

@@ -56,7 +56,7 @@ passagem.
 
 - [x] Criar a branch `refatoracao` a partir da `main`.
 - [x] Confirmar que as mudanças existentes pertencem somente ao refactor.
-- [ ] Registrar o resultado inicial de typecheck, lint e testes existentes.
+- [x] Registrar o resultado inicial de typecheck, lint e testes existentes.
 
 **Aceite:** trabalho isolado da `main` e baseline conhecido.
 
@@ -72,12 +72,12 @@ passagem.
 
 ### Etapa 2 — Infraestrutura HTTP compartilhada
 
-- [ ] Extrair configuração CORS para `middlewares/cors.ts`.
-- [ ] Extrair `requireUser` e `requireAdmin` com dependências injetadas.
-- [ ] Centralizar respostas de erro em `errors/error-handlers.ts`.
-- [ ] Consolidar ou reexportar erros em `errors/custom-errors.ts` sem duplicar
+- [x] Extrair configuração CORS para `middlewares/cors.ts`.
+- [x] Extrair `requireUser` e `requireAdmin` com dependências injetadas.
+- [x] Centralizar respostas de erro em `errors/error-handlers.ts`.
+- [x] Consolidar ou reexportar erros em `errors/custom-errors.ts` sem duplicar
       as classes já usadas pelos services.
-- [ ] Garantir que o error handler continue registrado depois de todas as rotas.
+- [x] Garantir que o error handler continue registrado depois de todas as rotas.
 
 **Aceite:** autenticação/autorização e tradução de erros deixam de ser funções
 internas de `createApp`, sem mudança de status ou payload.

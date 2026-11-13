@@ -1,0 +1,8 @@
+export { AuthenticationError } from '../auth/auth-service.js'
+export { BudgetError } from '../budget/budget-service.js'
+export { ContractError } from '../contracts/contract-service.js'
+export { FinancialDocumentError } from '../financial/financial-document-service.js'
+export { GeneralDataError } from '../general-data/general-data-service.js'
+export { HumanResourcesError } from '../human-resources/human-resources-service.js'
+export { PatrimonialAssetError } from '../patrimonial/patrimonial-asset-service.js'
+export { ReportsIndicatorsError } from '../reports-indicators/reports-indicators-service.js'
