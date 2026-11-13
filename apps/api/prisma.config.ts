@@ -1,10 +1,7 @@
-import { config } from 'dotenv'
-import { dirname, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'prisma/config'
+import { readEnvironment } from './src/environment.js'
 
-const currentDirectory = dirname(fileURLToPath(import.meta.url))
-config({ path: resolve(currentDirectory, '.env') })
+const environment = readEnvironment(process.env, { requireDatabase: false })
 
 export default defineConfig({
   migrations: {
@@ -15,8 +12,8 @@ export default defineConfig({
     // A URL direta é necessária para migrations no Neon. O fallback só permite
     // gerar o cliente em CI antes que uma variável de ambiente seja definida.
     url:
-      process.env.DIRECT_DATABASE_URL ??
-      process.env.DATABASE_URL ??
+      environment.directDatabaseUrl ??
+      environment.databaseUrl ??
       'postgresql://postgres:postgres@localhost:5432/postgres',
   },
 })

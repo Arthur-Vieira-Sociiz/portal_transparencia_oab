@@ -1,0 +1,498 @@
+# Plano de refatoração modular — API e frontend
+
+## Contexto e branch
+
+- Branch de trabalho: `refatoracao`.
+- Base inicial: `main` no commit `b35c42f`.
+- Objetivo: organizar API e frontend por domínio, conectar as interfaces à API e
+  manter as fronteiras de persistência preparadas para uma troca futura de banco.
+- Esta trilha não inclui a migração para Firebase. Essa mudança será planejada e
+  executada separadamente a partir da `main`.
+
+## Regras de execução
+
+1. Fazer uma etapa por vez e aguardar aprovação antes da próxima.
+2. Preservar URLs, status HTTP, schemas Zod e mensagens de erro existentes.
+3. Manter e atualizar os testes existentes. Criar testes novos somente quando já
+   autorizado pelo usuário ou após aprovação explícita.
+4. Migrar um domínio por vez, incluindo API client, hooks, componentes e páginas
+   públicas/administrativas relacionadas.
+5. O assistente não cria commits. Cada etapa fica sem commit para revisão; o usuário
+   decide quando versionar.
+6. Em cada etapa executar `typecheck`, `lint`, testes existentes e uma verificação
+   manual das rotas afetadas.
+7. Fazer code review de padrões e aderência ao escopo antes de avançar.
+
+## Estrutura-alvo da primeira passagem
+
+```text
+apps/api/src/
+├── app.ts
+├── errors/
+│   ├── custom-errors.ts
+│   └── error-handlers.ts
+├── middlewares/
+│   ├── cors.ts
+│   ├── require-admin.ts
+│   └── require-user.ts
+└── routes/
+    ├── auth/
+    ├── budget/
+    ├── contracts/
+    ├── financial/
+    ├── general-data/
+    ├── health/
+    ├── human-resources/
+    ├── patrimonial/
+    └── reports-indicators/
+```
+
+Cada módulo de rota terá, no mínimo, um arquivo `*.routes.ts` e um
+`*.controller.ts`. Um `*.service.ts` local só será criado quando existir lógica
+própria da camada HTTP; os services de domínio atuais permanecem onde estão nesta
+passagem.
+
+## Etapas
+
+### Etapa 0 — Baseline e isolamento da branch
+
+- [x] Criar a branch `refatoracao` a partir da `main`.
+- [x] Confirmar que as mudanças existentes pertencem somente ao refactor.
+- [x] Registrar o resultado inicial de typecheck, lint e testes existentes.
+
+**Aceite:** trabalho isolado da `main` e baseline conhecido.
+
+### Etapa 1 — Health
+
+- [x] Criar `routes/health/health.controller.ts`.
+- [x] Criar e exportar `routes/health/health.routes.ts`.
+- [x] Registrar o módulo no `app.ts`.
+- [x] Preservar `GET /api/health` e `HealthResponseSchema`.
+- [x] Validar typecheck, lint, testes existentes e code review.
+
+**Aceite:** health não possui handler no `app.ts` e mantém a mesma resposta.
+
+### Etapa 2 — Infraestrutura HTTP compartilhada
+
+- [x] Extrair configuração CORS para `middlewares/cors.ts`.
+- [x] Extrair `requireUser` e `requireAdmin` com dependências injetadas.
+- [x] Centralizar respostas de erro em `errors/error-handlers.ts`.
+- [x] Consolidar ou reexportar erros em `errors/custom-errors.ts` sem duplicar
+      as classes já usadas pelos services.
+- [x] Garantir que o error handler continue registrado depois de todas as rotas.
+
+**Aceite:** autenticação/autorização e tradução de erros deixam de ser funções
+internas de `createApp`, sem mudança de status ou payload.
+
+### Etapa 3 — Auth e usuários administrativos
+
+- [x] Extrair register, login, me e logout.
+- [x] Extrair listagem e criação de usuários administrativos, pois usam o mesmo
+      domínio e as mesmas regras de autorização.
+- [x] Injetar `AuthService` no módulo de rotas.
+- [x] Preservar os contratos Zod e o status `204` do logout.
+
+**Aceite:** o `app.ts` não contém handlers de autenticação ou usuários.
+
+### Etapa 4 — Dados gerais
+
+- [x] Extrair as rotas públicas e administrativas de `general-data`.
+- [x] Preservar o filtro opcional por exercício e o `404` público.
+- [x] Injetar `GeneralDataService` e o middleware de usuário.
+
+**Aceite:** CRUD e publicação funcionam com os mesmos contratos e respostas.
+
+### Etapa 5 — Relatórios e indicadores
+
+- [x] Extrair rotas públicas, CRUD administrativo e publicação por exercício.
+- [x] Preservar deleção com `204` e validação por `ExerciseSchema`.
+
+### Etapa 6 — Recursos humanos
+
+- [x] Extrair rotas públicas, CRUD administrativo e publicação por exercício.
+- [x] Preservar a validação de localidade, meses e exercício.
+
+### Etapa 7 — Orçamentário
+
+- [x] Extrair rotas públicas, CRUD administrativo e publicação por exercício.
+- [x] Preservar filtros `exercise` e `informationType`.
+
+### Etapa 8 — Financeiro
+
+- [x] Extrair rotas públicas, CRUD administrativo e publicação por exercício.
+- [x] Preservar os formatos de documento e o período.
+
+### Etapa 9 — Patrimonial
+
+- [x] Extrair rotas públicas, CRUD administrativo e publicação por exercício.
+- [x] Preservar a distinção entre `status` do bem e `statusState` de publicação.
+
+### Etapa 10 — Contratos e fornecedores
+
+- [x] Extrair rotas públicas e administrativas de contratos.
+- [x] Extrair CRUD de fornecedores no mesmo módulo.
+- [x] Preservar deleções com `204`, conflitos de CNPJ e publicação por exercício.
+
+### Etapa 11 — Limpeza do composition root
+
+- [x] Deixar no `app.ts` apenas configuração global, criação dos singletons,
+      composição de dependências, registro dos routers e error handler.
+- [x] Remover imports e funções que ficaram obsoletos.
+- [x] Confirmar que o `app.ts` possui no máximo 300 linhas.
+- [x] Atualizar a documentação de arquitetura. As coleções Insomnia não foram
+      alteradas porque URLs e payloads permaneceram iguais.
+
+**Aceite:** todas as rotas permanecem disponíveis e `app.ts` funciona como
+composition root.
+
+## Estrutura-alvo do frontend
+
+```text
+apps/web/src/
+├── components/
+│   ├── ui/                         # primitivas genéricas
+│   └── shared/                     # compartilhamento real entre domínios
+├── modules/
+│   ├── public-shell/               # hero, navegação e layout público
+│   ├── auth/
+│   ├── foundation/                 # diagnóstico de disponibilidade da API
+│   ├── general-data/
+│   │   ├── api/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── pages/
+│   │   └── test-fixtures/              # somente enquanto necessário
+│   ├── budget/
+│   ├── financial/
+│   ├── human-resources/            # meses e localidades pertencem ao domínio
+│   ├── patrimonial/                # situação do bem ≠ status de publicação
+│   ├── contracts/                  # contratos e fornecedores no mesmo domínio
+│   ├── reports/                    # seções e gráficos do próprio domínio
+│   ├── institutional/              # conteúdo institucional estático tipado
+│   ├── administrative/             # organograma e embed institucional
+│   ├── glossary/                   # glossário estático tipado
+│   └── lgpd/                       # política e acordeões estáticos tipados
+└── lib/                            # utilitários sem regra de domínio
+```
+
+Regras do frontend modular:
+
+- Hook específico fica no próprio domínio (`useBudgetPage`, por exemplo).
+- Não criar `usePageData` genérico: loading, vazio e `404` possuem semântica por
+  domínio e o TanStack Query já fornece o estado base.
+- Um domínio não importa internamente outro domínio. O que for realmente comum
+  sobe para `components/shared`, `components/ui` ou `public-shell`.
+- Componentes genéricos surgem somente depois de dois usos reais compatíveis.
+- Fixtures permanecem próximas do domínio e são removidas somente quando páginas e
+  testes não dependerem mais delas.
+- O cliente HTTP monolítico será reduzido gradualmente; cada etapa move apenas as
+  funções do domínio em trabalho.
+
+## Estrutura-alvo do backend
+
+```text
+apps/api/src/
+├── app.ts                         # composition root
+├── infrastructure/
+│   ├── database/prisma.ts          # um cliente injetável
+│   └── observability/
+├── http/
+│   ├── errors/
+│   └── middlewares/
+└── modules/
+    ├── auth/
+    ├── general-data/
+    ├── budget/
+    ├── financial/
+    ├── human-resources/
+    ├── patrimonial/
+    ├── contracts/
+    └── reports/
+```
+
+Cada módulo concentra routes, controller, service, interface de repository e
+adapter Prisma. Services dependem da interface, nunca diretamente do Prisma. Essa
+fronteira deve ser preservada para a futura implementação Firebase na `main`.
+
+## Auditoria do backend após a primeira passagem
+
+Já está adequado:
+
+- `app.ts` possui 150 linhas e atua como composition root.
+- Rotas e controllers estão separados por domínio.
+- Helmet e CORS com whitelist estão registrados globalmente.
+- Bodies principais usam contratos Zod compartilhados.
+- O schema Prisma é válido e possui índices para os filtros públicos centrais.
+
+Pendências confirmadas:
+
+- [x] Centralizar os clientes Prisma hoje duplicados nos repositories.
+- [x] Remover `any` dos mapeadores de contratos, patrimônio, RH e relatórios.
+- [x] Parar de converter qualquer erro Prisma em `null`; mapear apenas erros
+      esperados e propagar falhas de infraestrutura.
+- [x] Usar transações nas operações de conteúdo com mais de uma escrita/leitura
+      dependente. A atomicidade específica do bootstrap/sessões de autenticação
+      permanece na Etapa 16.
+- [x] Validar variáveis de ambiente, params e queries com schemas Zod explícitos.
+- [x] Padronizar `404`, erro de CORS e JSON malformado como respostas JSON.
+- [x] Definir permissões reais para `ADMIN`, `EDITOR` e `REVIEWER`; hoje as
+      mutações de conteúdo exigem apenas usuário autenticado.
+- [x] Adicionar rate limit em login/cadastro, logging estruturado e request ID.
+- [x] Fechar o cadastro bootstrap depois do primeiro administrador e definir a
+      limpeza de sessões expiradas/revogadas.
+- [x] Adicionar paginação/limites nas listagens administrativas potencialmente
+      ilimitadas.
+- [x] Separar `app.test.ts` por módulo conforme o fatiamento vertical.
+- [x] Confirmar que Institucional, Administrativo, Glossário e LGPD são conteúdos
+      estáticos, sem CRUD ou API. Os dados locais são intencionais e não representam
+      uma pendência do backend.
+
+Decisão adiada para o plano Firebase: substituir o bearer token persistido no
+browser por access token curto em memória e refresh token seguro, ou delegar todo o
+fluxo ao Firebase Auth. Não implementar duas arquiteturas de sessão em sequência.
+
+## Etapas restantes
+
+### Etapa 12 — Dados Gerais no frontend
+
+- [x] Usar a API real no resumo público.
+- [x] Validar sucesso, loading, vazio/`404` e erro.
+- [x] Remover o fallback que apresentava fixture como dado oficial.
+
+**Aceite:** o resumo exibe somente dados publicados pela API e falhas não viram
+valores oficiais fictícios.
+
+### Etapa 13 — Infraestrutura Prisma compartilhada
+
+- [x] Criar um único provider/cliente Prisma injetável.
+- [x] Migrar repositories um por vez para receber o cliente.
+- [x] Tipar todos os mapeadores sem `any`.
+- [x] Substituir `catch(() => null)` por tradução seletiva de erros Prisma.
+- [x] Tornar atômicas as operações dependentes de conteúdo com `$transaction`.
+
+**Aceite:** uma instância de infraestrutura por processo, erros reais preservados e
+nenhuma mudança nos contratos HTTP.
+
+### Etapa 14 — Fatiamento vertical do backend
+
+- [x] Mover um domínio por vez para `modules/<domínio>`.
+- [x] Manter interface de repository ao lado do service e adapter Prisma isolado.
+- [x] Mover os testes de cada domínio para perto do módulo.
+- [x] Atualizar apenas imports em cada subetapa.
+
+**Aceite:** cada módulo concentra routes, controller, service, repository e testes,
+sem dependências circulares ou acesso direto ao Prisma pelo controller.
+
+### Etapa 15 — Bordas HTTP e validação
+
+- [x] Criar schemas compartilhados para IDs, params, queries e paginação.
+- [x] Validar todas as variáveis de ambiente na inicialização.
+- [x] Padronizar erros de validação, rota inexistente, CORS e JSON malformado.
+- [x] Preservar mensagens e status já consumidos pelo frontend.
+
+### Etapa 16 — Autorização e proteção operacional
+
+- [x] Definir uma matriz de permissões para `ADMIN`, `EDITOR` e `REVIEWER` antes de
+      alterar guards.
+- [x] Aplicar RBAC nas mutações e publicações de cada módulo.
+- [x] Limitar o login a 5 falhas por combinação de IP e e-mail normalizado em uma
+      janela de 15 minutos, sem contar autenticações bem-sucedidas.
+- [x] Durante o bloqueio de login, responder `429` e `Retry-After`, sem revogar
+      sessões com base apenas no e-mail informado para não permitir logout forçado
+      por terceiros.
+- [x] Limitar a área autenticada a 30 requisições por minuto por usuário. Ao
+      exceder, bloquear novos logins por 15 minutos e revogar atomicamente todas as
+      sessões daquele usuário.
+- [x] Persistir contadores e bloqueios em armazenamento compartilhado compatível
+      com múltiplas instâncias/serverless; não depender somente de memória local.
+- [x] No frontend, ao receber `401` ou o `429` de sessão revogada, limpar a sessão,
+      sincronizar o logout entre abas e redirecionar para `/login` com `replace`.
+- [x] Revalidar a autenticação ao restaurar páginas pelo histórico/bfcache e usar
+      `Cache-Control: no-store` nas respostas autenticadas, impedindo retorno ao
+      painel pelas setas do navegador.
+- [x] Encerrar o bootstrap público após o primeiro administrador.
+- [x] Adicionar logging estruturado, request ID e sanitização de dados sensíveis.
+- [x] Definir limpeza de sessões expiradas e revogadas.
+
+### Etapa 17 — Paginação, desempenho e fechamento do backend
+
+- [x] Adicionar limites/paginação nas listagens que podem crescer sem limite.
+- [x] Revisar queries, `select`, índices e transações com dados representativos.
+- [x] Revisar integridade entre fornecedores e contratos antes de alterar o schema.
+- [x] Executar typecheck, lint, testes e build da API.
+- [x] Verificar manualmente os endpoints e atualizar a documentação do backend.
+
+**Aceite:** todas as pendências confirmadas do backend estão concluídas ou
+explicitamente destinadas ao plano Firebase.
+
+### Etapa 18 — Base modular do frontend e piloto Dados Gerais
+
+- [x] Criar `public-shell` e mover somente os componentes estruturais públicos.
+- [x] Criar o módulo `general-data` com API, hook, componentes e consumidores.
+- [x] Definir query keys no módulo e manter funções de query estáveis.
+- [x] Atualizar imports e rotas sem mudança visual ou de contrato.
+- [x] Extrair estados, cabeçalhos, filtros, links de download e rolagem de tabela
+      comprovadamente repetidos nas páginas públicas.
+
+**Aceite:** Dados Gerais demonstra a estrutura que os outros domínios seguirão,
+sem dependência lateral e sem abstração genérica prematura.
+
+### Etapa 19 — Módulo Orçamentário
+
+- [x] Mover API, hooks, página pública, página administrativa e testes do
+      domínio.
+- [x] Remover o acesso direto ao cliente HTTP/repository antigo nesse módulo.
+- [x] Preservar filtros, documentos e estados de loading/vazio/erro.
+
+**Aceite:** Orçamentário funciona de ponta a ponta dentro do próprio módulo.
+
+### Etapa 20 — Módulo Financeiro
+
+- [x] Migrar API, hooks, páginas pública/administrativa e testes.
+- [x] Extrair componentes internos de documento e accordion somente dentro do
+      módulo.
+- [x] Preservar exercício, período e formatos de download.
+
+### Etapa 21 — Módulo Recursos Humanos
+
+- [x] Migrar API, hooks, páginas pública/administrativa e testes.
+- [x] Manter meses/localidades como conceitos do domínio, sem componente genérico
+      conhecer essa regra.
+- [x] Remover a dependência de fixture em produção.
+
+As mutations atualizam o cache administrativo do próprio módulo. A publicação e
+a exclusão também invalidam os dados públicos, mantendo as telas sincronizadas
+sem copiar os resultados das queries para estado local.
+
+### Etapa 22 — Módulo Patrimonial
+
+- [x] Migrar API, hooks, páginas pública/administrativa e testes.
+- [x] Preservar a diferença entre situação do bem e status de publicação.
+- [x] Manter filtros e documentos dentro do domínio.
+
+O módulo usa `status` exclusivamente para a situação física do bem e
+`publicationStatus` para o fluxo de rascunho/publicação. A publicação atualiza o
+cache administrativo e invalida os dados públicos.
+
+### Etapa 23 — Módulo Contratos e Fornecedores
+
+- [x] Migrar API, hooks, páginas pública/administrativa e testes.
+- [x] Manter contratos e fornecedores no mesmo módulo, com componentes internos
+      separados.
+- [x] Preservar CNPJ, aditivos, documentos e publicação por exercício.
+
+Contratos e fornecedores usam caches administrativos independentes. O painel de
+fornecedores é um componente interno do módulo; alterações de CNPJ ou nome
+sincronizam os contratos relacionados e invalidam os dados públicos.
+
+### Etapa 24 — Módulo Relatórios e Indicadores
+
+- [x] Migrar API, hook, páginas e testes.
+- [x] Dividir a página pública em seções e componentes de gráfico do próprio
+      módulo.
+- [x] Manter o carregamento dinâmico de Chart.js e evitar aumentar o bundle inicial.
+- [x] Preservar seleção do exercício mais recente e todos os indicadores.
+
+A página pública foi dividida nas seções Financeiro/Orçamento, Administrativo,
+Contratos e Recursos Humanos. O componente de gráfico continua importando
+`chart.js/auto` dinamicamente apenas quando o canvas é montado.
+
+### Etapa 25 — Módulos frontend dos conteúdos estáticos
+
+- [x] Migrar Institucional, Administrativo, Glossário e LGPD para seus módulos sem
+      criar CRUD ou API.
+- [x] Renomear fixtures usadas em produção para conteúdo estático tipado, deixando
+      claro que são a fonte oficial dessas telas.
+- [x] Preservar textos, embeds, acessibilidade e navegação atuais.
+
+Cada módulo agora mantém sua fonte oficial em um arquivo `.content.ts`, validado
+pelos schemas compartilhados. Como esses dados são locais e estáticos, as páginas
+os importam diretamente, sem criar uma camada assíncrona ou cache artificial no
+TanStack Query. O organograma, a navegação por letras e os acordeões da LGPD foram
+verificados manualmente no navegador.
+
+### Etapa 26 — Limpeza dos adaptadores temporários
+
+- [x] Remover `localPublicTransparencyRepository` quando não houver consumidores.
+- [x] Esvaziar o `apps/web/src/lib/api.ts`, movendo as funções restantes para os
+      respectivos módulos.
+- [x] Remover fixtures e exports mortos somente após busca de referências.
+- [x] Atualizar router e documentação da arquitetura.
+
+As chamadas de autenticação agora pertencem a `modules/auth/data/auth.api.ts`, e
+o health check pertence a `modules/foundation/data/foundation.api.ts`. O agregador
+`lib/api.ts`, o repository público local e sua última fixture sem consumidores
+foram removidos. O estilo compartilhado das páginas públicas passou para
+`modules/public-shell/styles`, eliminando o antigo diretório `modules/public`.
+
+### Etapa 27 — Componentes compartilhados comprovados
+
+- [x] Inventariar repetições depois da migração dos módulos.
+- [x] Promover para `components/shared` ou `components/ui` somente componentes com
+      pelo menos dois usos realmente equivalentes.
+- [x] Avaliar `DocumentLink`, estados de página e selects antes de generalizar.
+- [x] Não criar DataTable genérica se colunas e comportamentos ainda divergirem.
+
+O inventário confirmou o mesmo link de visualização de documentos nos módulos
+Orçamentário, Patrimonial e Contratos. A implementação foi promovida para
+`PublicDocumentLink`, mantendo classes e rótulos específicos por uso. Os estados
+de página e selects públicos já estavam corretamente compartilhados; o select de
+Relatórios permaneceu no módulo por fazer parte de um cabeçalho próprio. As tabelas
+continuam específicas porque colunas, células, estados vazios e comportamentos são
+diferentes.
+
+### Etapa 28 — Desempenho e dependências do frontend
+
+- [x] Medir bundle do frontend e manter Chart.js fora do carregamento inicial.
+- [x] Revisar re-renderizações e waterfalls somente com evidência de medição.
+- [x] Executar auditoria de dependências sem atualizar versões no mesmo diff.
+
+O build inicial concentrava todas as páginas em um chunk de `669,82 kB`
+(`197,48 kB` gzip). Como a medição excedia o limite de `500 kB`, as páginas
+públicas e administrativas passaram a ser carregadas por rota. O chunk inicial
+foi reduzido para `259,98 kB` (`81,10 kB` gzip), sem o aviso de tamanho excessivo.
+O Chart.js permanece em um chunk independente de `203,67 kB` (`69,78 kB` gzip),
+carregado apenas no módulo de Relatórios.
+
+Não houve alteração especulativa de memoização ou fluxo de consultas, pois os
+testes e a inspeção não apontaram waterfall ou re-renderização problemática. O
+`pnpm audit --prod` não encontrou vulnerabilidades conhecidas. O inventário de
+versões identificou atualizações disponíveis, mas nenhuma dependência foi alterada
+nesta etapa.
+
+### Etapa 29 — Validação e encerramento da branch
+
+- [x] Executar typecheck, lint, testes e build de todos os workspaces.
+- [x] Testar manualmente os endpoints e fluxos públicos/administrativos.
+- [x] Confirmar que não restam fixtures servindo como dados oficiais.
+- [x] Confirmar que Prisma está isolado atrás das interfaces de repository.
+- [x] Fazer code review final de padrões, escopo, segurança e regressões.
+- [x] Registrar o que ficar deliberadamente para a migração Firebase na `main`.
+
+A validação final executou typecheck, lint, build e 88 testes. O smoke test direto
+confirmou `200` no health e nos sete domínios públicos, `401` com `no-store` sem
+sessão administrativa, `400` para query inválida, `403` para origem CORS não
+autorizada e `404` para rota inexistente. Os fluxos públicos e o redirecionamento
+administrativo para login foram verificados no navegador.
+
+O review contra a `main` encontrou zero desvios de especificação. Os três achados
+de padrões foram corrigidos: foco/teclado do diálogo de confirmação, uso de tokens
+visuais e auditoria atribuível de mutations. Não restam fixtures oficiais,
+diretórios `features`, dependências Firebase ou acesso ao Prisma fora dos adapters
+e da infraestrutura de persistência. A futura troca está detalhada em
+[`PLANO_MIGRACAO_FIREBASE.md`](./PLANO_MIGRACAO_FIREBASE.md).
+
+## Checklist obrigatório por etapa
+
+- [x] Diff restrito ao escopo aprovado.
+- [x] Typecheck e lint do workspace afetado passam.
+- [x] Testes existentes do workspace afetado passam.
+- [x] Build é executado quando a etapa altera código de produção.
+- [x] Rotas ou fluxos afetados são verificados manualmente.
+- [x] Code review não possui achado bloqueante.
+- [x] Aprovação antes da etapa seguinte.
+
+## Próxima ação
+
+As Etapas 0 a 29 estão concluídas. A branch `refatoracao` está pronta para a revisão
+e o versionamento final do usuário; nenhum commit é criado pelo assistente.

@@ -38,9 +38,9 @@ adequada para a API serverless.
 pnpm --filter @oab-transparencia/api db:migrate
 ```
 
-Esse comando aplica a migration versionada em
-`apps/api/prisma/migrations/20261111174000_add_auth` e cria as tabelas `User`
-e `Session`.
+Esse comando aplica as migrations versionadas. Além das tabelas `User` e
+`Session`, a proteção operacional usa `RateLimitCounter` para compartilhar os
+contadores entre instâncias serverless.
 
 ## Rodar a API
 
@@ -63,12 +63,64 @@ sucesso e erro antes de ser considerado concluído.
 
 ## Endpoints iniciais
 
-| Método | Rota                 | Uso                                                                                      |
-| ------ | -------------------- | ---------------------------------------------------------------------------------------- |
-| `POST` | `/api/auth/register` | Cria a primeira conta como `ADMIN`; as próximas são `EDITOR`. Exige a chave de cadastro. |
-| `POST` | `/api/auth/login`    | Retorna uma sessão com token temporário.                                                 |
-| `GET`  | `/api/auth/me`       | Confere a sessão enviada em `Authorization: Bearer <token>`.                             |
-| `POST` | `/api/auth/logout`   | Revoga a sessão atual.                                                                   |
+| Método | Rota                 | Uso                                                                       |
+| ------ | -------------------- | ------------------------------------------------------------------------- |
+| `POST` | `/api/auth/register` | Cria somente a primeira conta como `ADMIN` e encerra o bootstrap público. |
+| `POST` | `/api/auth/login`    | Retorna uma sessão com token temporário.                                  |
+| `GET`  | `/api/auth/me`       | Confere a sessão enviada em `Authorization: Bearer <token>`.              |
+| `POST` | `/api/auth/logout`   | Revoga a sessão atual.                                                    |
+
+Usuários adicionais são criados por um administrador em `/api/admin/users`.
+
+## Paginação administrativa
+
+As listagens administrativas de usuários, documentos financeiros, recursos
+humanos, patrimônio, contratos e fornecedores aceitam `page` e `limit`. A página
+padrão é `1`, o limite padrão é `20` e o máximo permitido é `100`.
+
+```text
+GET /api/admin/contracts?page=2&limit=20
+```
+
+Além de `records`, `users` ou `suppliers`, a resposta inclui:
+
+```json
+{
+  "pagination": {
+    "page": 2,
+    "limit": 20,
+    "total": 57,
+    "totalPages": 3
+  }
+}
+```
+
+Os endpoints públicos que entregam a composição completa de uma página mantêm
+seu contrato agregado. A paginação administrativa evita leituras ilimitadas sem
+alterar os filtros públicos atuais.
+
+## Permissões
+
+| Papel      | Leitura administrativa | Criar/editar/excluir | Publicar | Gerenciar usuários |
+| ---------- | ---------------------- | -------------------- | -------- | ------------------ |
+| `ADMIN`    | Sim                    | Sim                  | Sim      | Sim                |
+| `EDITOR`   | Sim                    | Sim                  | Não      | Não                |
+| `REVIEWER` | Sim                    | Não                  | Sim      | Não                |
+
+O login aceita cinco falhas por combinação de IP e e-mail em 15 minutos. A área
+administrativa aceita 30 requisições por minuto por usuário. Ao exceder esse
+limite autenticado, todas as sessões do usuário são revogadas e um novo login fica
+bloqueado por 15 minutos. Respostas autenticadas usam `Cache-Control: no-store`.
+
+Antes de emitir cada novo token, a API remove do banco todas as sessões já
+expiradas ou revogadas. Essa limpeza oportunística evita depender de estado local
+das Functions e mantém a tabela de sessões limitada pelo próprio fluxo de login.
+
+Contratos possuem uma chave estrangeira obrigatória para `Supplier`. A migration
+faz o backfill dos registros existentes, e um fornecedor com contratos vinculados
+não pode ser excluído. Antes de trocar a unicidade, a migration interrompe com uma
+mensagem explícita se encontrar mais de um contrato para o mesmo fornecedor, data
+e exercício; esses registros precisam ser consolidados antes do deploy.
 
 ## Primeiro CRUD: Dados Gerais
 

@@ -6,8 +6,8 @@
 - Estado atual: API Express, Prisma e PostgreSQL/Neon.
 - Objetivo: migrar autenticação, persistência e documentos para serviços Firebase
   sem alterar os contratos HTTP consumidos pelo frontend.
-- Este plano é independente da branch `refatoracao` e não deve incorporar o
-  refactor antes de uma decisão explícita de merge.
+- O refactor modular já incorporado à `main` é a base da migração; a troca de
+  persistência deve preservar as fronteiras atuais entre módulos.
 
 ## Decisão obrigatória antes da implementação
 
@@ -41,6 +41,9 @@ Na primeira migração o frontend não acessará Firestore diretamente. A API Ex
 permanece como fronteira de autorização e compatibilidade, e os schemas Zod de
 `packages/contracts` continuam sendo os contratos de entrada e saída. Isso permite
 trocar repositories por módulo e voltar ao PostgreSQL sem reescrever as páginas.
+
+Institucional, Administrativo, Glossário e LGPD permanecem como conteúdo estático:
+não criar CRUD, coleções ou adapters artificiais para essas páginas.
 
 ## Regras de segurança e dados
 
@@ -127,6 +130,10 @@ ou contrato HTTP.
 - [ ] Substituir tokens de sessão próprios por ID tokens verificados no Express.
 - [ ] Mapear perfis e status para custom claims e documento `users`.
 - [ ] Definir revogação, desativação, expiração e atualização de claims.
+- [ ] Preservar logout entre abas, revogação dos tokens e bloqueio do retorno às
+      telas protegidas pelo histórico do navegador.
+- [ ] Migrar rate limits e bloqueios para armazenamento compartilhado compatível
+      com a infraestrutura escolhida.
 - [ ] Testar importação do hash `scrypt` próprio atual em um projeto descartável.
 - [ ] Se o formato não for compatível, executar convite/redefinição obrigatória de
       senha; nunca migrar ou registrar senhas em texto puro.
@@ -165,6 +172,9 @@ Para cada módulo:
 - [ ] comparar respostas Prisma versus Firestore;
 - [ ] liberar primeiro em staging;
 - [ ] manter fallback para Prisma até o aceite.
+
+Durante a transição, não fazer leitura híbrida silenciosa: divergências entre os
+adapters devem falhar de forma observável e gerar evidência para reconciliação.
 
 ### Etapa 7 — Documentos no Cloud Storage
 

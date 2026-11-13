@@ -1,26 +1,6 @@
-import { Navigate, createBrowserRouter, useParams } from 'react-router-dom'
+import { Navigate, createBrowserRouter } from 'react-router-dom'
 
-import { FoundationPage } from '../features/foundation/FoundationPage'
-import { AdminHomePage } from '../features/auth/AdminHomePage'
-import { AdminBudgetPage } from '../features/auth/AdminBudgetPage'
-import { AdminFinancialPage } from '../features/auth/AdminFinancialPage'
-import { AdminPatrimonialPage } from '../features/auth/AdminPatrimonialPage'
-import { AdminContractsPage } from '../features/auth/AdminContractsPage'
-import { AdminHumanResourcesPage } from '../features/auth/AdminHumanResourcesPage'
-import { AdminReportsIndicatorsPage } from '../features/auth/AdminReportsIndicatorsPage'
-import { AdminUsersPage } from '../features/auth/AdminUsersPage'
-import { AdminSectionPlaceholderPage } from '../features/auth/AdminSectionPlaceholderPage'
-import { LoginPage } from '../features/auth/LoginPage'
-import { AdministrativePage } from '../features/public/pages/AdministrativePage'
-import { BudgetPage } from '../features/public/pages/BudgetPage'
-import { ContractsPage } from '../features/public/pages/ContractsPage'
-import { FinancialPage } from '../features/public/pages/FinancialPage'
-import { InstitutionalPage } from '../features/public/pages/InstitutionalPage'
-import { HumanResourcesPage } from '../features/public/pages/HumanResourcesPage'
-import { LgpdPage } from '../features/public/pages/LgpdPage'
-import { GlossaryPage } from '../features/public/pages/GlossaryPage'
-import { PatrimonialPage } from '../features/public/pages/PatrimonialPage'
-import { ReportsIndicatorsPage } from '../features/public/pages/ReportsIndicatorsPage'
+import { FoundationPage } from '../modules/foundation/FoundationPage'
 
 export const router = createBrowserRouter([
   {
@@ -33,43 +13,76 @@ export const router = createBrowserRouter([
   },
   {
     path: '/public/institucional',
-    element: <InstitutionalPage />,
+    lazy: async () => ({
+      Component: (
+        await import('../modules/institutional/pages/InstitutionalPage')
+      ).InstitutionalPage,
+    }),
   },
   {
     path: '/public/administrativo',
-    element: <AdministrativePage />,
+    lazy: async () => ({
+      Component: (
+        await import('../modules/administrative/pages/AdministrativePage')
+      ).AdministrativePage,
+    }),
   },
   {
     path: '/public/orcamentario',
-    element: <BudgetPage />,
+    lazy: async () => ({
+      Component: (await import('../modules/budget/pages/BudgetPage'))
+        .BudgetPage,
+    }),
   },
   {
     path: '/public/financeiro',
-    element: <FinancialPage />,
+    lazy: async () => ({
+      Component: (await import('../modules/financial/pages/FinancialPage'))
+        .FinancialPage,
+    }),
   },
   {
     path: '/public/patrimonial',
-    element: <PatrimonialPage />,
+    lazy: async () => ({
+      Component: (await import('../modules/patrimonial/pages/PatrimonialPage'))
+        .PatrimonialPage,
+    }),
   },
   {
     path: '/public/recursos-humanos',
-    element: <HumanResourcesPage />,
+    lazy: async () => ({
+      Component: (
+        await import('../modules/human-resources/pages/HumanResourcesPage')
+      ).HumanResourcesPage,
+    }),
   },
   {
     path: '/public/contratos-e-licitacoes',
-    element: <ContractsPage />,
+    lazy: async () => ({
+      Component: (await import('../modules/contracts/pages/ContractsPage'))
+        .ContractsPage,
+    }),
   },
   {
     path: '/public/glossario',
-    element: <GlossaryPage />,
+    lazy: async () => ({
+      Component: (await import('../modules/glossary/pages/GlossaryPage'))
+        .GlossaryPage,
+    }),
   },
   {
     path: '/public/lgpd',
-    element: <LgpdPage />,
+    lazy: async () => ({
+      Component: (await import('../modules/lgpd/pages/LgpdPage')).LgpdPage,
+    }),
   },
   {
     path: '/public/relatorios-e-indicadores',
-    element: <ReportsIndicatorsPage />,
+    lazy: async () => ({
+      Component: (
+        await import('../modules/reports/pages/ReportsIndicatorsPage')
+      ).ReportsIndicatorsPage,
+    }),
   },
   {
     path: '/public/:section',
@@ -82,43 +95,75 @@ export const router = createBrowserRouter([
   },
   {
     path: '/login',
-    element: <LoginPage />,
+    lazy: async () => ({
+      Component: (await import('../modules/auth/LoginPage')).LoginPage,
+    }),
   },
   {
     path: '/admin',
-    element: <AdminHomePage />,
+    lazy: async () => ({
+      Component: (await import('../modules/general-data/pages/AdminHomePage'))
+        .AdminHomePage,
+    }),
   },
   {
     path: '/admin/orcamentario',
-    element: <AdminBudgetPage />,
+    lazy: async () => ({
+      Component: (await import('../modules/budget/pages/AdminBudgetPage'))
+        .AdminBudgetPage,
+    }),
   },
   {
     path: '/admin/financeiro',
-    element: <AdminFinancialPage />,
+    lazy: async () => ({
+      Component: (await import('../modules/financial/pages/AdminFinancialPage'))
+        .AdminFinancialPage,
+    }),
   },
   {
     path: '/admin/patrimonial',
-    element: <AdminPatrimonialPage />,
+    lazy: async () => ({
+      Component: (
+        await import('../modules/patrimonial/pages/AdminPatrimonialPage')
+      ).AdminPatrimonialPage,
+    }),
   },
   {
     path: '/admin/contratos-e-licitacoes',
-    element: <AdminContractsPage />,
+    lazy: async () => ({
+      Component: (await import('../modules/contracts/pages/AdminContractsPage'))
+        .AdminContractsPage,
+    }),
   },
   {
     path: '/admin/recursos-humanos',
-    element: <AdminHumanResourcesPage />,
+    lazy: async () => ({
+      Component: (
+        await import('../modules/human-resources/pages/AdminHumanResourcesPage')
+      ).AdminHumanResourcesPage,
+    }),
   },
   {
     path: '/admin/relatorios-e-indicadores',
-    element: <AdminReportsIndicatorsPage />,
+    lazy: async () => ({
+      Component: (
+        await import('../modules/reports/pages/AdminReportsIndicatorsPage')
+      ).AdminReportsIndicatorsPage,
+    }),
   },
   {
     path: '/admin/usuarios',
-    element: <AdminUsersPage />,
+    lazy: async () => ({
+      Component: (await import('../modules/auth/AdminUsersPage'))
+        .AdminUsersPage,
+    }),
   },
   {
     path: '/admin/:section',
-    element: <AdminSectionRoute />,
+    lazy: async () => ({
+      Component: (await import('../modules/auth/AdminSectionRoute'))
+        .AdminSectionRoute,
+    }),
   },
   {
     path: '*',
@@ -130,8 +175,3 @@ export const router = createBrowserRouter([
     ),
   },
 ])
-
-function AdminSectionRoute() {
-  const { section = 'dashboard' } = useParams()
-  return <AdminSectionPlaceholderPage section={section} />
-}
