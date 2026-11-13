@@ -68,10 +68,8 @@ export function createApp(options: AppOptions = {}): Express {
   app.disable('x-powered-by')
   app.use(helmet())
   app.use(express.json())
-  const requireUser = createRequireUser(getAuthService)
-  app.use(createContractsRoutes({ getContractService, requireUser }))
-
   app.use(createCorsMiddleware())
+
   let authService = options.authService
   function getAuthService() {
     authService ??= createPrismaAuthService()
@@ -124,6 +122,7 @@ export function createApp(options: AppOptions = {}): Express {
     return contractService
   }
 
+  const requireUser = createRequireUser(getAuthService)
   const requireAdmin = createRequireAdmin(requireUser)
 
   app.use(healthRoutes)
@@ -136,16 +135,11 @@ export function createApp(options: AppOptions = {}): Express {
     }),
   )
 
-  app.use(
-    createHumanResourcesRoutes({ getHumanResourcesService, requireUser }),
-  )
+  app.use(createHumanResourcesRoutes({ getHumanResourcesService, requireUser }))
   app.use(createBudgetRoutes({ getBudgetService, requireUser }))
-  app.use(
-    createFinancialRoutes({ getFinancialDocumentService, requireUser }),
-  )
-  app.use(
-    createPatrimonialRoutes({ getPatrimonialAssetService, requireUser }),
-  )
+  app.use(createFinancialRoutes({ getFinancialDocumentService, requireUser }))
+  app.use(createPatrimonialRoutes({ getPatrimonialAssetService, requireUser }))
+  app.use(createContractsRoutes({ getContractService, requireUser }))
 
   app.use(errorHandler)
 

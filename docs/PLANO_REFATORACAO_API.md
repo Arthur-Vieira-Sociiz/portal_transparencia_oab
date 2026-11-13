@@ -133,11 +133,12 @@ internas de `createApp`, sem mudança de status ou payload.
 
 ### Etapa 11 — Limpeza do composition root
 
-- [ ] Deixar no `app.ts` apenas configuração global, criação dos singletons,
+- [x] Deixar no `app.ts` apenas configuração global, criação dos singletons,
       composição de dependências, registro dos routers e error handler.
-- [ ] Remover imports e funções que ficaram obsoletos.
-- [ ] Confirmar que o `app.ts` possui no máximo 300 linhas.
-- [ ] Atualizar documentação de arquitetura e coleções Insomnia afetadas.
+- [x] Remover imports e funções que ficaram obsoletos.
+- [x] Confirmar que o `app.ts` possui no máximo 300 linhas.
+- [x] Atualizar a documentação de arquitetura. As coleções Insomnia não foram
+      alteradas porque URLs e payloads permaneceram iguais.
 
 **Aceite:** todas as rotas permanecem disponíveis e `app.ts` funciona como
 composition root.

@@ -63,6 +63,40 @@ apps/web/src/
 
 O compartilhamento ocorre em componentes e módulos de domínio, não pela mistura dos layouts. A área pública nunca importa componentes de autenticação ou edição.
 
+## Fronteiras internas da API
+
+```text
+apps/api/src/
+├── app.ts                    # composition root
+├── errors/                   # tradução centralizada de erros para HTTP
+├── middlewares/              # CORS e guards de autenticação/autorização
+├── routes/                   # routers e controllers por domínio
+│   ├── auth/
+│   ├── budget/
+│   ├── contracts/
+│   ├── financial/
+│   ├── general-data/
+│   ├── health/
+│   ├── human-resources/
+│   ├── patrimonial/
+│   └── reports-indicators/
+└── <domínio>/                # services e repositories atuais
+```
+
+O `app.ts` configura os middlewares globais, cria os services como singletons lazy,
+injeta as dependências nos módulos de rota e registra o error handler por último.
+Controllers usam os schemas Zod compartilhados nas entradas já cobertas e não
+acessam o Prisma diretamente. CORS usa uma whitelist explícita e é aplicado antes de
+todos os routers.
+
+A validação Zod de todos os `params` e queries ainda é uma etapa de hardening
+pendente; alguns controllers preservam a validação parcial existente para não mudar
+o comportamento durante a modularização.
+
+Services e repositories permanecem temporariamente nas pastas de domínio atuais.
+A migração para fatias verticais ocorrerá somente depois da estabilização das rotas,
+um domínio por vez.
+
 ### Regra de componentização
 
 - Elementos visuais básicos e independentes de domínio pertencem a `packages/ui`.
