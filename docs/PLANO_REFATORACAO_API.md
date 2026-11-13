@@ -84,11 +84,11 @@ internas de `createApp`, sem mudança de status ou payload.
 
 ### Etapa 3 — Auth e usuários administrativos
 
-- [ ] Extrair register, login, me e logout.
-- [ ] Extrair listagem e criação de usuários administrativos, pois usam o mesmo
+- [x] Extrair register, login, me e logout.
+- [x] Extrair listagem e criação de usuários administrativos, pois usam o mesmo
       domínio e as mesmas regras de autorização.
-- [ ] Injetar `AuthService` no módulo de rotas.
-- [ ] Preservar os contratos Zod e o status `204` do logout.
+- [x] Injetar `AuthService` no módulo de rotas.
+- [x] Preservar os contratos Zod e o status `204` do logout.
 
 **Aceite:** o `app.ts` não contém handlers de autenticação ou usuários.
 

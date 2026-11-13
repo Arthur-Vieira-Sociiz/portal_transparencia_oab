@@ -1,23 +1,14 @@
 import {
-  LoginRequestSchema,
-  RegisterRequestSchema,
-} from '@oab-transparencia/contracts/auth'
-import {
   CreateGeneralDataRequestSchema,
   UpdateGeneralDataRequestSchema,
   CreateReportsIndicatorRequestSchema,
   UpdateReportsIndicatorRequestSchema,
   PublicReportsPageSchema,
 } from '@oab-transparencia/contracts/transparency'
-import {
-  AdminCreateUserRequestSchema,
-  AdminCreatedUserResponseSchema,
-} from '@oab-transparencia/contracts/auth'
 import { ExerciseSchema } from '@oab-transparencia/contracts/common'
 import express, { type Express } from 'express'
 import helmet from 'helmet'
-import { AuthenticationError, type AuthService } from './auth/auth-service.js'
-import { readBearerToken } from './auth/bearer-token.js'
+import type { AuthService } from './auth/auth-service.js'
 import { createPrismaAuthService } from './auth/prisma-auth-service.js'
 import {
   createGeneralDataService,
@@ -76,6 +67,7 @@ import { errorHandler } from './errors/error-handlers.js'
 import { createCorsMiddleware } from './middlewares/cors.js'
 import { createRequireAdmin } from './middlewares/require-admin.js'
 import { createRequireUser } from './middlewares/require-user.js'
+import { createAuthRoutes } from './routes/auth/auth.routes.js'
 import { healthRoutes } from './routes/health/health.routes.js'
 
 type AppOptions = {
@@ -259,73 +251,7 @@ export function createApp(options: AppOptions = {}): Express {
   const requireAdmin = createRequireAdmin(requireUser)
 
   app.use(healthRoutes)
-
-  app.post('/api/auth/register', async (request, response, next) => {
-    try {
-      const input = RegisterRequestSchema.parse(request.body)
-      const session = await getAuthService().register(input)
-      response.status(201).json(session)
-    } catch (error) {
-      next(error)
-    }
-  })
-
-  app.post('/api/auth/login', async (request, response, next) => {
-    try {
-      const input = LoginRequestSchema.parse(request.body)
-      response.json(await getAuthService().login(input))
-    } catch (error) {
-      next(error)
-    }
-  })
-
-  app.get('/api/auth/me', async (request, response, next) => {
-    try {
-      const token = readBearerToken(request.headers.authorization)
-      if (!token) throw new AuthenticationError('UNAUTHENTICATED')
-      response.json({
-        user: await getAuthService().getAuthenticatedUser(token),
-      })
-    } catch (error) {
-      next(error)
-    }
-  })
-
-  app.post('/api/auth/logout', async (request, response, next) => {
-    try {
-      const token = readBearerToken(request.headers.authorization)
-      if (!token) throw new AuthenticationError('UNAUTHENTICATED')
-      await getAuthService().logout(token)
-      response.status(204).send()
-    } catch (error) {
-      next(error)
-    }
-  })
-
-  app.get('/api/admin/users', async (request, response, next) => {
-    try {
-      await requireAdmin(request)
-      response.json({ users: await getAuthService().listUsers() })
-    } catch (error) {
-      next(error)
-    }
-  })
-
-  app.post('/api/admin/users', async (request, response, next) => {
-    try {
-      await requireAdmin(request)
-      const input = AdminCreateUserRequestSchema.parse(request.body)
-      const user = await getAuthService().createUserByAdmin(input)
-      response.status(201).json(
-        AdminCreatedUserResponseSchema.parse({
-          user,
-          temporaryPassword: input.password,
-        }),
-      )
-    } catch (error) {
-      next(error)
-    }
-  })
+  app.use(createAuthRoutes({ getAuthService, requireUser, requireAdmin }))
 
   app.get('/api/public/general-data', async (request, response, next) => {
     try {
