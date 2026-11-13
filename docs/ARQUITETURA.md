@@ -52,38 +52,40 @@ portal_transparencia_oab/
 
 ```text
 apps/web/src/
-├── app/
-│   ├── admin/                # rotas e layout autenticados
-│   └── public/               # rotas e layout incorporáveis
+├── app/                      # composition root e router com divisão por rota
 ├── components/
 │   ├── ui/                   # primitivas visuais
 │   └── shared/               # componentes com usos equivalentes comprovados
 ├── modules/
 │   ├── public-shell/         # hero, navegação e layout público
+│   ├── auth/                 # sessão, usuários e shell administrativo
+│   ├── foundation/           # diagnóstico de disponibilidade da API
 │   ├── general-data/         # API, queries e componentes de Dados Gerais
 │   ├── budget/               # API, queries e páginas do Orçamentário
 │   ├── financial/            # API, queries, páginas e accordion financeiro
-│   ├── auth/                 # autenticação e páginas admin ainda não migradas
-│   ├── public/               # páginas públicas ainda não migradas por domínio
-│   └── ...                   # demais domínios após sua etapa de migração
-├── data/                     # repositório local temporário
-├── lib/
-│   ├── api-client.ts         # transporte HTTP e tratamento central de sessão
-│   └── api.ts                # adaptador temporário dos domínios não migrados
-└── styles/                   # tokens e estilos globais
+│   ├── human-resources/      # API, queries e páginas de Recursos Humanos
+│   ├── patrimonial/          # API, queries e páginas de Patrimônio
+│   ├── contracts/            # contratos e fornecedores
+│   ├── reports/              # indicadores e gráficos carregados sob demanda
+│   ├── institutional/        # conteúdo institucional estático tipado
+│   ├── administrative/       # organograma e embed institucional
+│   ├── glossary/             # glossário estático tipado
+│   └── lgpd/                 # política e acordeões estáticos tipados
+└── lib/                      # transporte HTTP e utilitários sem regra de domínio
 ```
 
 O compartilhamento ocorre em componentes e módulos de domínio, não pela mistura dos layouts. A área pública nunca importa componentes de autenticação ou edição.
 
-Dados Gerais é o módulo piloto do frontend. Dados Gerais e Orçamentário validam
-respostas na borda, encapsulam queries e mutations do TanStack Query e mantêm suas
-query keys no próprio domínio. O Orçamentário atualiza o cache administrativo após
-salvar ou publicar e invalida somente as consultas públicas afetadas.
-O Financeiro segue o mesmo fluxo e mantém accordion, períodos e documentos como
-componentes e conceitos internos do módulo.
+Os módulos alimentados pela API validam respostas na borda, encapsulam queries e
+mutations do TanStack Query e mantêm suas query keys no próprio domínio. Mutations
+atualizam o cache administrativo e invalidam somente as consultas públicas
+afetadas. Conteúdos institucionais sem CRUD permanecem como fontes estáticas
+tipadas dentro de seus próprios módulos.
 Estados de página, cabeçalhos, filtros, links de download e contêineres de tabela
 são compartilhados somente quando preservam a mesma semântica entre páginas; regras
-de negócio e formatos de cada domínio permanecem no respectivo módulo.
+de negócio e formatos de cada domínio permanecem no respectivo módulo. As páginas
+são carregadas por rota; o Chart.js permanece fora do bundle inicial e só é
+importado pelo módulo de Relatórios.
 
 ## Fronteiras internas da API
 
@@ -120,9 +122,11 @@ A autorização segue uma matriz explícita: administradores possuem acesso tota
 editores alteram conteúdo e revisores publicam. Rate limits usam contadores
 persistidos no PostgreSQL; excesso autenticado revoga todas as sessões do usuário e
 aplica bloqueio temporário. Logs estruturados recebem request ID e não incluem
-tokens, cookies, bodies ou query strings. Sessões expiradas ou revogadas são
-removidas antes da emissão de um novo token. O frontend propaga logout entre abas e
-revalida a sessão na API ao retornar do histórico.
+tokens, cookies, bodies ou query strings. Mutations autenticadas concluídas também
+registram ação, recurso, status e identificador do usuário, sem dados pessoais ou
+credenciais. Sessões expiradas ou revogadas são removidas antes da emissão de um
+novo token. O frontend propaga logout entre abas e revalida a sessão na API ao
+retornar do histórico.
 
 Listagens administrativas potencialmente abertas usam paginação por `page` e
 `limit`, com teto de 100 itens. As consultas usam ordenação estável, `count` e
@@ -144,13 +148,15 @@ compartilhada e é injetada nos adapters pelo composition root.
 - A extração ocorre quando há repetição real ou um conceito de domínio claro. Não criamos abstrações genéricas antes de conhecer suas variações.
 - Administrativo e público podem compartilhar apresentação e contratos, mas controles de edição permanecem exclusivos do layout administrativo.
 
-## Estratégia de dados por ciclo
+## Estratégia de dados
 
-1. O frontend público começa com fixtures tipadas que reproduzem o conteúdo atual.
-2. Os componentes consomem uma interface de repositório, não os JSONs diretamente.
-3. A API implementa a mesma interface por HTTP.
-4. O portal administrativo grava rascunhos no banco e publica versões.
-5. A área pública lê apenas a versão publicada de cada exercício.
+1. Domínios com gestão administrativa acessam a API por clientes HTTP próprios.
+2. O portal administrativo grava rascunhos no banco e publica versões.
+3. A área pública lê apenas a versão publicada de cada exercício.
+4. Services do backend dependem de interfaces de repository; Prisma fica restrito
+   aos adapters e à infraestrutura compartilhada.
+5. Institucional, Administrativo, Glossário e LGPD permanecem como conteúdo
+   estático tipado, sem CRUD ou API artificial.
 
 ## Publicação e embed
 

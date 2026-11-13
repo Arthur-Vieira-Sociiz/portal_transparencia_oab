@@ -1,15 +1,17 @@
 import { randomUUID } from 'node:crypto'
-import type { RequestHandler } from 'express'
+import type { Request, RequestHandler, Response } from 'express'
 import { pinoHttp } from 'pino-http'
 import { z } from 'zod'
 import { readEnvironment } from '../environment.js'
+import { createMutationAuditEvent } from './audit-event.js'
+import { getRequestUser } from './require-user.js'
 
 const RequestIdSchema = z.string().uuid()
 
 export function createRequestLogger(): RequestHandler {
   const { nodeEnv } = readEnvironment()
 
-  return pinoHttp({
+  return pinoHttp<Request, Response>({
     enabled: nodeEnv !== 'test',
     level: nodeEnv === 'production' ? 'info' : 'debug',
     redact: {
@@ -22,6 +24,16 @@ export function createRequestLogger(): RequestHandler {
       const requestId = parsedId.success ? parsedId.data : randomUUID()
       response.setHeader('X-Request-Id', requestId)
       return requestId
+    },
+    customSuccessObject(request, response, loggableObject) {
+      const audit = createMutationAuditEvent({
+        method: request.method,
+        path: request.originalUrl.split('?')[0] ?? request.path,
+        statusCode: response.statusCode,
+        user: getRequestUser(request),
+      })
+
+      return audit ? { ...loggableObject, audit } : loggableObject
     },
     serializers: {
       req(request) {

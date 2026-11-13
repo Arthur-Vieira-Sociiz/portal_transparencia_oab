@@ -462,24 +462,37 @@ nesta etapa.
 
 ### Etapa 29 — Validação e encerramento da branch
 
-- [ ] Executar typecheck, lint, testes e build de todos os workspaces.
-- [ ] Testar manualmente os endpoints e fluxos públicos/administrativos.
-- [ ] Confirmar que não restam fixtures servindo como dados oficiais.
-- [ ] Confirmar que Prisma está isolado atrás das interfaces de repository.
-- [ ] Fazer code review final de padrões, escopo, segurança e regressões.
-- [ ] Registrar o que ficar deliberadamente para a migração Firebase na `main`.
+- [x] Executar typecheck, lint, testes e build de todos os workspaces.
+- [x] Testar manualmente os endpoints e fluxos públicos/administrativos.
+- [x] Confirmar que não restam fixtures servindo como dados oficiais.
+- [x] Confirmar que Prisma está isolado atrás das interfaces de repository.
+- [x] Fazer code review final de padrões, escopo, segurança e regressões.
+- [x] Registrar o que ficar deliberadamente para a migração Firebase na `main`.
+
+A validação final executou typecheck, lint, build e 88 testes. O smoke test direto
+confirmou `200` no health e nos sete domínios públicos, `401` com `no-store` sem
+sessão administrativa, `400` para query inválida, `403` para origem CORS não
+autorizada e `404` para rota inexistente. Os fluxos públicos e o redirecionamento
+administrativo para login foram verificados no navegador.
+
+O review contra a `main` encontrou zero desvios de especificação. Os três achados
+de padrões foram corrigidos: foco/teclado do diálogo de confirmação, uso de tokens
+visuais e auditoria atribuível de mutations. Não restam fixtures oficiais,
+diretórios `features`, dependências Firebase ou acesso ao Prisma fora dos adapters
+e da infraestrutura de persistência. A futura troca está detalhada em
+[`PLANO_MIGRACAO_FIREBASE.md`](./PLANO_MIGRACAO_FIREBASE.md).
 
 ## Checklist obrigatório por etapa
 
-- [ ] Diff restrito ao escopo aprovado.
-- [ ] Typecheck e lint do workspace afetado passam.
-- [ ] Testes existentes do workspace afetado passam.
-- [ ] Build é executado quando a etapa altera código de produção.
-- [ ] Rotas ou fluxos afetados são verificados manualmente.
-- [ ] Code review não possui achado bloqueante.
-- [ ] Aprovação antes da etapa seguinte.
+- [x] Diff restrito ao escopo aprovado.
+- [x] Typecheck e lint do workspace afetado passam.
+- [x] Testes existentes do workspace afetado passam.
+- [x] Build é executado quando a etapa altera código de produção.
+- [x] Rotas ou fluxos afetados são verificados manualmente.
+- [x] Code review não possui achado bloqueante.
+- [x] Aprovação antes da etapa seguinte.
 
 ## Próxima ação
 
-As Etapas 12 a 28 estão concluídas. Depois da revisão do usuário, iniciar a Etapa
-29 pela validação completa e revisão final da branch de refatoração.
+As Etapas 0 a 29 estão concluídas. A branch `refatoracao` está pronta para a revisão
+e o versionamento final do usuário; nenhum commit é criado pelo assistente.
