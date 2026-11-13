@@ -13,6 +13,17 @@ describe('HTTP error responses', () => {
     expect(response.body).toEqual({ message: 'Rota não encontrada.' })
   })
 
+  it('adds a request ID and disables caching on authenticated routes', async () => {
+    const response = await request(createApp())
+      .get('/api/admin/general-data')
+      .expect(401)
+
+    expect(response.headers['x-request-id']).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+    )
+    expect(response.headers['cache-control']).toBe('no-store')
+  })
+
   it('returns JSON for a malformed request body', async () => {
     const response = await request(createApp())
       .post('/api/auth/login')

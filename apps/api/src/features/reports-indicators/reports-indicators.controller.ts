@@ -10,12 +10,12 @@ import {
   type ExerciseParams,
   type IdParams,
 } from '../../http/request-schemas.js'
-import type { RequireUser } from '../../middlewares/require-user.js'
+import type { RequirePermission } from '../../middlewares/require-permission.js'
 import type { ReportsIndicatorsService } from './reports-indicators-service.js'
 
 export type ReportsIndicatorsControllerDependencies = {
   getReportsIndicatorsService: () => ReportsIndicatorsService
-  requireUser: RequireUser
+  requirePermission: RequirePermission
 }
 
 export type ReportsIndicatorsController = {
@@ -29,7 +29,7 @@ export type ReportsIndicatorsController = {
 
 export function createReportsIndicatorsController({
   getReportsIndicatorsService,
-  requireUser,
+  requirePermission,
 }: ReportsIndicatorsControllerDependencies): ReportsIndicatorsController {
   return {
     async listPublished(_request, response, next) {
@@ -46,7 +46,7 @@ export function createReportsIndicatorsController({
 
     async list(request, response, next) {
       try {
-        await requireUser(request)
+        await requirePermission(request, 'CONTENT_READ')
         response.json({
           indicators: await getReportsIndicatorsService().list(),
         })
@@ -57,7 +57,7 @@ export function createReportsIndicatorsController({
 
     async create(request, response, next) {
       try {
-        const user = await requireUser(request)
+        const user = await requirePermission(request, 'CONTENT_WRITE')
         const input = CreateReportsIndicatorRequestSchema.parse(request.body)
         response.status(201).json(
           await getReportsIndicatorsService().create({
@@ -72,7 +72,7 @@ export function createReportsIndicatorsController({
 
     async update(request, response, next) {
       try {
-        const user = await requireUser(request)
+        const user = await requirePermission(request, 'CONTENT_WRITE')
         const { id } = IdParamsSchema.parse(request.params)
         const input = UpdateReportsIndicatorRequestSchema.parse(request.body)
         response.json(
@@ -88,7 +88,7 @@ export function createReportsIndicatorsController({
 
     async delete(request, response, next) {
       try {
-        await requireUser(request)
+        await requirePermission(request, 'CONTENT_WRITE')
         const { id } = IdParamsSchema.parse(request.params)
         await getReportsIndicatorsService().delete(id)
         response.status(204).send()
@@ -99,7 +99,7 @@ export function createReportsIndicatorsController({
 
     async publish(request, response, next) {
       try {
-        const user = await requireUser(request)
+        const user = await requirePermission(request, 'CONTENT_PUBLISH')
         const { exercise } = ExerciseParamsSchema.parse(request.params)
         response.json(
           await getReportsIndicatorsService().publish(exercise, user.id),

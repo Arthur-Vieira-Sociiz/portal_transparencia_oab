@@ -12,11 +12,11 @@ import {
   type IdParams,
 } from '../../http/request-schemas.js'
 import type { BudgetService } from './budget-service.js'
-import type { RequireUser } from '../../middlewares/require-user.js'
+import type { RequirePermission } from '../../middlewares/require-permission.js'
 
 export type BudgetControllerDependencies = {
   getBudgetService: () => BudgetService
-  requireUser: RequireUser
+  requirePermission: RequirePermission
 }
 
 export type BudgetController = {
@@ -29,7 +29,7 @@ export type BudgetController = {
 
 export function createBudgetController({
   getBudgetService,
-  requireUser,
+  requirePermission,
 }: BudgetControllerDependencies): BudgetController {
   return {
     async listPublished(request, response, next) {
@@ -49,7 +49,7 @@ export function createBudgetController({
 
     async list(request, response, next) {
       try {
-        await requireUser(request)
+        await requirePermission(request, 'CONTENT_READ')
         response.json({ records: await getBudgetService().list() })
       } catch (error) {
         next(error)
@@ -58,7 +58,7 @@ export function createBudgetController({
 
     async create(request, response, next) {
       try {
-        const user = await requireUser(request)
+        const user = await requirePermission(request, 'CONTENT_WRITE')
         const input = CreateBudgetRecordRequestSchema.parse(request.body)
         response
           .status(201)
@@ -70,7 +70,7 @@ export function createBudgetController({
 
     async update(request, response, next) {
       try {
-        const user = await requireUser(request)
+        const user = await requirePermission(request, 'CONTENT_WRITE')
         const { id } = IdParamsSchema.parse(request.params)
         const input = UpdateBudgetRecordRequestSchema.parse(request.body)
         response.json(
@@ -86,7 +86,7 @@ export function createBudgetController({
 
     async publish(request, response, next) {
       try {
-        const user = await requireUser(request)
+        const user = await requirePermission(request, 'CONTENT_PUBLISH')
         const { exercise } = ExerciseParamsSchema.parse(request.params)
         response.json(
           await getBudgetService().publishExercise(exercise, user.id),

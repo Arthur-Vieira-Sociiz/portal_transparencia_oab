@@ -13,11 +13,11 @@ import {
   type IdParams,
 } from '../../http/request-schemas.js'
 import type { ContractService } from './contract-service.js'
-import type { RequireUser } from '../../middlewares/require-user.js'
+import type { RequirePermission } from '../../middlewares/require-permission.js'
 
 export type ContractsControllerDependencies = {
   getContractService: () => ContractService
-  requireUser: RequireUser
+  requirePermission: RequirePermission
 }
 
 export type ContractsController = {
@@ -35,7 +35,7 @@ export type ContractsController = {
 
 export function createContractsController({
   getContractService,
-  requireUser,
+  requirePermission,
 }: ContractsControllerDependencies): ContractsController {
   return {
     async listPublished(_request, response, next) {
@@ -52,7 +52,7 @@ export function createContractsController({
 
     async list(request, response, next) {
       try {
-        await requireUser(request)
+        await requirePermission(request, 'CONTENT_READ')
         response.json({ records: await getContractService().list() })
       } catch (error) {
         next(error)
@@ -61,7 +61,7 @@ export function createContractsController({
 
     async listSuppliers(request, response, next) {
       try {
-        await requireUser(request)
+        await requirePermission(request, 'CONTENT_READ')
         response.json({ suppliers: await getContractService().listSuppliers() })
       } catch (error) {
         next(error)
@@ -70,7 +70,7 @@ export function createContractsController({
 
     async createSupplier(request, response, next) {
       try {
-        await requireUser(request)
+        await requirePermission(request, 'CONTENT_WRITE')
         const input = CreateSupplierRequestSchema.parse(request.body)
         response
           .status(201)
@@ -82,7 +82,7 @@ export function createContractsController({
 
     async updateSupplier(request, response, next) {
       try {
-        await requireUser(request)
+        await requirePermission(request, 'CONTENT_WRITE')
         const { id } = IdParamsSchema.parse(request.params)
         const input = UpdateSupplierRequestSchema.parse(request.body)
         response.json(await getContractService().updateSupplier(id, input))
@@ -93,7 +93,7 @@ export function createContractsController({
 
     async deleteSupplier(request, response, next) {
       try {
-        await requireUser(request)
+        await requirePermission(request, 'CONTENT_WRITE')
         const { id } = IdParamsSchema.parse(request.params)
         await getContractService().deleteSupplier(id)
         response.status(204).send()
@@ -104,7 +104,7 @@ export function createContractsController({
 
     async create(request, response, next) {
       try {
-        const user = await requireUser(request)
+        const user = await requirePermission(request, 'CONTENT_WRITE')
         const input = CreateContractRecordRequestSchema.parse(request.body)
         response
           .status(201)
@@ -118,7 +118,7 @@ export function createContractsController({
 
     async update(request, response, next) {
       try {
-        const user = await requireUser(request)
+        const user = await requirePermission(request, 'CONTENT_WRITE')
         const { id } = IdParamsSchema.parse(request.params)
         const input = UpdateContractRecordRequestSchema.parse(request.body)
         response.json(
@@ -134,7 +134,7 @@ export function createContractsController({
 
     async delete(request, response, next) {
       try {
-        await requireUser(request)
+        await requirePermission(request, 'CONTENT_WRITE')
         const { id } = IdParamsSchema.parse(request.params)
         await getContractService().delete(id)
         response.status(204).send()
@@ -145,7 +145,7 @@ export function createContractsController({
 
     async publish(request, response, next) {
       try {
-        const user = await requireUser(request)
+        const user = await requirePermission(request, 'CONTENT_PUBLISH')
         const { exercise } = ExerciseParamsSchema.parse(request.params)
         response.json(
           await getContractService().publishExercise(exercise, user.id),

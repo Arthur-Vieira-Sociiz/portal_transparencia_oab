@@ -10,12 +10,12 @@ import {
   type ExerciseParams,
   type IdParams,
 } from '../../http/request-schemas.js'
-import type { RequireUser } from '../../middlewares/require-user.js'
+import type { RequirePermission } from '../../middlewares/require-permission.js'
 import type { PatrimonialAssetService } from './patrimonial-asset-service.js'
 
 export type PatrimonialControllerDependencies = {
   getPatrimonialAssetService: () => PatrimonialAssetService
-  requireUser: RequireUser
+  requirePermission: RequirePermission
 }
 
 export type PatrimonialController = {
@@ -28,7 +28,7 @@ export type PatrimonialController = {
 
 export function createPatrimonialController({
   getPatrimonialAssetService,
-  requireUser,
+  requirePermission,
 }: PatrimonialControllerDependencies): PatrimonialController {
   return {
     async listPublished(_request, response, next) {
@@ -45,7 +45,7 @@ export function createPatrimonialController({
 
     async list(request, response, next) {
       try {
-        await requireUser(request)
+        await requirePermission(request, 'CONTENT_READ')
         response.json({ records: await getPatrimonialAssetService().list() })
       } catch (error) {
         next(error)
@@ -54,7 +54,7 @@ export function createPatrimonialController({
 
     async create(request, response, next) {
       try {
-        const user = await requireUser(request)
+        const user = await requirePermission(request, 'CONTENT_WRITE')
         const input = CreatePatrimonialAssetRequestSchema.parse(request.body)
         response.status(201).json(
           await getPatrimonialAssetService().create({
@@ -69,7 +69,7 @@ export function createPatrimonialController({
 
     async update(request, response, next) {
       try {
-        const user = await requireUser(request)
+        const user = await requirePermission(request, 'CONTENT_WRITE')
         const { id } = IdParamsSchema.parse(request.params)
         const input = UpdatePatrimonialAssetRequestSchema.parse(request.body)
         response.json(
@@ -85,7 +85,7 @@ export function createPatrimonialController({
 
     async publish(request, response, next) {
       try {
-        const user = await requireUser(request)
+        const user = await requirePermission(request, 'CONTENT_PUBLISH')
         const { exercise } = ExerciseParamsSchema.parse(request.params)
         response.json(
           await getPatrimonialAssetService().publishExercise(exercise, user.id),

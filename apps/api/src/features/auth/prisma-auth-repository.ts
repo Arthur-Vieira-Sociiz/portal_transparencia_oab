@@ -9,14 +9,19 @@ function toStoredUser(user: User): StoredUser {
   return user
 }
 
+function isTransactionConflict(error: unknown) {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    (error.code === 'P2002' || error.code === 'P2034')
+  )
+}
+
 export function createPrismaAuthRepository(
   client: DatabaseClient = getPrismaClient(),
 ): AuthRepository {
   return {
-    async countUsers() {
-      return client.user.count()
-    },
-
     async findUserByEmail(email) {
       const user = await client.user.findUnique({ where: { email } })
       return user ? toStoredUser(user) : null
@@ -33,7 +38,10 @@ export function createPrismaAuthRepository(
           tokenHash,
           revokedAt: null,
           expiresAt: { gt: new Date() },
-          user: { status: 'ACTIVE' },
+          user: {
+            status: 'ACTIVE',
+            OR: [{ blockedUntil: null }, { blockedUntil: { lte: new Date() } }],
+          },
         },
         include: { user: true },
       })
@@ -51,9 +59,46 @@ export function createPrismaAuthRepository(
       await client.session.create({ data: input })
     },
 
+    async createInitialAdmin(input) {
+      try {
+        return await client.$transaction(
+          async (transaction) => {
+            if ((await transaction.user.count()) > 0) return null
+            return toStoredUser(await transaction.user.create({ data: input }))
+          },
+          { isolationLevel: 'Serializable' },
+        )
+      } catch (error) {
+        if (isTransactionConflict(error)) return null
+        throw error
+      }
+    },
+
     async createUser(input) {
       const user = await client.user.create({ data: input })
       return toStoredUser(user)
+    },
+
+    async blockUserAndRevokeSessions(userId, blockedUntil) {
+      await client.$transaction([
+        client.user.update({
+          where: { id: userId },
+          data: { blockedUntil },
+        }),
+        client.session.updateMany({
+          where: { userId, revokedAt: null },
+          data: { revokedAt: new Date() },
+        }),
+      ])
+    },
+
+    async deleteExpiredAndRevokedSessions(now) {
+      const result = await client.session.deleteMany({
+        where: {
+          OR: [{ expiresAt: { lte: now } }, { revokedAt: { not: null } }],
+        },
+      })
+      return result.count
     },
 
     async revokeSession(tokenHash) {

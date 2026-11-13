@@ -39,8 +39,16 @@ import {
 import { createPrismaContractRepository } from './features/contracts/prisma-contract-repository.js'
 import { errorHandler, notFoundHandler } from './errors/error-handlers.js'
 import { createCorsMiddleware } from './middlewares/cors.js'
+import { noStoreAuthenticatedResponses } from './middlewares/no-store.js'
+import {
+  createAuthenticatedAdminRateLimit,
+  createLoginRateLimit,
+  createRegisterRateLimit,
+} from './middlewares/rate-limit.js'
 import { createRequireAdmin } from './middlewares/require-admin.js'
+import { createRequirePermission } from './middlewares/require-permission.js'
 import { createRequireUser } from './middlewares/require-user.js'
+import { createRequestLogger } from './middlewares/request-logger.js'
 import { createAuthRoutes } from './features/auth/auth.routes.js'
 import { createBudgetRoutes } from './features/budget/budget.routes.js'
 import { createContractsRoutes } from './features/contracts/contracts.routes.js'
@@ -67,8 +75,10 @@ export function createApp(options: AppOptions = {}): Express {
 
   app.disable('x-powered-by')
   app.use(helmet())
+  app.use(createRequestLogger())
   app.use(express.json())
   app.use(createCorsMiddleware())
+  app.use(noStoreAuthenticatedResponses)
 
   let authService = options.authService
   function getAuthService() {
@@ -123,23 +133,48 @@ export function createApp(options: AppOptions = {}): Express {
   }
 
   const requireUser = createRequireUser(getAuthService)
-  const requireAdmin = createRequireAdmin(requireUser)
+  const requirePermission = createRequirePermission(requireUser)
+  const requireAdmin = createRequireAdmin(requirePermission)
+  const loginRateLimit = createLoginRateLimit()
+  const registerRateLimit = createRegisterRateLimit()
+  const adminRateLimit = createAuthenticatedAdminRateLimit({
+    getAuthService,
+    requireUser,
+  })
 
   app.use(healthRoutes)
-  app.use(createAuthRoutes({ getAuthService, requireUser, requireAdmin }))
-  app.use(createGeneralDataRoutes({ getGeneralDataService, requireUser }))
+  app.use('/api/admin', ...adminRateLimit)
+  app.use(
+    createAuthRoutes({
+      getAuthService,
+      requireUser,
+      requireAdmin,
+      loginRateLimit,
+      registerRateLimit,
+    }),
+  )
+  app.use(createGeneralDataRoutes({ getGeneralDataService, requirePermission }))
   app.use(
     createReportsIndicatorsRoutes({
       getReportsIndicatorsService,
-      requireUser,
+      requirePermission,
     }),
   )
 
-  app.use(createHumanResourcesRoutes({ getHumanResourcesService, requireUser }))
-  app.use(createBudgetRoutes({ getBudgetService, requireUser }))
-  app.use(createFinancialRoutes({ getFinancialDocumentService, requireUser }))
-  app.use(createPatrimonialRoutes({ getPatrimonialAssetService, requireUser }))
-  app.use(createContractsRoutes({ getContractService, requireUser }))
+  app.use(
+    createHumanResourcesRoutes({
+      getHumanResourcesService,
+      requirePermission,
+    }),
+  )
+  app.use(createBudgetRoutes({ getBudgetService, requirePermission }))
+  app.use(
+    createFinancialRoutes({ getFinancialDocumentService, requirePermission }),
+  )
+  app.use(
+    createPatrimonialRoutes({ getPatrimonialAssetService, requirePermission }),
+  )
+  app.use(createContractsRoutes({ getContractService, requirePermission }))
 
   app.use(notFoundHandler)
   app.use(errorHandler)

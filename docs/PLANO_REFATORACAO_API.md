@@ -230,10 +230,10 @@ Pendências confirmadas:
       permanece na Etapa 16.
 - [x] Validar variáveis de ambiente, params e queries com schemas Zod explícitos.
 - [x] Padronizar `404`, erro de CORS e JSON malformado como respostas JSON.
-- [ ] Definir permissões reais para `ADMIN`, `EDITOR` e `REVIEWER`; hoje as
+- [x] Definir permissões reais para `ADMIN`, `EDITOR` e `REVIEWER`; hoje as
       mutações de conteúdo exigem apenas usuário autenticado.
-- [ ] Adicionar rate limit em login/cadastro, logging estruturado e request ID.
-- [ ] Fechar o cadastro bootstrap depois do primeiro administrador e definir a
+- [x] Adicionar rate limit em login/cadastro, logging estruturado e request ID.
+- [x] Fechar o cadastro bootstrap depois do primeiro administrador e definir a
       limpeza de sessões expiradas/revogadas.
 - [ ] Adicionar paginação/limites nas listagens administrativas potencialmente
       ilimitadas.
@@ -287,13 +287,27 @@ sem dependências circulares ou acesso direto ao Prisma pelo controller.
 
 ### Etapa 16 — Autorização e proteção operacional
 
-- [ ] Definir uma matriz de permissões para `ADMIN`, `EDITOR` e `REVIEWER` antes de
+- [x] Definir uma matriz de permissões para `ADMIN`, `EDITOR` e `REVIEWER` antes de
       alterar guards.
-- [ ] Aplicar RBAC nas mutações e publicações de cada módulo.
-- [ ] Adicionar rate limit nas rotas de autenticação.
-- [ ] Encerrar o bootstrap público após o primeiro administrador.
-- [ ] Adicionar logging estruturado, request ID e sanitização de dados sensíveis.
-- [ ] Definir limpeza de sessões expiradas e revogadas.
+- [x] Aplicar RBAC nas mutações e publicações de cada módulo.
+- [x] Limitar o login a 5 falhas por combinação de IP e e-mail normalizado em uma
+      janela de 15 minutos, sem contar autenticações bem-sucedidas.
+- [x] Durante o bloqueio de login, responder `429` e `Retry-After`, sem revogar
+      sessões com base apenas no e-mail informado para não permitir logout forçado
+      por terceiros.
+- [x] Limitar a área autenticada a 30 requisições por minuto por usuário. Ao
+      exceder, bloquear novos logins por 15 minutos e revogar atomicamente todas as
+      sessões daquele usuário.
+- [x] Persistir contadores e bloqueios em armazenamento compartilhado compatível
+      com múltiplas instâncias/serverless; não depender somente de memória local.
+- [x] No frontend, ao receber `401` ou o `429` de sessão revogada, limpar a sessão,
+      sincronizar o logout entre abas e redirecionar para `/login` com `replace`.
+- [x] Revalidar a autenticação ao restaurar páginas pelo histórico/bfcache e usar
+      `Cache-Control: no-store` nas respostas autenticadas, impedindo retorno ao
+      painel pelas setas do navegador.
+- [x] Encerrar o bootstrap público após o primeiro administrador.
+- [x] Adicionar logging estruturado, request ID e sanitização de dados sensíveis.
+- [x] Definir limpeza de sessões expiradas e revogadas.
 
 ### Etapa 17 — Paginação, desempenho e fechamento do backend
 
@@ -411,6 +425,5 @@ sem dependência lateral e sem abstração genérica prematura.
 
 ## Próxima ação
 
-As Etapas 12 a 15 estão concluídas. Depois da revisão do usuário, iniciar somente
-a Etapa 16 pela definição explícita da matriz de permissões antes de alterar os
-guards das features.
+As Etapas 12 a 16 estão concluídas. Depois da revisão do usuário, iniciar somente
+a Etapa 17 por paginação e limites das listagens administrativas.

@@ -11,11 +11,11 @@ import {
   type IdParams,
 } from '../../http/request-schemas.js'
 import type { HumanResourcesService } from './human-resources-service.js'
-import type { RequireUser } from '../../middlewares/require-user.js'
+import type { RequirePermission } from '../../middlewares/require-permission.js'
 
 export type HumanResourcesControllerDependencies = {
   getHumanResourcesService: () => HumanResourcesService
-  requireUser: RequireUser
+  requirePermission: RequirePermission
 }
 
 export type HumanResourcesController = {
@@ -29,12 +29,12 @@ export type HumanResourcesController = {
 
 export function createHumanResourcesController({
   getHumanResourcesService,
-  requireUser,
+  requirePermission,
 }: HumanResourcesControllerDependencies): HumanResourcesController {
   return {
     async list(request, response, next) {
       try {
-        await requireUser(request)
+        await requirePermission(request, 'CONTENT_READ')
         response.json({ records: await getHumanResourcesService().list() })
       } catch (error) {
         next(error)
@@ -55,7 +55,7 @@ export function createHumanResourcesController({
 
     async create(request, response, next) {
       try {
-        const user = await requireUser(request)
+        const user = await requirePermission(request, 'CONTENT_WRITE')
         const input = CreateHumanResourcesRequestSchema.parse(request.body)
         response.status(201).json(
           await getHumanResourcesService().create({
@@ -70,7 +70,7 @@ export function createHumanResourcesController({
 
     async update(request, response, next) {
       try {
-        const user = await requireUser(request)
+        const user = await requirePermission(request, 'CONTENT_WRITE')
         const { id } = IdParamsSchema.parse(request.params)
         const input = UpdateHumanResourcesRequestSchema.parse(request.body)
         response.json(
@@ -86,7 +86,7 @@ export function createHumanResourcesController({
 
     async delete(request, response, next) {
       try {
-        await requireUser(request)
+        await requirePermission(request, 'CONTENT_WRITE')
         const { id } = IdParamsSchema.parse(request.params)
         await getHumanResourcesService().delete(id)
         response.status(204).send()
@@ -97,7 +97,7 @@ export function createHumanResourcesController({
 
     async publish(request, response, next) {
       try {
-        const user = await requireUser(request)
+        const user = await requirePermission(request, 'CONTENT_PUBLISH')
         const { exercise } = ExerciseParamsSchema.parse(request.params)
         response.json(
           await getHumanResourcesService().publishExercise(exercise, user.id),

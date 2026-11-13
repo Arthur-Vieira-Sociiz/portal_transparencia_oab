@@ -1,11 +1,10 @@
-import { AuthenticationError } from '../features/auth/auth-service.js'
+import type { RequirePermission } from './require-permission.js'
 import type { RequireUser } from './require-user.js'
 
-export function createRequireAdmin(requireUser: RequireUser): RequireUser {
+export function createRequireAdmin(
+  requirePermission: RequirePermission,
+): RequireUser {
   return async function requireAdmin(request) {
-    const user = await requireUser(request)
-    if (user.role !== 'ADMIN') throw new AuthenticationError('FORBIDDEN')
-
-    return user
+    return requirePermission(request, 'USERS_MANAGE')
   }
 }

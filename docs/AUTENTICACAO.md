@@ -38,9 +38,9 @@ adequada para a API serverless.
 pnpm --filter @oab-transparencia/api db:migrate
 ```
 
-Esse comando aplica a migration versionada em
-`apps/api/prisma/migrations/20261111174000_add_auth` e cria as tabelas `User`
-e `Session`.
+Esse comando aplica as migrations versionadas. Além das tabelas `User` e
+`Session`, a proteção operacional usa `RateLimitCounter` para compartilhar os
+contadores entre instâncias serverless.
 
 ## Rodar a API
 
@@ -63,12 +63,31 @@ sucesso e erro antes de ser considerado concluído.
 
 ## Endpoints iniciais
 
-| Método | Rota                 | Uso                                                                                      |
-| ------ | -------------------- | ---------------------------------------------------------------------------------------- |
-| `POST` | `/api/auth/register` | Cria a primeira conta como `ADMIN`; as próximas são `EDITOR`. Exige a chave de cadastro. |
-| `POST` | `/api/auth/login`    | Retorna uma sessão com token temporário.                                                 |
-| `GET`  | `/api/auth/me`       | Confere a sessão enviada em `Authorization: Bearer <token>`.                             |
-| `POST` | `/api/auth/logout`   | Revoga a sessão atual.                                                                   |
+| Método | Rota                 | Uso                                                                       |
+| ------ | -------------------- | ------------------------------------------------------------------------- |
+| `POST` | `/api/auth/register` | Cria somente a primeira conta como `ADMIN` e encerra o bootstrap público. |
+| `POST` | `/api/auth/login`    | Retorna uma sessão com token temporário.                                  |
+| `GET`  | `/api/auth/me`       | Confere a sessão enviada em `Authorization: Bearer <token>`.              |
+| `POST` | `/api/auth/logout`   | Revoga a sessão atual.                                                    |
+
+Usuários adicionais são criados por um administrador em `/api/admin/users`.
+
+## Permissões
+
+| Papel      | Leitura administrativa | Criar/editar/excluir | Publicar | Gerenciar usuários |
+| ---------- | ---------------------- | -------------------- | -------- | ------------------ |
+| `ADMIN`    | Sim                    | Sim                  | Sim      | Sim                |
+| `EDITOR`   | Sim                    | Sim                  | Não      | Não                |
+| `REVIEWER` | Sim                    | Não                  | Sim      | Não                |
+
+O login aceita cinco falhas por combinação de IP e e-mail em 15 minutos. A área
+administrativa aceita 30 requisições por minuto por usuário. Ao exceder esse
+limite autenticado, todas as sessões do usuário são revogadas e um novo login fica
+bloqueado por 15 minutos. Respostas autenticadas usam `Cache-Control: no-store`.
+
+Antes de emitir cada novo token, a API remove do banco todas as sessões já
+expiradas ou revogadas. Essa limpeza oportunística evita depender de estado local
+das Functions e mantém a tabela de sessões limitada pelo próprio fluxo de login.
 
 ## Primeiro CRUD: Dados Gerais
 

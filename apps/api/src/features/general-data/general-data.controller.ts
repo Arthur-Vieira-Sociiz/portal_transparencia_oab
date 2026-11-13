@@ -9,11 +9,11 @@ import {
   type IdParams,
 } from '../../http/request-schemas.js'
 import type { GeneralDataService } from './general-data-service.js'
-import type { RequireUser } from '../../middlewares/require-user.js'
+import type { RequirePermission } from '../../middlewares/require-permission.js'
 
 export type GeneralDataControllerDependencies = {
   getGeneralDataService: () => GeneralDataService
-  requireUser: RequireUser
+  requirePermission: RequirePermission
 }
 
 export type GeneralDataController = {
@@ -26,7 +26,7 @@ export type GeneralDataController = {
 
 export function createGeneralDataController({
   getGeneralDataService,
-  requireUser,
+  requirePermission,
 }: GeneralDataControllerDependencies): GeneralDataController {
   return {
     async getPublished(request, response, next) {
@@ -48,7 +48,7 @@ export function createGeneralDataController({
 
     async list(request, response, next) {
       try {
-        await requireUser(request)
+        await requirePermission(request, 'CONTENT_READ')
         response.json({ records: await getGeneralDataService().list() })
       } catch (error) {
         next(error)
@@ -57,7 +57,7 @@ export function createGeneralDataController({
 
     async create(request, response, next) {
       try {
-        const user = await requireUser(request)
+        const user = await requirePermission(request, 'CONTENT_WRITE')
         const input = CreateGeneralDataRequestSchema.parse(request.body)
         response.status(201).json(
           await getGeneralDataService().create({
@@ -72,7 +72,7 @@ export function createGeneralDataController({
 
     async update(request, response, next) {
       try {
-        const user = await requireUser(request)
+        const user = await requirePermission(request, 'CONTENT_WRITE')
         const { id } = IdParamsSchema.parse(request.params)
         const input = UpdateGeneralDataRequestSchema.parse(request.body)
         response.json(
@@ -88,7 +88,7 @@ export function createGeneralDataController({
 
     async publish(request, response, next) {
       try {
-        const user = await requireUser(request)
+        const user = await requirePermission(request, 'CONTENT_PUBLISH')
         const { id } = IdParamsSchema.parse(request.params)
         response.json(await getGeneralDataService().publish(id, user.id))
       } catch (error) {

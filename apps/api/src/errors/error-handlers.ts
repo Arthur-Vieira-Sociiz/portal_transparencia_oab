@@ -16,13 +16,24 @@ function authenticationErrorResponse(
   error: AuthenticationError,
   response: Response,
 ) {
+  if (error.code === 'RATE_LIMITED') {
+    const retryAfterSeconds = error.retryAfterSeconds ?? 1
+    response.setHeader('Retry-After', String(retryAfterSeconds))
+    response.status(429).json({
+      code: 'ACCOUNT_TEMPORARILY_BLOCKED',
+      message: 'Acesso temporariamente bloqueado. Tente novamente mais tarde.',
+    })
+    return
+  }
+
   const responses = {
     EMAIL_ALREADY_IN_USE: [409, 'Este e-mail já está cadastrado.'],
     INVALID_CREDENTIALS: [401, 'E-mail ou senha inválidos.'],
     INVALID_REGISTRATION_KEY: [403, 'Chave de cadastro inválida.'],
     REGISTRATION_UNAVAILABLE: [503, 'Cadastro inicial indisponível.'],
+    REGISTRATION_CLOSED: [403, 'O cadastro inicial já foi encerrado.'],
     UNAUTHENTICATED: [401, 'Autenticação necessária.'],
-    FORBIDDEN: [403, 'Apenas administradores podem gerenciar usuários.'],
+    FORBIDDEN: [403, 'Você não tem permissão para realizar esta ação.'],
   } as const
   const [status, message] = responses[error.code]
   response.status(status).json({ message })

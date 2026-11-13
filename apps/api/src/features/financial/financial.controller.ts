@@ -10,11 +10,11 @@ import {
   type IdParams,
 } from '../../http/request-schemas.js'
 import type { FinancialDocumentService } from './financial-document-service.js'
-import type { RequireUser } from '../../middlewares/require-user.js'
+import type { RequirePermission } from '../../middlewares/require-permission.js'
 
 export type FinancialControllerDependencies = {
   getFinancialDocumentService: () => FinancialDocumentService
-  requireUser: RequireUser
+  requirePermission: RequirePermission
 }
 
 export type FinancialController = {
@@ -27,12 +27,12 @@ export type FinancialController = {
 
 export function createFinancialController({
   getFinancialDocumentService,
-  requireUser,
+  requirePermission,
 }: FinancialControllerDependencies): FinancialController {
   return {
     async list(request, response, next) {
       try {
-        await requireUser(request)
+        await requirePermission(request, 'CONTENT_READ')
         response.json({
           records: await getFinancialDocumentService().list(),
         })
@@ -51,7 +51,7 @@ export function createFinancialController({
 
     async create(request, response, next) {
       try {
-        const user = await requireUser(request)
+        const user = await requirePermission(request, 'CONTENT_WRITE')
         const input = CreateFinancialDocumentRequestSchema.parse(request.body)
         response.status(201).json(
           await getFinancialDocumentService().create({
@@ -66,7 +66,7 @@ export function createFinancialController({
 
     async update(request, response, next) {
       try {
-        const user = await requireUser(request)
+        const user = await requirePermission(request, 'CONTENT_WRITE')
         const { id } = IdParamsSchema.parse(request.params)
         const input = UpdateFinancialDocumentRequestSchema.parse(request.body)
         response.json(
@@ -82,7 +82,7 @@ export function createFinancialController({
 
     async publish(request, response, next) {
       try {
-        const user = await requireUser(request)
+        const user = await requirePermission(request, 'CONTENT_PUBLISH')
         const { exercise } = ExerciseParamsSchema.parse(request.params)
         response.json(
           await getFinancialDocumentService().publishExercise(

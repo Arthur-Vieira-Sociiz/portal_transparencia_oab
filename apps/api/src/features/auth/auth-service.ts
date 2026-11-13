@@ -12,10 +12,10 @@ import { hashPassword, verifyPassword } from './password.js'
 export type StoredUser = AuthenticatedUser & {
   passwordHash: string
   status: 'ACTIVE' | 'DISABLED'
+  blockedUntil: Date | null
 }
 
 export type AuthRepository = {
-  countUsers(): Promise<number>
   findUserByEmail(email: string): Promise<StoredUser | null>
   findActiveSession(tokenHash: string): Promise<AuthenticatedUser | null>
   createSession(input: {
@@ -23,6 +23,12 @@ export type AuthRepository = {
     userId: string
     expiresAt: Date
   }): Promise<void>
+  createInitialAdmin(input: {
+    name: string
+    email: string
+    passwordHash: string
+    role: 'ADMIN'
+  }): Promise<StoredUser | null>
   createUser(input: {
     name: string
     email: string
@@ -30,6 +36,8 @@ export type AuthRepository = {
     role: 'ADMIN' | 'EDITOR' | 'REVIEWER'
   }): Promise<StoredUser>
   listUsers(): Promise<StoredUser[]>
+  blockUserAndRevokeSessions(userId: string, blockedUntil: Date): Promise<void>
+  deleteExpiredAndRevokedSessions(now: Date): Promise<number>
   revokeSession(tokenHash: string): Promise<void>
   updateLastLoginAt(userId: string): Promise<void>
 }
@@ -41,8 +49,11 @@ export class AuthenticationError extends Error {
       | 'INVALID_CREDENTIALS'
       | 'INVALID_REGISTRATION_KEY'
       | 'REGISTRATION_UNAVAILABLE'
+      | 'REGISTRATION_CLOSED'
+      | 'RATE_LIMITED'
       | 'UNAUTHENTICATED'
       | 'FORBIDDEN',
+    public readonly retryAfterSeconds?: number,
   ) {
     super(code)
   }
@@ -82,6 +93,7 @@ export function createAuthService(
   const sessionTtlHours = options.sessionTtlHours ?? 8
 
   async function createSession(user: AuthenticatedUser): Promise<AuthSession> {
+    await repository.deleteExpiredAndRevokedSessions(new Date())
     const token = randomBytes(32).toString('base64url')
     const expiresAt = new Date(Date.now() + sessionTtlHours * 60 * 60 * 1000)
     await repository.createSession({
@@ -126,23 +138,26 @@ export function createAuthService(
       if (!hasSameSecret(input.registrationKey, options.registrationKey)) {
         throw new AuthenticationError('INVALID_REGISTRATION_KEY')
       }
-      if (await repository.findUserByEmail(input.email)) {
-        throw new AuthenticationError('EMAIL_ALREADY_IN_USE')
-      }
-
-      const isFirstUser = (await repository.countUsers()) === 0
-      const user = await repository.createUser({
+      const user = await repository.createInitialAdmin({
         name: input.name,
         email: input.email,
         passwordHash: await hashPassword(input.password),
-        role: isFirstUser ? 'ADMIN' : 'EDITOR',
+        role: 'ADMIN',
       })
+      if (!user) throw new AuthenticationError('REGISTRATION_CLOSED')
 
       return createSession(toAuthenticatedUser(user))
     },
 
     async login(input: LoginRequest) {
       const user = await repository.findUserByEmail(input.email)
+      if (user?.blockedUntil && user.blockedUntil > new Date()) {
+        const retryAfterSeconds = Math.max(
+          1,
+          Math.ceil((user.blockedUntil.getTime() - Date.now()) / 1000),
+        )
+        throw new AuthenticationError('RATE_LIMITED', retryAfterSeconds)
+      }
       if (
         !user ||
         user.status !== 'ACTIVE' ||
@@ -163,6 +178,10 @@ export function createAuthService(
 
     async logout(token: string) {
       await repository.revokeSession(hashToken(token))
+    },
+
+    async blockUserForRateLimit(userId: string, blockedUntil: Date) {
+      await repository.blockUserAndRevokeSessions(userId, blockedUntil)
     },
   }
 }

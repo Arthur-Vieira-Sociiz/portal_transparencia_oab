@@ -8,9 +8,6 @@ export function createMemoryAuthRepository(): AuthRepository {
   const sessions = new Map<string, string>()
 
   return {
-    async countUsers() {
-      return users.size
-    },
     async findUserByEmail(email) {
       return users.get(email) ?? null
     },
@@ -25,14 +22,36 @@ export function createMemoryAuthRepository(): AuthRepository {
     async createSession({ tokenHash, userId }) {
       sessions.set(tokenHash, userId)
     },
+    async createInitialAdmin(input) {
+      if (users.size > 0) return null
+      const user: StoredUser = {
+        id: `user-${users.size + 1}`,
+        ...input,
+        status: 'ACTIVE',
+        blockedUntil: null,
+      }
+      users.set(user.email, user)
+      return user
+    },
     async createUser(input) {
       const user: StoredUser = {
         id: `user-${users.size + 1}`,
         ...input,
         status: 'ACTIVE',
+        blockedUntil: null,
       }
       users.set(user.email, user)
       return user
+    },
+    async blockUserAndRevokeSessions(userId, blockedUntil) {
+      const user = [...users.values()].find((item) => item.id === userId)
+      if (user) user.blockedUntil = blockedUntil
+      for (const [tokenHash, sessionUserId] of sessions) {
+        if (sessionUserId === userId) sessions.delete(tokenHash)
+      }
+    },
+    async deleteExpiredAndRevokedSessions() {
+      return 0
     },
     async revokeSession(tokenHash) {
       sessions.delete(tokenHash)

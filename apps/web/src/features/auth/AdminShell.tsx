@@ -12,7 +12,8 @@ import {
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { clearAuthSession, getStoredAuthSession } from './auth-session'
+import { clearAuthSession } from './auth-session'
+import { useAuthSession } from './useAuth'
 import { logout } from '../../lib/api'
 
 type AdminShellProps = {
@@ -62,7 +63,7 @@ export function AdminShell({
 }: AdminShellProps) {
   const navigate = useNavigate()
   const location = useLocation()
-  const session = getStoredAuthSession()
+  const session = useAuthSession()
   const publicPath =
     publicPathByAdminPath[location.pathname] ?? '/public/institucional'
 

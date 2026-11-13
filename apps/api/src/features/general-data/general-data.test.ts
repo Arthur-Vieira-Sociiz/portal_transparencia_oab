@@ -157,4 +157,66 @@ describe('general data endpoints', () => {
       .send(data)
       .expect(409)
   })
+
+  it('allows editors to write and reviewers to publish', async () => {
+    const app = createGeneralDataApp()
+    const admin = await request(app)
+      .post('/api/auth/register')
+      .send({
+        name: 'Administrador',
+        email: 'admin@oab-al.org.br',
+        password,
+        registrationKey,
+      })
+      .expect(201)
+    const adminAuthorization = {
+      Authorization: `Bearer ${admin.body.token}`,
+    }
+
+    for (const user of [
+      { name: 'Editor', email: 'editor@oab-al.org.br', role: 'EDITOR' },
+      { name: 'Revisor', email: 'revisor@oab-al.org.br', role: 'REVIEWER' },
+    ]) {
+      await request(app)
+        .post('/api/admin/users')
+        .set(adminAuthorization)
+        .send({ ...user, password })
+        .expect(201)
+    }
+
+    const editor = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'editor@oab-al.org.br', password })
+      .expect(200)
+    const reviewer = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'revisor@oab-al.org.br', password })
+      .expect(200)
+    const editorAuthorization = {
+      Authorization: `Bearer ${editor.body.token}`,
+    }
+    const reviewerAuthorization = {
+      Authorization: `Bearer ${reviewer.body.token}`,
+    }
+
+    const draft = await request(app)
+      .post('/api/admin/general-data')
+      .set(editorAuthorization)
+      .send(data)
+      .expect(201)
+
+    await request(app)
+      .post(`/api/admin/general-data/${draft.body.id}/publish`)
+      .set(editorAuthorization)
+      .expect(403)
+    await request(app)
+      .post('/api/admin/general-data')
+      .set(reviewerAuthorization)
+      .send({ ...data, exercise: 2026 })
+      .expect(403)
+    await request(app)
+      .post(`/api/admin/general-data/${draft.body.id}/publish`)
+      .set(reviewerAuthorization)
+      .expect(200)
+  })
 })

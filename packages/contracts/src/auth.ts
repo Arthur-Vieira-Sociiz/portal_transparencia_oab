@@ -46,6 +46,7 @@ export const AdminCreatedUserResponseSchema = z.object({
 })
 
 export type AuthenticatedUser = z.infer<typeof AuthenticatedUserSchema>
+export type UserRole = z.infer<typeof UserRoleSchema>
 export type LoginRequest = z.infer<typeof LoginRequestSchema>
 export type RegisterRequest = z.infer<typeof RegisterRequestSchema>
 export type AuthSession = z.infer<typeof AuthSessionSchema>

@@ -94,6 +94,14 @@ IDs, exercícios e filtros de query são validados por schemas Zod compartilhado
 borda HTTP. A inicialização também valida e tipa as variáveis de ambiente. Erros de
 validação, rota inexistente, CORS e JSON malformado usam respostas JSON consistentes.
 
+A autorização segue uma matriz explícita: administradores possuem acesso total,
+editores alteram conteúdo e revisores publicam. Rate limits usam contadores
+persistidos no PostgreSQL; excesso autenticado revoga todas as sessões do usuário e
+aplica bloqueio temporário. Logs estruturados recebem request ID e não incluem
+tokens, cookies, bodies ou query strings. Sessões expiradas ou revogadas são
+removidas antes da emissão de um novo token. O frontend propaga logout entre abas e
+revalida a sessão na API ao retornar do histórico.
+
 Cada feature concentra router, controller, service, interface de repository,
 adapter Prisma e testes do domínio. Services dependem das interfaces locais de
 repository; controllers não acessam o Prisma. A infraestrutura de banco permanece
