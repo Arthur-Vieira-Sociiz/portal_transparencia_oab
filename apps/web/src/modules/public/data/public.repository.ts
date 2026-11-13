@@ -1,7 +1,6 @@
 import type {
   BudgetTransparency,
   PublicAdministrativePage,
-  PublicFinancialPage,
   PublicGlossaryPage,
   PublicHumanResourcesPage,
   PublicInstitutionalPage,
@@ -13,7 +12,6 @@ import type {
 
 import { parsedAdministrativeFixture } from './administrative.fixture'
 import { parsedBudgetFixture } from './budget.fixture'
-import { parsedFinancialFixture } from './financial.fixture'
 import { parsedInstitutionalFixture } from './institutional.fixture'
 import { parsedPatrimonialFixture } from './patrimonial.fixture'
 import { parsedReportsFixture } from './reports.fixture'
@@ -25,7 +23,6 @@ import { parsedGlossaryFixture } from './glossary.fixture'
 export interface PublicTransparencyRepository {
   getAdministrativePage(): Promise<PublicAdministrativePage>
   getBudgetPage(): Promise<BudgetTransparency>
-  getFinancialPage(): Promise<PublicFinancialPage>
   getGlossaryPage(): Promise<PublicGlossaryPage>
   getContractsPage(): Promise<PublicContractsPage>
   getHumanResourcesPage(): Promise<PublicHumanResourcesPage>
@@ -41,9 +38,6 @@ export const localPublicTransparencyRepository: PublicTransparencyRepository = {
   },
   async getBudgetPage() {
     return parsedBudgetFixture
-  },
-  async getFinancialPage() {
-    return parsedFinancialFixture
   },
   async getGlossaryPage() {
     return parsedGlossaryFixture

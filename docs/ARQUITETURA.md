@@ -62,6 +62,7 @@ apps/web/src/
 │   ├── public-shell/         # hero, navegação e layout público
 │   ├── general-data/         # API, queries e componentes de Dados Gerais
 │   ├── budget/               # API, queries e páginas do Orçamentário
+│   ├── financial/            # API, queries, páginas e accordion financeiro
 │   ├── auth/                 # autenticação e páginas admin ainda não migradas
 │   ├── public/               # páginas públicas ainda não migradas por domínio
 │   └── ...                   # demais domínios após sua etapa de migração
@@ -78,6 +79,8 @@ Dados Gerais é o módulo piloto do frontend. Dados Gerais e Orçamentário vali
 respostas na borda, encapsulam queries e mutations do TanStack Query e mantêm suas
 query keys no próprio domínio. O Orçamentário atualiza o cache administrativo após
 salvar ou publicar e invalida somente as consultas públicas afetadas.
+O Financeiro segue o mesmo fluxo e mantém accordion, períodos e documentos como
+componentes e conceitos internos do módulo.
 Estados de página, cabeçalhos, filtros, links de download e contêineres de tabela
 são compartilhados somente quando preservam a mesma semântica entre páginas; regras
 de negócio e formatos de cada domínio permanecem no respectivo módulo.

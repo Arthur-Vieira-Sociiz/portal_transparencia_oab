@@ -343,10 +343,10 @@ sem dependência lateral e sem abstração genérica prematura.
 
 ### Etapa 20 — Módulo Financeiro
 
-- [ ] Migrar API, hooks, páginas pública/administrativa e testes.
-- [ ] Extrair componentes internos de documento e accordion somente dentro do
+- [x] Migrar API, hooks, páginas pública/administrativa e testes.
+- [x] Extrair componentes internos de documento e accordion somente dentro do
       módulo.
-- [ ] Preservar exercício, período e formatos de download.
+- [x] Preservar exercício, período e formatos de download.
 
 ### Etapa 21 — Módulo Recursos Humanos
 
@@ -427,5 +427,5 @@ sem dependência lateral e sem abstração genérica prematura.
 
 ## Próxima ação
 
-As Etapas 12 a 19 estão concluídas. Depois da revisão do usuário, iniciar a Etapa
-20 pelo módulo Financeiro, seguindo os pilotos de Dados Gerais e Orçamentário.
+As Etapas 12 a 20 estão concluídas. Depois da revisão do usuário, iniciar a Etapa
+21 pelo módulo Recursos Humanos, seguindo os módulos já migrados.

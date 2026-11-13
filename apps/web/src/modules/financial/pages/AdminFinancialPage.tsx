@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   CalendarDays,
   Eye,
@@ -24,13 +24,12 @@ import { Label } from '@/components/ui/label'
 import { NumericInput } from '@/components/ui/numeric-input'
 import { useToast } from '@/components/ui/use-toast'
 import {
-  createFinancialDocument,
-  listFinancialDocuments,
-  publishFinancialExercise,
-  updateFinancialDocument,
-} from '../../lib/api'
-import { getStoredAuthSession } from './auth-session'
-import { AdminShell } from './AdminShell'
+  useAdminFinancial,
+  usePublishFinancialExercise,
+  useSaveFinancialDocument,
+} from '../hooks/useFinancial'
+import { useAuthSession } from '@/modules/auth/useAuth'
+import { AdminShell } from '@/modules/auth/AdminShell'
 
 const types = [
   ['trial-balances', 'Balancetes'],
@@ -54,30 +53,19 @@ const emptyForm: Form = {
   pdfUrl: '',
   csvUrl: '',
 }
+const emptyRecords: AdminFinancialDocumentRecord[] = []
 
 export function AdminFinancialPage() {
-  const session = getStoredAuthSession()
-  const [records, setRecords] = useState<AdminFinancialDocumentRecord[]>([])
+  const session = useAuthSession()
+  const financial = useAdminFinancial(session?.token)
+  const saveFinancial = useSaveFinancialDocument(session?.token)
+  const publishFinancial = usePublishFinancialExercise(session?.token)
+  const records = financial.data ?? emptyRecords
   const [form, setForm] = useState<Form>(emptyForm)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [selectedExercise, setSelectedExercise] = useState<number | null>(null)
   const [pending, setPending] = useState<'clear' | 'publish' | null>(null)
-  const [saving, setSaving] = useState(false)
   const { toast } = useToast()
-
-  useEffect(() => {
-    if (!session?.token) return
-    listFinancialDocuments(session.token)
-      .then(setRecords)
-      .catch((error: unknown) =>
-        toast({
-          title: 'Não foi possível carregar o financeiro',
-          description:
-            error instanceof Error ? error.message : 'Tente novamente.',
-          variant: 'error',
-        }),
-      )
-  }, [session?.token, toast])
 
   const recordsByExercise = useMemo(() => {
     return records.reduce((groups, record) => {
@@ -92,7 +80,7 @@ export function AdminFinancialPage() {
       ? []
       : (recordsByExercise.get(selectedExercise) ?? [])
   if (!session) return <Navigate replace to="/login" />
-  const authenticatedSession = session
+  const saving = saveFinancial.isPending || publishFinancial.isPending
 
   function reset() {
     setForm({ ...emptyForm, exercise: form.exercise })
@@ -133,19 +121,11 @@ export function AdminFinancialPage() {
       })
       return
     }
-    setSaving(true)
     try {
-      const record = editingId
-        ? await updateFinancialDocument(
-            authenticatedSession.token,
-            editingId,
-            form,
-          )
-        : await createFinancialDocument(authenticatedSession.token, form)
-      setRecords((current) => [
-        ...current.filter((item) => item.id !== record.id),
-        record,
-      ])
+      const record = await saveFinancial.mutateAsync({
+        id: editingId ?? undefined,
+        input: form,
+      })
       setEditingId(record.id)
       toast({
         title: 'Documento salvo',
@@ -159,22 +139,12 @@ export function AdminFinancialPage() {
           error instanceof Error ? error.message : 'Tente novamente.',
         variant: 'error',
       })
-    } finally {
-      setSaving(false)
     }
   }
 
   async function publish() {
-    setSaving(true)
     try {
-      const published = await publishFinancialExercise(
-        authenticatedSession.token,
-        form.exercise,
-      )
-      setRecords((current) => [
-        ...current.filter((item) => item.exercise !== form.exercise),
-        ...published,
-      ])
+      await publishFinancial.mutateAsync(form.exercise)
       toast({
         title: 'Financeiro publicado',
         description: 'Os documentos já estão disponíveis para publicação.',
@@ -188,7 +158,6 @@ export function AdminFinancialPage() {
         variant: 'error',
       })
     } finally {
-      setSaving(false)
       setPending(null)
     }
   }
@@ -360,7 +329,15 @@ export function AdminFinancialPage() {
               </p>
             </CardHeader>
             <CardContent className="grid gap-3">
-              {exercises.length === 0 ? (
+              {financial.isPending ? (
+                <p className="text-sm text-muted-foreground">
+                  Carregando documentos…
+                </p>
+              ) : financial.isError ? (
+                <p className="text-sm text-destructive" role="alert">
+                  Não foi possível carregar os documentos financeiros.
+                </p>
+              ) : exercises.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                   Nenhum documento cadastrado.
                 </p>
