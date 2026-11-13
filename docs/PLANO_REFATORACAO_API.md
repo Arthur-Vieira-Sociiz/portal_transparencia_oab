@@ -237,7 +237,7 @@ Pendências confirmadas:
       limpeza de sessões expiradas/revogadas.
 - [ ] Adicionar paginação/limites nas listagens administrativas potencialmente
       ilimitadas.
-- [ ] Separar `app.test.ts` por feature conforme o fatiamento vertical.
+- [x] Separar `app.test.ts` por feature conforme o fatiamento vertical.
 - [x] Confirmar que Institucional, Administrativo, Glossário e LGPD são conteúdos
       estáticos, sem CRUD ou API. Os dados locais são intencionais e não representam
       uma pendência do backend.
@@ -270,10 +270,10 @@ nenhuma mudança nos contratos HTTP.
 
 ### Etapa 14 — Fatiamento vertical do backend
 
-- [ ] Mover um domínio por vez para `features/<domínio>`.
-- [ ] Manter interface de repository ao lado do service e adapter Prisma isolado.
-- [ ] Mover os testes de cada domínio para perto da feature.
-- [ ] Atualizar apenas imports em cada subetapa.
+- [x] Mover um domínio por vez para `features/<domínio>`.
+- [x] Manter interface de repository ao lado do service e adapter Prisma isolado.
+- [x] Mover os testes de cada domínio para perto da feature.
+- [x] Atualizar apenas imports em cada subetapa.
 
 **Aceite:** cada feature concentra routes, controller, service, repository e testes,
 sem dependências circulares ou acesso direto ao Prisma pelo controller.
@@ -411,5 +411,6 @@ sem dependência lateral e sem abstração genérica prematura.
 
 ## Próxima ação
 
-As Etapas 12 e 13 estão concluídas. Depois da revisão do usuário, iniciar somente
-a Etapa 14, movendo um domínio por vez para a estrutura vertical do backend.
+As Etapas 12, 13 e 14 estão concluídas. Depois da revisão do usuário, iniciar
+somente a Etapa 15 pelas bordas HTTP compartilhadas, preservando os contratos já
+consumidos pelo frontend.

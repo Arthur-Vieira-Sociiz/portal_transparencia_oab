@@ -1,4 +1,4 @@
-import { AuthenticationError } from '../auth/auth-service.js'
+import { AuthenticationError } from '../features/auth/auth-service.js'
 import type { RequireUser } from './require-user.js'
 
 export function createRequireAdmin(requireUser: RequireUser): RequireUser {

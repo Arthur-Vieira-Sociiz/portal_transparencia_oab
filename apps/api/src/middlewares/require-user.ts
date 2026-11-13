@@ -1,7 +1,10 @@
 import type { AuthenticatedUser } from '@oab-transparencia/contracts/auth'
 import type { Request } from 'express'
-import { AuthenticationError, type AuthService } from '../auth/auth-service.js'
-import { readBearerToken } from '../auth/bearer-token.js'
+import {
+  AuthenticationError,
+  type AuthService,
+} from '../features/auth/auth-service.js'
+import { readBearerToken } from '../features/auth/bearer-token.js'
 
 export type RequireUser = (request: Request) => Promise<AuthenticatedUser>
 

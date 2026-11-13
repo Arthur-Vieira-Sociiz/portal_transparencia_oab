@@ -69,8 +69,10 @@ O compartilhamento ocorre em componentes e módulos de domínio, não pela mistu
 apps/api/src/
 ├── app.ts                    # composition root
 ├── errors/                   # tradução centralizada de erros para HTTP
+├── infrastructure/           # Prisma compartilhado e tratamento de erros do banco
 ├── middlewares/              # CORS e guards de autenticação/autorização
-├── routes/                   # routers e controllers por domínio
+├── test/                     # utilitários compartilhados somente entre testes
+└── features/                 # fatias verticais por domínio
 │   ├── auth/
 │   ├── budget/
 │   ├── contracts/
@@ -80,7 +82,6 @@ apps/api/src/
 │   ├── human-resources/
 │   ├── patrimonial/
 │   └── reports-indicators/
-└── <domínio>/                # services e repositories atuais
 ```
 
 O `app.ts` configura os middlewares globais, cria os services como singletons lazy,
@@ -93,9 +94,10 @@ A validação Zod de todos os `params` e queries ainda é uma etapa de hardening
 pendente; alguns controllers preservam a validação parcial existente para não mudar
 o comportamento durante a modularização.
 
-Services e repositories permanecem temporariamente nas pastas de domínio atuais.
-A migração para fatias verticais ocorrerá somente depois da estabilização das rotas,
-um domínio por vez.
+Cada feature concentra router, controller, service, interface de repository,
+adapter Prisma e testes do domínio. Services dependem das interfaces locais de
+repository; controllers não acessam o Prisma. A infraestrutura de banco permanece
+compartilhada e é injetada nos adapters pelo composition root.
 
 ### Regra de componentização
 
