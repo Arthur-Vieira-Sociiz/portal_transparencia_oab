@@ -67,27 +67,22 @@ export function SummaryGrid({ summary }: SummaryGridProps) {
   ]
 
   return (
-    <section aria-labelledby="public-summary-title">
-      <h1 className="public-page__lead" id="public-summary-title">
-        Acesso público às informações financeiras e administrativas da OAB-AL
-      </h1>
-      <div className="summary-grid">
-        {items.map((item) => (
-          <article
-            className={`summary-card summary-card--${item.accent}`}
-            key={item.label}
-          >
-            <div className="summary-card__label">
-              <PublicIcon name={item.icon} />
-              <span>{item.label}</span>
-            </div>
-            <strong className="summary-card__value">{item.value}</strong>
-            <span className="summary-card__exercise">
-              Exercício {summary.exercise}
-            </span>
-          </article>
-        ))}
-      </div>
-    </section>
+    <div className="summary-grid">
+      {items.map((item) => (
+        <article
+          className={`summary-card summary-card--${item.accent}`}
+          key={item.label}
+        >
+          <div className="summary-card__label">
+            <PublicIcon name={item.icon} />
+            <span>{item.label}</span>
+          </div>
+          <strong className="summary-card__value">{item.value}</strong>
+          <span className="summary-card__exercise">
+            Exercício {summary.exercise}
+          </span>
+        </article>
+      ))}
+    </div>
   )
 }

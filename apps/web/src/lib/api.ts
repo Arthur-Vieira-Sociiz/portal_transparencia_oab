@@ -2,6 +2,7 @@ import {
   HealthResponseSchema,
   type HealthResponse,
 } from '@oab-transparencia/contracts/health'
+import { ExerciseSchema } from '@oab-transparencia/contracts/common'
 import {
   AuthSessionSchema,
   AdminCreateUserRequestSchema,
@@ -221,13 +222,21 @@ export async function publishGeneralData(
   )
 }
 
-export async function getPublicGeneralData(
-  exercise?: number,
-): Promise<GeneralData> {
-  const query = exercise ? `?exercise=${exercise}` : ''
+async function requestPublicGeneralData(query = ''): Promise<GeneralData> {
   const response = await fetch(`${apiBaseUrl}/public/general-data${query}`)
   if (!response.ok) throw await getApiError(response)
   return GeneralDataSchema.parse(await response.json())
+}
+
+export function getPublicGeneralData(): Promise<GeneralData> {
+  return requestPublicGeneralData()
+}
+
+export function getGeneralDataByExercise(
+  exercise: number,
+): Promise<GeneralData> {
+  const validExercise = ExerciseSchema.parse(exercise)
+  return requestPublicGeneralData(`?exercise=${validExercise}`)
 }
 
 export async function listBudgetRecords(

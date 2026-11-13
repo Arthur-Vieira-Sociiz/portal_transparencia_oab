@@ -2,7 +2,6 @@ import type { ReactNode } from 'react'
 import { useQuery } from '@tanstack/react-query'
 
 import { getPublicGeneralData } from '../../../lib/api'
-import { emptyPublicSummary } from '../data/institutional.fixture'
 import { CategoryNavigation } from './CategoryNavigation'
 import { PublicPortalHero } from './PublicPortalHero'
 import { SummaryGrid } from './SummaryGrid'
@@ -13,28 +12,34 @@ type PublicPortalLayoutProps = {
 
 export function PublicPortalLayout({ children }: PublicPortalLayoutProps) {
   const generalData = useQuery({
-    queryFn: async () => {
-      try {
-        return await getPublicGeneralData()
-      } catch (error) {
-        const status =
-          error instanceof Error && 'status' in error
-            ? (error as Error & { status?: number }).status
-            : undefined
-        if (status === undefined || status === 404) return emptyPublicSummary
-        throw error
-      }
-    },
+    queryFn: getPublicGeneralData,
     queryKey: ['public-transparency', 'general-data'],
     staleTime: 30_000,
   })
-
-  const summary = generalData.data ?? emptyPublicSummary
+  const errorStatus =
+    generalData.error instanceof Error && 'status' in generalData.error
+      ? (generalData.error as Error & { status?: number }).status
+      : undefined
 
   return (
     <main className="public-page">
       <PublicPortalHero />
-      <SummaryGrid summary={summary} />
+      <section aria-labelledby="public-summary-title">
+        <h1 className="public-page__lead" id="public-summary-title">
+          Acesso público às informações financeiras e administrativas da OAB-AL
+        </h1>
+        {generalData.data ? (
+          <SummaryGrid summary={generalData.data} />
+        ) : (
+          <p className="public-page-state" role="status">
+            {generalData.isPending
+              ? 'Carregando resumo institucional…'
+              : errorStatus === 404
+                ? 'Nenhum resumo institucional foi publicado ainda.'
+                : 'Não foi possível carregar o resumo institucional.'}
+          </p>
+        )}
+      </section>
       <CategoryNavigation />
       {children}
     </main>

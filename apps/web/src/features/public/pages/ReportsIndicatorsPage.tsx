@@ -84,7 +84,7 @@ export function ReportsIndicatorsPage() {
   const selectedExercise =
     exercise !== null && page.data.availableExercises.includes(exercise)
       ? exercise
-      : page.data.availableExercises.at(-1)
+      : Math.max(...page.data.availableExercises)
   const current = page.data.indicators.find(
     (item) => item.exercise === selectedExercise,
   )
