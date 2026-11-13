@@ -94,9 +94,9 @@ internas de `createApp`, sem mudança de status ou payload.
 
 ### Etapa 4 — Dados gerais
 
-- [ ] Extrair as rotas públicas e administrativas de `general-data`.
-- [ ] Preservar o filtro opcional por exercício e o `404` público.
-- [ ] Injetar `GeneralDataService` e o middleware de usuário.
+- [x] Extrair as rotas públicas e administrativas de `general-data`.
+- [x] Preservar o filtro opcional por exercício e o `404` público.
+- [x] Injetar `GeneralDataService` e o middleware de usuário.
 
 **Aceite:** CRUD e publicação funcionam com os mesmos contratos e respostas.
 

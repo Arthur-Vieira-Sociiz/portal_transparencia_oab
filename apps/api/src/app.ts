@@ -1,6 +1,4 @@
 import {
-  CreateGeneralDataRequestSchema,
-  UpdateGeneralDataRequestSchema,
   CreateReportsIndicatorRequestSchema,
   UpdateReportsIndicatorRequestSchema,
   PublicReportsPageSchema,
@@ -68,6 +66,7 @@ import { createCorsMiddleware } from './middlewares/cors.js'
 import { createRequireAdmin } from './middlewares/require-admin.js'
 import { createRequireUser } from './middlewares/require-user.js'
 import { createAuthRoutes } from './routes/auth/auth.routes.js'
+import { createGeneralDataRoutes } from './routes/general-data/general-data.routes.js'
 import { healthRoutes } from './routes/health/health.routes.js'
 
 type AppOptions = {
@@ -252,77 +251,7 @@ export function createApp(options: AppOptions = {}): Express {
 
   app.use(healthRoutes)
   app.use(createAuthRoutes({ getAuthService, requireUser, requireAdmin }))
-
-  app.get('/api/public/general-data', async (request, response, next) => {
-    try {
-      const exerciseValue = request.query.exercise
-      const exercise = exerciseValue
-        ? ExerciseSchema.parse(Number(exerciseValue))
-        : undefined
-      const result = await getGeneralDataService().getPublished(exercise)
-      if (!result) {
-        response
-          .status(404)
-          .json({ message: 'Dados gerais publicados não encontrados.' })
-        return
-      }
-      response.json(result)
-    } catch (error) {
-      next(error)
-    }
-  })
-
-  app.get('/api/admin/general-data', async (request, response, next) => {
-    try {
-      await requireUser(request)
-      response.json({ records: await getGeneralDataService().list() })
-    } catch (error) {
-      next(error)
-    }
-  })
-
-  app.post('/api/admin/general-data', async (request, response, next) => {
-    try {
-      const user = await requireUser(request)
-      const input = CreateGeneralDataRequestSchema.parse(request.body)
-      response
-        .status(201)
-        .json(
-          await getGeneralDataService().create({ ...input, userId: user.id }),
-        )
-    } catch (error) {
-      next(error)
-    }
-  })
-
-  app.patch('/api/admin/general-data/:id', async (request, response, next) => {
-    try {
-      const user = await requireUser(request)
-      const input = UpdateGeneralDataRequestSchema.parse(request.body)
-      response.json(
-        await getGeneralDataService().update(request.params.id, {
-          ...input,
-          userId: user.id,
-        }),
-      )
-    } catch (error) {
-      next(error)
-    }
-  })
-
-  app.post(
-    '/api/admin/general-data/:id/publish',
-    async (request, response, next) => {
-      try {
-        const user = await requireUser(request)
-        response.json(
-          await getGeneralDataService().publish(request.params.id, user.id),
-        )
-      } catch (error) {
-        next(error)
-      }
-    },
-  )
+  app.use(createGeneralDataRoutes({ getGeneralDataService, requireUser }))
 
   app.get('/api/public/reports', async (_request, response, next) => {
     try {
