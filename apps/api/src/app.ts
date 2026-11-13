@@ -39,9 +39,6 @@ import {
 } from './contracts/contract-service.js'
 import { createPrismaContractRepository } from './contracts/prisma-contract-repository.js'
 import {
-  CreateBudgetRecordRequestSchema,
-  PublicBudgetRecordsSchema,
-  UpdateBudgetRecordRequestSchema,
   CreateFinancialDocumentRequestSchema,
   UpdateFinancialDocumentRequestSchema,
   CreatePatrimonialAssetRequestSchema,
@@ -58,6 +55,7 @@ import { createCorsMiddleware } from './middlewares/cors.js'
 import { createRequireAdmin } from './middlewares/require-admin.js'
 import { createRequireUser } from './middlewares/require-user.js'
 import { createAuthRoutes } from './routes/auth/auth.routes.js'
+import { createBudgetRoutes } from './routes/budget/budget.routes.js'
 import { createGeneralDataRoutes } from './routes/general-data/general-data.routes.js'
 import { healthRoutes } from './routes/health/health.routes.js'
 import { createHumanResourcesRoutes } from './routes/human-resources/human-resources.routes.js'
@@ -256,72 +254,7 @@ export function createApp(options: AppOptions = {}): Express {
   app.use(
     createHumanResourcesRoutes({ getHumanResourcesService, requireUser }),
   )
-
-  app.get('/api/public/budget', async (request, response, next) => {
-    try {
-      const exercise = request.query.exercise
-        ? ExerciseSchema.parse(Number(request.query.exercise))
-        : undefined
-      const type =
-        typeof request.query.informationType === 'string'
-          ? request.query.informationType
-          : undefined
-      response.json(
-        PublicBudgetRecordsSchema.parse(
-          await getBudgetService().getPublished(exercise, type),
-        ),
-      )
-    } catch (error) {
-      next(error)
-    }
-  })
-  app.get('/api/admin/budget', async (request, response, next) => {
-    try {
-      await requireUser(request)
-      response.json({ records: await getBudgetService().list() })
-    } catch (error) {
-      next(error)
-    }
-  })
-  app.post('/api/admin/budget', async (request, response, next) => {
-    try {
-      const user = await requireUser(request)
-      const input = CreateBudgetRecordRequestSchema.parse(request.body)
-      response
-        .status(201)
-        .json(await getBudgetService().create({ ...input, userId: user.id }))
-    } catch (error) {
-      next(error)
-    }
-  })
-  app.patch('/api/admin/budget/:id', async (request, response, next) => {
-    try {
-      const user = await requireUser(request)
-      const input = UpdateBudgetRecordRequestSchema.parse(request.body)
-      response.json(
-        await getBudgetService().update(request.params.id, {
-          ...input,
-          userId: user.id,
-        }),
-      )
-    } catch (error) {
-      next(error)
-    }
-  })
-  app.post(
-    '/api/admin/budget/:exercise/publish',
-    async (request, response, next) => {
-      try {
-        const user = await requireUser(request)
-        const exercise = ExerciseSchema.parse(Number(request.params.exercise))
-        response.json(
-          await getBudgetService().publishExercise(exercise, user.id),
-        )
-      } catch (error) {
-        next(error)
-      }
-    },
-  )
+  app.use(createBudgetRoutes({ getBudgetService, requireUser }))
 
   app.get('/api/admin/financial', async (request, response, next) => {
     try {

@@ -112,8 +112,8 @@ internas de `createApp`, sem mudança de status ou payload.
 
 ### Etapa 7 — Orçamentário
 
-- [ ] Extrair rotas públicas, CRUD administrativo e publicação por exercício.
-- [ ] Preservar filtros `exercise` e `informationType`.
+- [x] Extrair rotas públicas, CRUD administrativo e publicação por exercício.
+- [x] Preservar filtros `exercise` e `informationType`.
 
 ### Etapa 8 — Financeiro
 
