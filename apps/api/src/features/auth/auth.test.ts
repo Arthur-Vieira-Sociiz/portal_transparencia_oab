@@ -144,6 +144,45 @@ describe('authentication endpoints', () => {
     })
   })
 
+  it('paginates administrative user listings with metadata', async () => {
+    const app = createAuthenticatedApp()
+    const registration = await request(app)
+      .post('/api/auth/register')
+      .send({
+        name: 'Administrador',
+        email: 'admin@oab-al.org.br',
+        password,
+        registrationKey,
+      })
+      .expect(201)
+    const authorization = `Bearer ${registration.body.token}`
+
+    for (const [name, email] of [
+      ['Editor', 'editor@oab-al.org.br'],
+      ['Revisor', 'revisor@oab-al.org.br'],
+    ]) {
+      await request(app)
+        .post('/api/admin/users')
+        .set('Authorization', authorization)
+        .send({ name, email, password, role: 'EDITOR' })
+        .expect(201)
+    }
+
+    const response = await request(app)
+      .get('/api/admin/users?page=2&limit=1')
+      .set('Authorization', authorization)
+      .expect(200)
+
+    expect(response.body.users).toHaveLength(1)
+    expect(response.body.users[0].name).toBe('Editor')
+    expect(response.body.pagination).toEqual({
+      page: 2,
+      limit: 1,
+      total: 3,
+      totalPages: 3,
+    })
+  })
+
   it('limits failed logins without revoking an existing session', async () => {
     const app = createAuthenticatedApp()
     const registration = await request(app)

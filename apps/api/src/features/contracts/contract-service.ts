@@ -7,6 +7,7 @@ import type {
   CreateSupplierRequest,
   UpdateSupplierRequest,
 } from '@oab-transparencia/contracts/transparency'
+import type { PaginatedResult, Pagination } from '../../http/request-schemas.js'
 
 export class ContractError extends Error {
   constructor(
@@ -14,13 +15,15 @@ export class ContractError extends Error {
       | 'CONTRACT_ALREADY_EXISTS'
       | 'CONTRACT_NOT_FOUND'
       | 'CONTRACT_EXERCISE_NOT_FOUND'
-      | 'SUPPLIER_ALREADY_EXISTS',
+      | 'SUPPLIER_ALREADY_EXISTS'
+      | 'SUPPLIER_NOT_FOUND'
+      | 'SUPPLIER_IN_USE',
   ) {
     super(code)
   }
 }
 export type ContractRepository = {
-  list(): Promise<AdminContractRecord[]>
+  list(pagination: Pagination): Promise<PaginatedResult<AdminContractRecord>>
   listPublished(): Promise<PublicContractsPage>
   create(
     input: CreateContractRecordRequest & { userId: string },
@@ -34,19 +37,24 @@ export type ContractRepository = {
     exercise: number,
     userId: string,
   ): Promise<AdminContractRecord[]>
-  listSuppliers(): Promise<Supplier[]>
+  listSuppliers(pagination: Pagination): Promise<PaginatedResult<Supplier>>
   createSupplier(input: CreateSupplierRequest): Promise<Supplier | null>
   updateSupplier(
     id: string,
     input: UpdateSupplierRequest,
-  ): Promise<Supplier | null>
-  deleteSupplier(id: string): Promise<boolean>
+  ): Promise<
+    | { status: 'updated'; supplier: Supplier }
+    | { status: 'not-found' }
+    | { status: 'conflict' }
+  >
+  deleteSupplier(id: string): Promise<'deleted' | 'not-found' | 'in-use'>
 }
 export function createContractService(repository: ContractRepository) {
   return {
-    list: () => repository.list(),
+    list: (pagination: Pagination) => repository.list(pagination),
     listPublished: () => repository.listPublished(),
-    listSuppliers: () => repository.listSuppliers(),
+    listSuppliers: (pagination: Pagination) =>
+      repository.listSuppliers(pagination),
     async createSupplier(input: CreateSupplierRequest) {
       const result = await repository.createSupplier(input)
       if (!result) throw new ContractError('SUPPLIER_ALREADY_EXISTS')
@@ -54,12 +62,16 @@ export function createContractService(repository: ContractRepository) {
     },
     async updateSupplier(id: string, input: UpdateSupplierRequest) {
       const result = await repository.updateSupplier(id, input)
-      if (!result) throw new ContractError('SUPPLIER_ALREADY_EXISTS')
-      return result
+      if (result.status === 'not-found')
+        throw new ContractError('SUPPLIER_NOT_FOUND')
+      if (result.status === 'conflict')
+        throw new ContractError('SUPPLIER_ALREADY_EXISTS')
+      return result.supplier
     },
     async deleteSupplier(id: string) {
-      if (!(await repository.deleteSupplier(id)))
-        throw new ContractError('SUPPLIER_ALREADY_EXISTS')
+      const result = await repository.deleteSupplier(id)
+      if (result === 'not-found') throw new ContractError('SUPPLIER_NOT_FOUND')
+      if (result === 'in-use') throw new ContractError('SUPPLIER_IN_USE')
     },
     async create(input: CreateContractRecordRequest & { userId: string }) {
       const result = await repository.create(input)

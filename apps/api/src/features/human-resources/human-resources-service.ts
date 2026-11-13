@@ -4,6 +4,7 @@ import type {
   PublicHumanResourcesPage,
   UpdateHumanResourcesRequest,
 } from '@oab-transparencia/contracts/transparency'
+import type { PaginatedResult, Pagination } from '../../http/request-schemas.js'
 
 export class HumanResourcesError extends Error {
   constructor(
@@ -17,7 +18,9 @@ export class HumanResourcesError extends Error {
 }
 
 export type HumanResourcesRepository = {
-  list(): Promise<AdminHumanResourcesRecord[]>
+  list(
+    pagination: Pagination,
+  ): Promise<PaginatedResult<AdminHumanResourcesRecord>>
   listPublished(): Promise<PublicHumanResourcesPage>
   findByExerciseAndLocality(
     exercise: number,
@@ -41,7 +44,7 @@ export function createHumanResourcesService(
   repository: HumanResourcesRepository,
 ) {
   return {
-    list: () => repository.list(),
+    list: (pagination: Pagination) => repository.list(pagination),
     listPublished: () => repository.listPublished(),
     async create(input: CreateHumanResourcesRequest & { userId: string }) {
       if (

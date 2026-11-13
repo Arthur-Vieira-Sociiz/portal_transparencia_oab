@@ -2,6 +2,7 @@ import type {
   AuthRepository,
   StoredUser,
 } from '../features/auth/auth-service.js'
+import { getPaginationMetadata } from '../http/request-schemas.js'
 
 export function createMemoryAuthRepository(): AuthRepository {
   const users = new Map<string, StoredUser>()
@@ -11,8 +12,25 @@ export function createMemoryAuthRepository(): AuthRepository {
     async findUserByEmail(email) {
       return users.get(email) ?? null
     },
-    async listUsers() {
-      return [...users.values()]
+    async listUsers(pagination) {
+      const sortedUsers = [...users.values()].sort(
+        (first, second) =>
+          first.name.localeCompare(second.name) ||
+          first.id.localeCompare(second.id),
+      )
+      const start = (pagination.page - 1) * pagination.limit
+      return {
+        items: sortedUsers
+          .slice(start, start + pagination.limit)
+          .map(({ id, name, email, role, status }) => ({
+            id,
+            name,
+            email,
+            role,
+            status,
+          })),
+        pagination: getPaginationMetadata(pagination, sortedUsers.length),
+      }
     },
     async findActiveSession(tokenHash) {
       const userId = sessions.get(tokenHash)

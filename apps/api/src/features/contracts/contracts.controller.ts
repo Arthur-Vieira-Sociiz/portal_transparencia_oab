@@ -9,6 +9,7 @@ import type { RequestHandler } from 'express'
 import {
   ExerciseParamsSchema,
   IdParamsSchema,
+  PaginationQuerySchema,
   type ExerciseParams,
   type IdParams,
 } from '../../http/request-schemas.js'
@@ -53,7 +54,9 @@ export function createContractsController({
     async list(request, response, next) {
       try {
         await requirePermission(request, 'CONTENT_READ')
-        response.json({ records: await getContractService().list() })
+        const pagination = PaginationQuerySchema.parse(request.query)
+        const result = await getContractService().list(pagination)
+        response.json({ records: result.items, pagination: result.pagination })
       } catch (error) {
         next(error)
       }
@@ -62,7 +65,12 @@ export function createContractsController({
     async listSuppliers(request, response, next) {
       try {
         await requirePermission(request, 'CONTENT_READ')
-        response.json({ suppliers: await getContractService().listSuppliers() })
+        const pagination = PaginationQuerySchema.parse(request.query)
+        const result = await getContractService().listSuppliers(pagination)
+        response.json({
+          suppliers: result.items,
+          pagination: result.pagination,
+        })
       } catch (error) {
         next(error)
       }

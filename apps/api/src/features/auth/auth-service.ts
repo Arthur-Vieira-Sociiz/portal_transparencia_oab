@@ -7,6 +7,7 @@ import type {
   LoginRequest,
   RegisterRequest,
 } from '@oab-transparencia/contracts/auth'
+import type { PaginatedResult, Pagination } from '../../http/request-schemas.js'
 import { hashPassword, verifyPassword } from './password.js'
 
 export type StoredUser = AuthenticatedUser & {
@@ -35,7 +36,7 @@ export type AuthRepository = {
     passwordHash: string
     role: 'ADMIN' | 'EDITOR' | 'REVIEWER'
   }): Promise<StoredUser>
-  listUsers(): Promise<StoredUser[]>
+  listUsers(pagination: Pagination): Promise<PaginatedResult<AdminUser>>
   blockUserAndRevokeSessions(userId: string, blockedUntil: Date): Promise<void>
   deleteExpiredAndRevokedSessions(now: Date): Promise<number>
   revokeSession(tokenHash: string): Promise<void>
@@ -110,12 +111,10 @@ export function createAuthService(
   }
 
   return {
-    async listUsers(): Promise<AdminUser[]> {
-      const users = await repository.listUsers()
-      return users.map((user) => ({
-        ...toAuthenticatedUser(user),
-        status: user.status,
-      }))
+    async listUsers(
+      pagination: Pagination,
+    ): Promise<PaginatedResult<AdminUser>> {
+      return repository.listUsers(pagination)
     },
 
     async createUserByAdmin(input: AdminCreateUserRequest): Promise<AdminUser> {

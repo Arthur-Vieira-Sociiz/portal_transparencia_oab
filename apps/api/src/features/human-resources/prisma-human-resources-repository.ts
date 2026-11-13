@@ -9,6 +9,10 @@ import {
   resultOrNullOnPrismaError,
   type DatabaseClient,
 } from '../../infrastructure/database/prisma.js'
+import {
+  getPaginationArguments,
+  getPaginationMetadata,
+} from '../../http/request-schemas.js'
 import type { HumanResourcesRepository } from './human-resources-service.js'
 
 function parseMonths(record: HumanResourcesRecord) {
@@ -72,12 +76,18 @@ export function createPrismaHumanResourcesRepository(
   client: DatabaseClient = getPrismaClient(),
 ): HumanResourcesRepository {
   return {
-    async list() {
-      return (
-        await client.humanResourcesRecord.findMany({
-          orderBy: [{ exercise: 'desc' }, { locality: 'asc' }],
-        })
-      ).map(toPublic)
+    async list(pagination) {
+      const [records, total] = await client.$transaction([
+        client.humanResourcesRecord.findMany({
+          ...getPaginationArguments(pagination),
+          orderBy: [{ exercise: 'desc' }, { locality: 'asc' }, { id: 'asc' }],
+        }),
+        client.humanResourcesRecord.count(),
+      ])
+      return {
+        items: records.map(toPublic),
+        pagination: getPaginationMetadata(pagination, total),
+      }
     },
     async findByExerciseAndLocality(exercise, locality) {
       const record = await client.humanResourcesRecord.findUnique({

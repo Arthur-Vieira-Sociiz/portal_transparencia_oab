@@ -14,6 +14,10 @@ const PositiveIntegerFromStringSchema = IntegerStringSchema.transform(
   Number,
 ).pipe(z.number().int().positive())
 
+const PageSizeFromStringSchema = IntegerStringSchema.transform(Number).pipe(
+  z.number().int().positive().max(100),
+)
+
 export const IdParamsSchema = z.object({
   id: z.string().trim().min(1),
 })
@@ -31,9 +35,37 @@ export const BudgetQuerySchema = ExerciseQuerySchema.extend({
 })
 
 export const PaginationQuerySchema = z.object({
-  page: PositiveIntegerFromStringSchema.optional(),
-  limit: PositiveIntegerFromStringSchema.optional(),
+  page: PositiveIntegerFromStringSchema.default(1),
+  limit: PageSizeFromStringSchema.default(20),
 })
+
+export type Pagination = z.output<typeof PaginationQuerySchema>
+
+export type PaginationMetadata = Pagination & {
+  total: number
+  totalPages: number
+}
+
+export type PaginatedResult<T> = {
+  items: T[]
+  pagination: PaginationMetadata
+}
+
+export function getPaginationArguments({ page, limit }: Pagination) {
+  return { skip: (page - 1) * limit, take: limit }
+}
+
+export function getPaginationMetadata(
+  { page, limit }: Pagination,
+  total: number,
+): PaginationMetadata {
+  return {
+    page,
+    limit,
+    total,
+    totalPages: Math.ceil(total / limit),
+  }
+}
 
 export type IdParams = z.input<typeof IdParamsSchema>
 export type ExerciseParams = z.input<typeof ExerciseParamsSchema>

@@ -4,6 +4,10 @@ import {
   getPrismaClient,
   type DatabaseClient,
 } from '../../infrastructure/database/prisma.js'
+import {
+  getPaginationArguments,
+  getPaginationMetadata,
+} from '../../http/request-schemas.js'
 
 function toStoredUser(user: User): StoredUser {
   return user
@@ -27,9 +31,25 @@ export function createPrismaAuthRepository(
       return user ? toStoredUser(user) : null
     },
 
-    async listUsers() {
-      const users = await client.user.findMany({ orderBy: { name: 'asc' } })
-      return users.map(toStoredUser)
+    async listUsers(pagination) {
+      const [users, total] = await client.$transaction([
+        client.user.findMany({
+          ...getPaginationArguments(pagination),
+          orderBy: [{ name: 'asc' }, { id: 'asc' }],
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            status: true,
+          },
+        }),
+        client.user.count(),
+      ])
+      return {
+        items: users,
+        pagination: getPaginationMetadata(pagination, total),
+      }
     },
 
     async findActiveSession(tokenHash) {
@@ -43,7 +63,11 @@ export function createPrismaAuthRepository(
             OR: [{ blockedUntil: null }, { blockedUntil: { lte: new Date() } }],
           },
         },
-        include: { user: true },
+        select: {
+          user: {
+            select: { id: true, name: true, email: true, role: true },
+          },
+        },
       })
       if (!session) return null
 

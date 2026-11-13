@@ -235,7 +235,7 @@ Pendências confirmadas:
 - [x] Adicionar rate limit em login/cadastro, logging estruturado e request ID.
 - [x] Fechar o cadastro bootstrap depois do primeiro administrador e definir a
       limpeza de sessões expiradas/revogadas.
-- [ ] Adicionar paginação/limites nas listagens administrativas potencialmente
+- [x] Adicionar paginação/limites nas listagens administrativas potencialmente
       ilimitadas.
 - [x] Separar `app.test.ts` por feature conforme o fatiamento vertical.
 - [x] Confirmar que Institucional, Administrativo, Glossário e LGPD são conteúdos
@@ -311,11 +311,11 @@ sem dependências circulares ou acesso direto ao Prisma pelo controller.
 
 ### Etapa 17 — Paginação, desempenho e fechamento do backend
 
-- [ ] Adicionar limites/paginação nas listagens que podem crescer sem limite.
-- [ ] Revisar queries, `select`, índices e transações com dados representativos.
-- [ ] Revisar integridade entre fornecedores e contratos antes de alterar o schema.
-- [ ] Executar typecheck, lint, testes e build da API.
-- [ ] Verificar manualmente os endpoints e atualizar a documentação do backend.
+- [x] Adicionar limites/paginação nas listagens que podem crescer sem limite.
+- [x] Revisar queries, `select`, índices e transações com dados representativos.
+- [x] Revisar integridade entre fornecedores e contratos antes de alterar o schema.
+- [x] Executar typecheck, lint, testes e build da API.
+- [x] Verificar manualmente os endpoints e atualizar a documentação do backend.
 
 **Aceite:** todas as pendências confirmadas do backend estão concluídas ou
 explicitamente destinadas ao plano Firebase.
@@ -425,5 +425,5 @@ sem dependência lateral e sem abstração genérica prematura.
 
 ## Próxima ação
 
-As Etapas 12 a 16 estão concluídas. Depois da revisão do usuário, iniciar somente
-a Etapa 17 por paginação e limites das listagens administrativas.
+As Etapas 12 a 17 estão concluídas. Depois da revisão do usuário, iniciar somente
+a Etapa 18 pela base modular do frontend e pelo piloto de Dados Gerais.

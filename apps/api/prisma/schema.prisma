@@ -49,6 +49,8 @@ model User {
   updatedHumanResources     HumanResourcesRecord[] @relation("HumanResourcesUpdatedBy")
   createdReportsIndicators  ReportsIndicator[]     @relation("ReportsIndicatorCreatedBy")
   updatedReportsIndicators  ReportsIndicator[]     @relation("ReportsIndicatorUpdatedBy")
+
+  @@index([name, id])
 }
 
 model GeneralData {
@@ -118,7 +120,7 @@ model FinancialDocument {
   updatedBy       User              @relation("FinancialUpdatedBy", fields: [updatedById], references: [id])
 
   @@unique([informationType, period, exercise])
-  @@index([status, exercise])
+  @@index([status, exercise, informationType, period])
 }
 
 model HumanResourcesRecord {
@@ -136,7 +138,7 @@ model HumanResourcesRecord {
   updatedBy   User              @relation("HumanResourcesUpdatedBy", fields: [updatedById], references: [id])
 
   @@unique([exercise, locality])
-  @@index([status, exercise])
+  @@index([status, exercise, locality])
 }
 
 model ReportsIndicator {
@@ -192,7 +194,7 @@ model PatrimonialAsset {
   updatedBy        User              @relation("PatrimonialUpdatedBy", fields: [updatedById], references: [id])
 
   @@unique([informationType, description, exercise])
-  @@index([statusState, exercise])
+  @@index([statusState, exercise, informationType])
 }
 
 model Session {
@@ -218,11 +220,14 @@ model RateLimitCounter {
 }
 
 model Supplier {
-  id        String   @id @default(cuid())
+  id        String           @id @default(cuid())
   name      String
-  cnpj      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  cnpj      String           @unique
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  contracts ContractRecord[]
+
+  @@index([name, id])
 }
 
 model ContractRecord {
@@ -240,11 +245,14 @@ model ContractRecord {
   publishedAt         DateTime?
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
+  supplierId          String
   createdById         String
   updatedById         String
+  supplier            Supplier          @relation(fields: [supplierId], references: [id], onDelete: Restrict)
   createdBy           User              @relation("ContractCreatedBy", fields: [createdById], references: [id])
   updatedBy           User              @relation("ContractUpdatedBy", fields: [updatedById], references: [id])
 
-  @@unique([supplierName, signedAt, exercise])
-  @@index([statusState, exercise])
+  @@unique([supplierId, signedAt, exercise])
+  @@index([statusState, exercise, supplierName])
+  @@index([exercise, supplierName, id])
 }

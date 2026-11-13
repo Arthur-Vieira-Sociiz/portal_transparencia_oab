@@ -171,11 +171,15 @@ export const errorHandler: ErrorRequestHandler = (
       CONTRACT_EXERCISE_NOT_FOUND:
         'Nenhum contrato encontrado para este exercício.',
       SUPPLIER_ALREADY_EXISTS: 'Este CNPJ já está cadastrado.',
+      SUPPLIER_NOT_FOUND: 'Fornecedor não encontrado.',
+      SUPPLIER_IN_USE:
+        'O fornecedor não pode ser excluído enquanto possuir contratos vinculados.',
     } as const
     response
       .status(
         error.code === 'CONTRACT_ALREADY_EXISTS' ||
-          error.code === 'SUPPLIER_ALREADY_EXISTS'
+          error.code === 'SUPPLIER_ALREADY_EXISTS' ||
+          error.code === 'SUPPLIER_IN_USE'
           ? 409
           : 404,
       )

@@ -15,6 +15,10 @@ describe('request schemas', () => {
       page: 2,
       limit: 25,
     })
+    expect(PaginationQuerySchema.parse({})).toEqual({ page: 1, limit: 20 })
+    expect(PaginationQuerySchema.safeParse({ limit: '101' }).success).toBe(
+      false,
+    )
   })
 
   it('rejects invalid IDs, exercises and budget filters', () => {

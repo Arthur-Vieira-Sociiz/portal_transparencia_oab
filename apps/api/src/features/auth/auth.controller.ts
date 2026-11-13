@@ -8,6 +8,7 @@ import type { RequestHandler } from 'express'
 import { AuthenticationError, type AuthService } from './auth-service.js'
 import { readBearerToken } from './bearer-token.js'
 import type { RequireUser } from '../../middlewares/require-user.js'
+import { PaginationQuerySchema } from '../../http/request-schemas.js'
 
 export type AuthControllerDependencies = {
   getAuthService: () => AuthService
@@ -72,7 +73,9 @@ export function createAuthController({
     async listUsers(request, response, next) {
       try {
         await requireAdmin(request)
-        response.json({ users: await getAuthService().listUsers() })
+        const pagination = PaginationQuerySchema.parse(request.query)
+        const result = await getAuthService().listUsers(pagination)
+        response.json({ users: result.items, pagination: result.pagination })
       } catch (error) {
         next(error)
       }

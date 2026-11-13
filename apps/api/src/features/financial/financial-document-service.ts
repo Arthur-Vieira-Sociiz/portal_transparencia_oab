@@ -4,6 +4,7 @@ import type {
   PublicFinancialPage,
   UpdateFinancialDocumentRequest,
 } from '@oab-transparencia/contracts/transparency'
+import type { PaginatedResult, Pagination } from '../../http/request-schemas.js'
 
 export class FinancialDocumentError extends Error {
   constructor(
@@ -17,7 +18,9 @@ export class FinancialDocumentError extends Error {
 }
 
 export type FinancialDocumentRepository = {
-  list(): Promise<AdminFinancialDocumentRecord[]>
+  list(
+    pagination: Pagination,
+  ): Promise<PaginatedResult<AdminFinancialDocumentRecord>>
   listPublished(): Promise<PublicFinancialPage>
   findByTypeAndExercise(
     type: string,
@@ -41,7 +44,7 @@ export function createFinancialDocumentService(
   repository: FinancialDocumentRepository,
 ) {
   return {
-    list: () => repository.list(),
+    list: (pagination: Pagination) => repository.list(pagination),
     listPublished: () => repository.listPublished(),
     async create(input: CreateFinancialDocumentRequest & { userId: string }) {
       if (

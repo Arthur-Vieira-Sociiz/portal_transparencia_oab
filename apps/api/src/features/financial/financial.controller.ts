@@ -6,6 +6,7 @@ import type { RequestHandler } from 'express'
 import {
   ExerciseParamsSchema,
   IdParamsSchema,
+  PaginationQuerySchema,
   type ExerciseParams,
   type IdParams,
 } from '../../http/request-schemas.js'
@@ -33,8 +34,11 @@ export function createFinancialController({
     async list(request, response, next) {
       try {
         await requirePermission(request, 'CONTENT_READ')
+        const pagination = PaginationQuerySchema.parse(request.query)
+        const result = await getFinancialDocumentService().list(pagination)
         response.json({
-          records: await getFinancialDocumentService().list(),
+          records: result.items,
+          pagination: result.pagination,
         })
       } catch (error) {
         next(error)

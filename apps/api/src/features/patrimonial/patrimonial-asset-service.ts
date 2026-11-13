@@ -4,6 +4,7 @@ import type {
   PublicPatrimonialPage,
   UpdatePatrimonialAssetRequest,
 } from '@oab-transparencia/contracts/transparency'
+import type { PaginatedResult, Pagination } from '../../http/request-schemas.js'
 
 export class PatrimonialAssetError extends Error {
   constructor(
@@ -17,7 +18,7 @@ export class PatrimonialAssetError extends Error {
 }
 
 export type PatrimonialAssetRepository = {
-  list(): Promise<AdminPatrimonialAsset[]>
+  list(pagination: Pagination): Promise<PaginatedResult<AdminPatrimonialAsset>>
   listPublished(): Promise<PublicPatrimonialPage>
   findDuplicate(
     informationType: string,
@@ -41,7 +42,7 @@ export function createPatrimonialAssetService(
   repository: PatrimonialAssetRepository,
 ) {
   return {
-    list: () => repository.list(),
+    list: (pagination: Pagination) => repository.list(pagination),
     listPublished: () => repository.listPublished(),
     async create(input: CreatePatrimonialAssetRequest & { userId: string }) {
       if (

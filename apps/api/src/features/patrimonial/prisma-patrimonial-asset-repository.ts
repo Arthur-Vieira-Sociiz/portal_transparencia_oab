@@ -8,6 +8,10 @@ import {
   resultOrNullOnPrismaError,
   type DatabaseClient,
 } from '../../infrastructure/database/prisma.js'
+import {
+  getPaginationArguments,
+  getPaginationMetadata,
+} from '../../http/request-schemas.js'
 import type { PatrimonialAssetRepository } from './patrimonial-asset-service.js'
 
 function toContract(record: PatrimonialAsset): AdminPatrimonialAsset {
@@ -40,12 +44,22 @@ export function createPrismaPatrimonialAssetRepository(
   client: DatabaseClient = getPrismaClient(),
 ): PatrimonialAssetRepository {
   return {
-    async list() {
-      return (
-        await client.patrimonialAsset.findMany({
-          orderBy: [{ exercise: 'desc' }, { informationType: 'asc' }],
-        })
-      ).map(toContract)
+    async list(pagination) {
+      const [records, total] = await client.$transaction([
+        client.patrimonialAsset.findMany({
+          ...getPaginationArguments(pagination),
+          orderBy: [
+            { exercise: 'desc' },
+            { informationType: 'asc' },
+            { id: 'asc' },
+          ],
+        }),
+        client.patrimonialAsset.count(),
+      ])
+      return {
+        items: records.map(toContract),
+        pagination: getPaginationMetadata(pagination, total),
+      }
     },
     async findDuplicate(informationType, description, exercise) {
       const record = await client.patrimonialAsset.findUnique({

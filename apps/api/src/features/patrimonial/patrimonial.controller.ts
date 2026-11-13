@@ -7,6 +7,7 @@ import type { RequestHandler } from 'express'
 import {
   ExerciseParamsSchema,
   IdParamsSchema,
+  PaginationQuerySchema,
   type ExerciseParams,
   type IdParams,
 } from '../../http/request-schemas.js'
@@ -46,7 +47,9 @@ export function createPatrimonialController({
     async list(request, response, next) {
       try {
         await requirePermission(request, 'CONTENT_READ')
-        response.json({ records: await getPatrimonialAssetService().list() })
+        const pagination = PaginationQuerySchema.parse(request.query)
+        const result = await getPatrimonialAssetService().list(pagination)
+        response.json({ records: result.items, pagination: result.pagination })
       } catch (error) {
         next(error)
       }

@@ -77,6 +77,7 @@ import {
 import { dispatchAuthenticationInvalidated } from './auth-events'
 
 const apiBaseUrl = (import.meta.env.VITE_API_URL ?? '/api').replace(/\/$/, '')
+const currentAdminPageQuery = '?page=1&limit=100'
 
 export async function getApiHealth(): Promise<HealthResponse> {
   const response = await fetch(`${apiBaseUrl}/health`)
@@ -149,7 +150,7 @@ export async function getCurrentUser(
 export async function listAdminUsers(token: string): Promise<AdminUser[]> {
   const payload = await authenticatedRequest(
     token,
-    '/admin/users',
+    `/admin/users${currentAdminPageQuery}`,
     {},
     (value) => value as { users: unknown[] },
   )
@@ -315,7 +316,7 @@ export async function listFinancialDocuments(
 ): Promise<AdminFinancialDocumentRecord[]> {
   const payload = await authenticatedRequest(
     token,
-    '/admin/financial',
+    `/admin/financial${currentAdminPageQuery}`,
     {},
     (value) => value as { records: unknown[] },
   )
@@ -377,7 +378,7 @@ export async function listHumanResources(
 ): Promise<AdminHumanResourcesRecord[]> {
   const payload = await authenticatedRequest(
     token,
-    '/admin/human-resources',
+    `/admin/human-resources${currentAdminPageQuery}`,
     {},
     (value) => value as { records: unknown[] },
   )
@@ -444,7 +445,7 @@ export async function listPatrimonialAssets(
 ): Promise<AdminPatrimonialAsset[]> {
   const payload = await authenticatedRequest(
     token,
-    '/admin/patrimonial',
+    `/admin/patrimonial${currentAdminPageQuery}`,
     {},
     (value) => value as { records: unknown[] },
   )
@@ -500,7 +501,7 @@ export async function listContracts(
 ): Promise<AdminContractRecord[]> {
   const payload = await authenticatedRequest(
     token,
-    '/admin/contracts',
+    `/admin/contracts${currentAdminPageQuery}`,
     {},
     (value) => value as { records: unknown[] },
   )
@@ -511,7 +512,7 @@ export async function listContracts(
 export async function listSuppliers(token: string): Promise<Supplier[]> {
   const payload = await authenticatedRequest(
     token,
-    '/admin/suppliers',
+    `/admin/suppliers${currentAdminPageQuery}`,
     {},
     (value) => value as { suppliers: unknown[] },
   )

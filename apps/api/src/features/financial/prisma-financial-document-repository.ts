@@ -8,6 +8,10 @@ import {
   resultOrNullOnPrismaError,
   type DatabaseClient,
 } from '../../infrastructure/database/prisma.js'
+import {
+  getPaginationArguments,
+  getPaginationMetadata,
+} from '../../http/request-schemas.js'
 import type { FinancialDocumentRepository } from './financial-document-service.js'
 
 function toContract(record: FinancialDocument): AdminFinancialDocumentRecord {
@@ -81,12 +85,23 @@ export function createPrismaFinancialDocumentRepository(
     expenses: 'Despesas',
   } as const
   return {
-    async list() {
-      return (
-        await client.financialDocument.findMany({
-          orderBy: [{ exercise: 'desc' }, { informationType: 'asc' }],
-        })
-      ).map(toContract)
+    async list(pagination) {
+      const [records, total] = await client.$transaction([
+        client.financialDocument.findMany({
+          ...getPaginationArguments(pagination),
+          orderBy: [
+            { exercise: 'desc' },
+            { informationType: 'asc' },
+            { period: 'asc' },
+            { id: 'asc' },
+          ],
+        }),
+        client.financialDocument.count(),
+      ])
+      return {
+        items: records.map(toContract),
+        pagination: getPaginationMetadata(pagination, total),
+      }
     },
     async findByTypeAndExercise(informationType, period, exercise) {
       const record = await client.financialDocument.findUnique({

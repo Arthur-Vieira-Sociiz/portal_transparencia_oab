@@ -72,6 +72,33 @@ sucesso e erro antes de ser considerado concluído.
 
 Usuários adicionais são criados por um administrador em `/api/admin/users`.
 
+## Paginação administrativa
+
+As listagens administrativas de usuários, documentos financeiros, recursos
+humanos, patrimônio, contratos e fornecedores aceitam `page` e `limit`. A página
+padrão é `1`, o limite padrão é `20` e o máximo permitido é `100`.
+
+```text
+GET /api/admin/contracts?page=2&limit=20
+```
+
+Além de `records`, `users` ou `suppliers`, a resposta inclui:
+
+```json
+{
+  "pagination": {
+    "page": 2,
+    "limit": 20,
+    "total": 57,
+    "totalPages": 3
+  }
+}
+```
+
+Os endpoints públicos que entregam a composição completa de uma página mantêm
+seu contrato agregado. A paginação administrativa evita leituras ilimitadas sem
+alterar os filtros públicos atuais.
+
 ## Permissões
 
 | Papel      | Leitura administrativa | Criar/editar/excluir | Publicar | Gerenciar usuários |
@@ -88,6 +115,12 @@ bloqueado por 15 minutos. Respostas autenticadas usam `Cache-Control: no-store`.
 Antes de emitir cada novo token, a API remove do banco todas as sessões já
 expiradas ou revogadas. Essa limpeza oportunística evita depender de estado local
 das Functions e mantém a tabela de sessões limitada pelo próprio fluxo de login.
+
+Contratos possuem uma chave estrangeira obrigatória para `Supplier`. A migration
+faz o backfill dos registros existentes, e um fornecedor com contratos vinculados
+não pode ser excluído. Antes de trocar a unicidade, a migration interrompe com uma
+mensagem explícita se encontrar mais de um contrato para o mesmo fornecedor, data
+e exercício; esses registros precisam ser consolidados antes do deploy.
 
 ## Primeiro CRUD: Dados Gerais
 

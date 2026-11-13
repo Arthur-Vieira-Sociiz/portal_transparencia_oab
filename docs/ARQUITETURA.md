@@ -102,6 +102,13 @@ tokens, cookies, bodies ou query strings. Sessões expiradas ou revogadas são
 removidas antes da emissão de um novo token. O frontend propaga logout entre abas e
 revalida a sessão na API ao retornar do histórico.
 
+Listagens administrativas potencialmente abertas usam paginação por `page` e
+`limit`, com teto de 100 itens. As consultas usam ordenação estável, `count` e
+índices compostos alinhados aos filtros e à ordenação. Usuários são selecionados
+sem `passwordHash`, e a validação de sessão busca somente os campos públicos do
+usuário. Contratos mantêm `supplierId` obrigatório com chave estrangeira para
+impedir fornecedores órfãos ou exclusões inconsistentes.
+
 Cada feature concentra router, controller, service, interface de repository,
 adapter Prisma e testes do domínio. Services dependem das interfaces locais de
 repository; controllers não acessam o Prisma. A infraestrutura de banco permanece
