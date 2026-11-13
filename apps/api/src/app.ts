@@ -1,8 +1,3 @@
-import {
-  CreateReportsIndicatorRequestSchema,
-  UpdateReportsIndicatorRequestSchema,
-  PublicReportsPageSchema,
-} from '@oab-transparencia/contracts/transparency'
 import { ExerciseSchema } from '@oab-transparencia/contracts/common'
 import express, { type Express } from 'express'
 import helmet from 'helmet'
@@ -68,6 +63,7 @@ import { createRequireUser } from './middlewares/require-user.js'
 import { createAuthRoutes } from './routes/auth/auth.routes.js'
 import { createGeneralDataRoutes } from './routes/general-data/general-data.routes.js'
 import { healthRoutes } from './routes/health/health.routes.js'
+import { createReportsIndicatorsRoutes } from './routes/reports-indicators/reports-indicators.routes.js'
 
 type AppOptions = {
   authService?: AuthService
@@ -252,85 +248,11 @@ export function createApp(options: AppOptions = {}): Express {
   app.use(healthRoutes)
   app.use(createAuthRoutes({ getAuthService, requireUser, requireAdmin }))
   app.use(createGeneralDataRoutes({ getGeneralDataService, requireUser }))
-
-  app.get('/api/public/reports', async (_request, response, next) => {
-    try {
-      response.json(
-        PublicReportsPageSchema.parse(
-          await getReportsIndicatorsService().listPublished(),
-        ),
-      )
-    } catch (error) {
-      next(error)
-    }
-  })
-
-  app.get('/api/admin/reports', async (request, response, next) => {
-    try {
-      await requireUser(request)
-      response.json({ indicators: await getReportsIndicatorsService().list() })
-    } catch (error) {
-      next(error)
-    }
-  })
-
-  app.post('/api/admin/reports', async (request, response, next) => {
-    try {
-      const user = await requireUser(request)
-      const input = CreateReportsIndicatorRequestSchema.parse(request.body)
-      response
-        .status(201)
-        .json(
-          await getReportsIndicatorsService().create({
-            ...input,
-            userId: user.id,
-          }),
-        )
-    } catch (error) {
-      next(error)
-    }
-  })
-
-  app.patch('/api/admin/reports/:id', async (request, response, next) => {
-    try {
-      const user = await requireUser(request)
-      const input = UpdateReportsIndicatorRequestSchema.parse(request.body)
-      response.json(
-        await getReportsIndicatorsService().update(request.params.id, {
-          ...input,
-          userId: user.id,
-        }),
-      )
-    } catch (error) {
-      next(error)
-    }
-  })
-
-  app.delete('/api/admin/reports/:id', async (request, response, next) => {
-    try {
-      await requireUser(request)
-      await getReportsIndicatorsService().delete(request.params.id)
-      response.status(204).send()
-    } catch (error) {
-      next(error)
-    }
-  })
-
-  app.post(
-    '/api/admin/reports/:exercise/publish',
-    async (request, response, next) => {
-      try {
-        const user = await requireUser(request)
-        response.json(
-          await getReportsIndicatorsService().publish(
-            ExerciseSchema.parse(Number(request.params.exercise)),
-            user.id,
-          ),
-        )
-      } catch (error) {
-        next(error)
-      }
-    },
+  app.use(
+    createReportsIndicatorsRoutes({
+      getReportsIndicatorsService,
+      requireUser,
+    }),
   )
 
   app.get('/api/admin/human-resources', async (request, response, next) => {

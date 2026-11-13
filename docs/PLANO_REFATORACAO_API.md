@@ -102,8 +102,8 @@ internas de `createApp`, sem mudança de status ou payload.
 
 ### Etapa 5 — Relatórios e indicadores
 
-- [ ] Extrair rotas públicas, CRUD administrativo e publicação por exercício.
-- [ ] Preservar deleção com `204` e validação por `ExerciseSchema`.
+- [x] Extrair rotas públicas, CRUD administrativo e publicação por exercício.
+- [x] Preservar deleção com `204` e validação por `ExerciseSchema`.
 
 ### Etapa 6 — Recursos humanos
 
