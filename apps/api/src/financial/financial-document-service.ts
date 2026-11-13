@@ -26,7 +26,7 @@ export type FinancialDocumentRepository = {
   ): Promise<AdminFinancialDocumentRecord | null>
   create(
     input: CreateFinancialDocumentRequest & { userId: string },
-  ): Promise<AdminFinancialDocumentRecord>
+  ): Promise<AdminFinancialDocumentRecord | null>
   update(
     id: string,
     input: UpdateFinancialDocumentRequest & { userId: string },
@@ -53,7 +53,11 @@ export function createFinancialDocumentService(
       ) {
         throw new FinancialDocumentError('FINANCIAL_DOCUMENT_ALREADY_EXISTS')
       }
-      return repository.create(input)
+      const result = await repository.create(input)
+      if (!result) {
+        throw new FinancialDocumentError('FINANCIAL_DOCUMENT_ALREADY_EXISTS')
+      }
+      return result
     },
     async update(
       id: string,

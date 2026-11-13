@@ -24,7 +24,7 @@ export type ContractRepository = {
   listPublished(): Promise<PublicContractsPage>
   create(
     input: CreateContractRecordRequest & { userId: string },
-  ): Promise<AdminContractRecord>
+  ): Promise<AdminContractRecord | null>
   update(
     id: string,
     input: UpdateContractRecordRequest & { userId: string },
@@ -35,7 +35,7 @@ export type ContractRepository = {
     userId: string,
   ): Promise<AdminContractRecord[]>
   listSuppliers(): Promise<Supplier[]>
-  createSupplier(input: CreateSupplierRequest): Promise<Supplier>
+  createSupplier(input: CreateSupplierRequest): Promise<Supplier | null>
   updateSupplier(
     id: string,
     input: UpdateSupplierRequest,
@@ -48,7 +48,9 @@ export function createContractService(repository: ContractRepository) {
     listPublished: () => repository.listPublished(),
     listSuppliers: () => repository.listSuppliers(),
     async createSupplier(input: CreateSupplierRequest) {
-      return repository.createSupplier(input)
+      const result = await repository.createSupplier(input)
+      if (!result) throw new ContractError('SUPPLIER_ALREADY_EXISTS')
+      return result
     },
     async updateSupplier(id: string, input: UpdateSupplierRequest) {
       const result = await repository.updateSupplier(id, input)
@@ -60,7 +62,9 @@ export function createContractService(repository: ContractRepository) {
         throw new ContractError('SUPPLIER_ALREADY_EXISTS')
     },
     async create(input: CreateContractRecordRequest & { userId: string }) {
-      return repository.create(input)
+      const result = await repository.create(input)
+      if (!result) throw new ContractError('CONTRACT_ALREADY_EXISTS')
+      return result
     },
     async update(
       id: string,

@@ -221,11 +221,13 @@ Já está adequado:
 
 Pendências confirmadas:
 
-- [ ] Centralizar os clientes Prisma hoje duplicados nos repositories.
-- [ ] Remover `any` dos mapeadores de contratos, patrimônio, RH e relatórios.
-- [ ] Parar de converter qualquer erro Prisma em `null`; mapear apenas erros
+- [x] Centralizar os clientes Prisma hoje duplicados nos repositories.
+- [x] Remover `any` dos mapeadores de contratos, patrimônio, RH e relatórios.
+- [x] Parar de converter qualquer erro Prisma em `null`; mapear apenas erros
       esperados e propagar falhas de infraestrutura.
-- [ ] Usar transações nas operações com mais de uma escrita/leitura dependente.
+- [x] Usar transações nas operações de conteúdo com mais de uma escrita/leitura
+      dependente. A atomicidade específica do bootstrap/sessões de autenticação
+      permanece na Etapa 16.
 - [ ] Validar variáveis de ambiente, params e queries com schemas Zod explícitos.
 - [ ] Padronizar `404`, erro de CORS e JSON malformado como respostas JSON.
 - [ ] Definir permissões reais para `ADMIN`, `EDITOR` e `REVIEWER`; hoje as
@@ -257,11 +259,11 @@ valores oficiais fictícios.
 
 ### Etapa 13 — Infraestrutura Prisma compartilhada
 
-- [ ] Criar um único provider/cliente Prisma injetável.
-- [ ] Migrar repositories um por vez para receber o cliente.
-- [ ] Tipar todos os mapeadores sem `any`.
-- [ ] Substituir `catch(() => null)` por tradução seletiva de erros Prisma.
-- [ ] Tornar atômicas as operações dependentes com `$transaction`.
+- [x] Criar um único provider/cliente Prisma injetável.
+- [x] Migrar repositories um por vez para receber o cliente.
+- [x] Tipar todos os mapeadores sem `any`.
+- [x] Substituir `catch(() => null)` por tradução seletiva de erros Prisma.
+- [x] Tornar atômicas as operações dependentes de conteúdo com `$transaction`.
 
 **Aceite:** uma instância de infraestrutura por processo, erros reais preservados e
 nenhuma mudança nos contratos HTTP.
@@ -409,5 +411,5 @@ sem dependência lateral e sem abstração genérica prematura.
 
 ## Próxima ação
 
-A Etapa 12 está concluída. Iniciar somente a Etapa 13, centralizando a
-infraestrutura Prisma antes de retomar a modularização do frontend.
+As Etapas 12 e 13 estão concluídas. Depois da revisão do usuário, iniciar somente
+a Etapa 14, movendo um domínio por vez para a estrutura vertical do backend.

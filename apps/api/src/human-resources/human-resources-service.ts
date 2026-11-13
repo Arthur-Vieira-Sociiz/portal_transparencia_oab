@@ -25,7 +25,7 @@ export type HumanResourcesRepository = {
   ): Promise<AdminHumanResourcesRecord | null>
   create(
     input: CreateHumanResourcesRequest & { userId: string },
-  ): Promise<AdminHumanResourcesRecord>
+  ): Promise<AdminHumanResourcesRecord | null>
   update(
     id: string,
     input: UpdateHumanResourcesRequest & { userId: string },
@@ -52,7 +52,11 @@ export function createHumanResourcesService(
       ) {
         throw new HumanResourcesError('HUMAN_RESOURCES_ALREADY_EXISTS')
       }
-      return repository.create(input)
+      const result = await repository.create(input)
+      if (!result) {
+        throw new HumanResourcesError('HUMAN_RESOURCES_ALREADY_EXISTS')
+      }
+      return result
     },
     async update(
       id: string,

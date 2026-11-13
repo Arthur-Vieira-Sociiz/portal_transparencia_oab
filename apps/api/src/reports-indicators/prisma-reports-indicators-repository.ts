@@ -1,19 +1,13 @@
-import { PrismaPg } from '@prisma/adapter-pg'
-import { PrismaClient } from '../generated/prisma/client.js'
 import type { ReportsIndicator } from '@oab-transparencia/contracts/transparency'
+import type { ReportsIndicator as PrismaReportsIndicator } from '../generated/prisma/client.js'
+import {
+  getPrismaClient,
+  resultOrNullOnPrismaError,
+  type DatabaseClient,
+} from '../infrastructure/database/prisma.js'
 import type { ReportsIndicatorsRepository } from './reports-indicators-service.js'
 
-let prisma: PrismaClient | undefined
-function getPrismaClient() {
-  if (prisma) return prisma
-  const connectionString =
-    process.env.DATABASE_URL_POOLED ?? process.env.DATABASE_URL
-  if (!connectionString) throw new Error('DATABASE_URL não configurada.')
-  prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString }) })
-  return prisma
-}
-
-function toContract(record: any): ReportsIndicator {
+function toContract(record: PrismaReportsIndicator): ReportsIndicator {
   return {
     id: record.id,
     exercise: record.exercise,
@@ -59,8 +53,9 @@ function derivedValues(input: {
   }
 }
 
-export function createPrismaReportsIndicatorsRepository(): ReportsIndicatorsRepository {
-  const client = getPrismaClient()
+export function createPrismaReportsIndicatorsRepository(
+  client: DatabaseClient = getPrismaClient(),
+): ReportsIndicatorsRepository {
   return {
     async list() {
       return (
@@ -89,63 +84,71 @@ export function createPrismaReportsIndicatorsRepository(): ReportsIndicatorsRepo
     },
     async create(input) {
       const { userId, ...data } = input
-      return toContract(
-        await client.reportsIndicator.create({
-          data: {
-            ...data,
-            ...derivedValues(data),
-            createdById: userId,
-            updatedById: userId,
-          },
-        }),
+      const record = await resultOrNullOnPrismaError(
+        () =>
+          client.reportsIndicator.create({
+            data: {
+              ...data,
+              ...derivedValues(data),
+              createdById: userId,
+              updatedById: userId,
+            },
+          }),
+        ['P2002'],
       )
+      return record ? toContract(record) : null
     },
     async update(id, input) {
       const { userId, ...data } = input
-      const existing = await client.reportsIndicator.findUnique({
-        where: { id },
-      })
-      if (!existing) return null
-      const record = await client.reportsIndicator
-        .update({
+      const record = await client.$transaction(async (transaction) => {
+        const existing = await transaction.reportsIndicator.findUnique({
           where: { id },
-          data: {
-            ...data,
-            ...derivedValues({
-              totalRevenue:
-                data.totalRevenue ?? existing.totalRevenue.toString(),
-              totalExpense:
-                data.totalExpense ?? existing.totalExpense.toString(),
-              plannedBudget:
-                data.plannedBudget ?? existing.plannedBudget.toString(),
-              executedBudget:
-                data.executedBudget ?? existing.executedBudget.toString(),
-            }),
-            updatedById: userId,
-            ...(data.status === 'DRAFT' ? { publishedAt: null } : {}),
-          },
         })
-        .catch(() => null)
+        if (!existing) return null
+        return resultOrNullOnPrismaError(
+          () =>
+            transaction.reportsIndicator.update({
+              where: { id },
+              data: {
+                ...data,
+                ...derivedValues({
+                  totalRevenue:
+                    data.totalRevenue ?? existing.totalRevenue.toString(),
+                  totalExpense:
+                    data.totalExpense ?? existing.totalExpense.toString(),
+                  plannedBudget:
+                    data.plannedBudget ?? existing.plannedBudget.toString(),
+                  executedBudget:
+                    data.executedBudget ?? existing.executedBudget.toString(),
+                }),
+                updatedById: userId,
+                ...(data.status === 'DRAFT' ? { publishedAt: null } : {}),
+              },
+            }),
+          ['P2025', 'P2002'],
+        )
+      })
       return record ? toContract(record) : null
     },
     async delete(id) {
-      const record = await client.reportsIndicator
-        .delete({ where: { id } })
-        .catch(() => null)
+      const record = await resultOrNullOnPrismaError(() =>
+        client.reportsIndicator.delete({ where: { id } }),
+      )
       return Boolean(record)
     },
     async publish(exercise, userId) {
-      await client.reportsIndicator.updateMany({
-        where: { exercise },
-        data: {
-          status: 'PUBLISHED',
-          publishedAt: new Date(),
-          updatedById: userId,
-        },
+      const records = await client.$transaction(async (transaction) => {
+        await transaction.reportsIndicator.updateMany({
+          where: { exercise },
+          data: {
+            status: 'PUBLISHED',
+            publishedAt: new Date(),
+            updatedById: userId,
+          },
+        })
+        return transaction.reportsIndicator.findMany({ where: { exercise } })
       })
-      return (
-        await client.reportsIndicator.findMany({ where: { exercise } })
-      ).map(toContract)
+      return records.map(toContract)
     },
   }
 }

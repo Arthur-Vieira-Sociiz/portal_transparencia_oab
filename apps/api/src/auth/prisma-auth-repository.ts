@@ -1,38 +1,17 @@
-import { PrismaPg } from '@prisma/adapter-pg'
-import { PrismaClient } from '../generated/prisma/client.js'
 import type { AuthRepository, StoredUser } from './auth-service.js'
+import type { User } from '../generated/prisma/client.js'
+import {
+  getPrismaClient,
+  type DatabaseClient,
+} from '../infrastructure/database/prisma.js'
 
-let prisma: PrismaClient | undefined
-
-function getPrismaClient() {
-  if (prisma) return prisma
-
-  const connectionString =
-    process.env.DATABASE_URL_POOLED ?? process.env.DATABASE_URL
-  if (!connectionString) {
-    throw new Error('DATABASE_URL_POOLED ou DATABASE_URL não foi configurada.')
-  }
-
-  prisma = new PrismaClient({
-    adapter: new PrismaPg({ connectionString }),
-  })
-  return prisma
-}
-
-function toStoredUser(user: {
-  id: string
-  name: string
-  email: string
-  passwordHash: string
-  role: 'ADMIN' | 'EDITOR' | 'REVIEWER'
-  status: 'ACTIVE' | 'DISABLED'
-}): StoredUser {
+function toStoredUser(user: User): StoredUser {
   return user
 }
 
-export function createPrismaAuthRepository(): AuthRepository {
-  const client = getPrismaClient()
-
+export function createPrismaAuthRepository(
+  client: DatabaseClient = getPrismaClient(),
+): AuthRepository {
   return {
     async countUsers() {
       return client.user.count()

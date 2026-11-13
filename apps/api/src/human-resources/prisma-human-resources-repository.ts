@@ -1,27 +1,32 @@
-import { PrismaPg } from '@prisma/adapter-pg'
-import { PrismaClient } from '../generated/prisma/client.js'
-import type {
-  AdminHumanResourcesRecord,
-  PublicHumanResourcesPage,
+import {
+  CreateHumanResourcesRequestSchema,
+  type AdminHumanResourcesRecord,
+  type PublicHumanResourcesPage,
 } from '@oab-transparencia/contracts/transparency'
+import type { HumanResourcesRecord } from '../generated/prisma/client.js'
+import {
+  getPrismaClient,
+  resultOrNullOnPrismaError,
+  type DatabaseClient,
+} from '../infrastructure/database/prisma.js'
 import type { HumanResourcesRepository } from './human-resources-service.js'
 
-let prisma: PrismaClient | undefined
-function getPrismaClient() {
-  if (prisma) return prisma
-  const connectionString =
-    process.env.DATABASE_URL_POOLED ?? process.env.DATABASE_URL
-  if (!connectionString) throw new Error('DATABASE_URL não configurada.')
-  prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString }) })
-  return prisma
+function parseMonths(record: HumanResourcesRecord) {
+  const result = CreateHumanResourcesRequestSchema.safeParse({
+    exercise: record.exercise,
+    locality: record.locality,
+    months: record.months,
+  })
+  if (!result.success) {
+    throw new Error(`Meses inválidos no registro de RH ${record.id}.`, {
+      cause: result.error,
+    })
+  }
+  return result.data.months
 }
 
-type MonthInput = { month: string; pdfUrl: string; xlsxUrl: string }
-
-function toPublic(record: any): AdminHumanResourcesRecord {
-  const months = (
-    Array.isArray(record.months) ? record.months : []
-  ) as MonthInput[]
+function toPublic(record: HumanResourcesRecord): AdminHumanResourcesRecord {
+  const months = parseMonths(record)
   return {
     id: record.id,
     exercise: record.exercise,
@@ -63,8 +68,9 @@ function toPublic(record: any): AdminHumanResourcesRecord {
   }
 }
 
-export function createPrismaHumanResourcesRepository(): HumanResourcesRepository {
-  const client = getPrismaClient()
+export function createPrismaHumanResourcesRepository(
+  client: DatabaseClient = getPrismaClient(),
+): HumanResourcesRepository {
   return {
     async list() {
       return (
@@ -81,47 +87,53 @@ export function createPrismaHumanResourcesRepository(): HumanResourcesRepository
     },
     async create(input) {
       const { userId, ...data } = input
-      return toPublic(
-        await client.humanResourcesRecord.create({
-          data: { ...data, createdById: userId, updatedById: userId },
-        }),
+      const record = await resultOrNullOnPrismaError(
+        () =>
+          client.humanResourcesRecord.create({
+            data: { ...data, createdById: userId, updatedById: userId },
+          }),
+        ['P2002'],
       )
+      return record ? toPublic(record) : null
     },
     async update(id, input) {
       const { userId, ...data } = input
-      const record = await client.humanResourcesRecord
-        .update({
-          where: { id },
-          data: {
-            ...data,
-            updatedById: userId,
-            ...(data.status === 'DRAFT' ? { publishedAt: null } : {}),
-          },
-        })
-        .catch(() => null)
+      const record = await resultOrNullOnPrismaError(
+        () =>
+          client.humanResourcesRecord.update({
+            where: { id },
+            data: {
+              ...data,
+              updatedById: userId,
+              ...(data.status === 'DRAFT' ? { publishedAt: null } : {}),
+            },
+          }),
+        ['P2025', 'P2002'],
+      )
       return record ? toPublic(record) : null
     },
     async delete(id) {
-      const record = await client.humanResourcesRecord
-        .delete({ where: { id } })
-        .catch(() => null)
+      const record = await resultOrNullOnPrismaError(() =>
+        client.humanResourcesRecord.delete({ where: { id } }),
+      )
       return Boolean(record)
     },
     async publishExercise(exercise, userId) {
-      await client.humanResourcesRecord.updateMany({
-        where: { exercise },
-        data: {
-          status: 'PUBLISHED',
-          publishedAt: new Date(),
-          updatedById: userId,
-        },
-      })
-      return (
-        await client.humanResourcesRecord.findMany({
+      const records = await client.$transaction(async (transaction) => {
+        await transaction.humanResourcesRecord.updateMany({
+          where: { exercise },
+          data: {
+            status: 'PUBLISHED',
+            publishedAt: new Date(),
+            updatedById: userId,
+          },
+        })
+        return transaction.humanResourcesRecord.findMany({
           where: { exercise },
           orderBy: { locality: 'asc' },
         })
-      ).map(toPublic)
+      })
+      return records.map(toPublic)
     },
     async listPublished(): Promise<PublicHumanResourcesPage> {
       const records = await client.humanResourcesRecord.findMany({

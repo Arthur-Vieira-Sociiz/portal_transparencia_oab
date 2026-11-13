@@ -24,7 +24,7 @@ export type ReportsIndicatorsRepository = {
   findByExercise(exercise: number): Promise<ReportsIndicator | null>
   create(
     input: CreateReportsIndicatorRequest & { userId: string },
-  ): Promise<ReportsIndicator>
+  ): Promise<ReportsIndicator | null>
   update(
     id: string,
     input: UpdateReportsIndicatorRequest & { userId: string },
@@ -43,7 +43,11 @@ export function createReportsIndicatorsService(
       if (await repository.findByExercise(input.exercise)) {
         throw new ReportsIndicatorsError('REPORTS_INDICATOR_ALREADY_EXISTS')
       }
-      return repository.create(input)
+      const result = await repository.create(input)
+      if (!result) {
+        throw new ReportsIndicatorsError('REPORTS_INDICATOR_ALREADY_EXISTS')
+      }
+      return result
     },
     async update(
       id: string,

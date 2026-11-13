@@ -21,7 +21,7 @@ export type GeneralDataRepository = {
   findPublishedByExercise(exercise?: number): Promise<GeneralData | null>
   create(
     input: CreateGeneralDataRequest & { userId: string },
-  ): Promise<GeneralData>
+  ): Promise<GeneralData | null>
   update(
     id: string,
     input: UpdateGeneralDataRequest & { userId: string },
@@ -41,7 +41,9 @@ export function createGeneralDataService(repository: GeneralDataRepository) {
       if (await repository.findByExercise(input.exercise)) {
         throw new GeneralDataError('EXERCISE_ALREADY_EXISTS')
       }
-      return repository.create(input)
+      const result = await repository.create(input)
+      if (!result) throw new GeneralDataError('EXERCISE_ALREADY_EXISTS')
+      return result
     },
     async update(
       id: string,

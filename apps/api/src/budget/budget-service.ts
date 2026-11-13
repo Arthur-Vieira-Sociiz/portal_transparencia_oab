@@ -28,7 +28,7 @@ export type BudgetRepository = {
   ): Promise<PublicBudgetRecords>
   create(
     input: CreateBudgetRecordRequest & { userId: string },
-  ): Promise<AdminBudgetRecord>
+  ): Promise<AdminBudgetRecord | null>
   update(
     id: string,
     input: UpdateBudgetRecordRequest & { userId: string },
@@ -52,7 +52,9 @@ export function createBudgetService(repository: BudgetRepository) {
         )
       )
         throw new BudgetError('BUDGET_RECORD_ALREADY_EXISTS')
-      return repository.create(input)
+      const result = await repository.create(input)
+      if (!result) throw new BudgetError('BUDGET_RECORD_ALREADY_EXISTS')
+      return result
     },
     async update(
       id: string,

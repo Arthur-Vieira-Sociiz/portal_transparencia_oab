@@ -1,32 +1,13 @@
-import { PrismaPg } from '@prisma/adapter-pg'
-import { PrismaClient } from '../generated/prisma/client.js'
 import type { AdminBudgetRecord } from '@oab-transparencia/contracts/transparency'
+import type { BudgetRecord } from '../generated/prisma/client.js'
+import {
+  getPrismaClient,
+  resultOrNullOnPrismaError,
+  type DatabaseClient,
+} from '../infrastructure/database/prisma.js'
 import type { BudgetRepository } from './budget-service.js'
 
-let prisma: PrismaClient | undefined
-function getPrismaClient() {
-  if (prisma) return prisma
-  const connectionString =
-    process.env.DATABASE_URL_POOLED ?? process.env.DATABASE_URL
-  if (!connectionString) throw new Error('DATABASE_URL não configurada.')
-  prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString }) })
-  return prisma
-}
-
-function toContract(record: {
-  id: string
-  informationType: string
-  annualBudget: unknown
-  plannedAmount: unknown
-  executedAmount: unknown
-  exercise: number
-  documentTitle: string | null
-  documentUrl: string | null
-  status: 'DRAFT' | 'PUBLISHED'
-  createdAt: Date
-  updatedAt: Date
-  publishedAt: Date | null
-}): AdminBudgetRecord {
+function toContract(record: BudgetRecord): AdminBudgetRecord {
   const planned = Number(record.plannedAmount)
   const executed = Number(record.executedAmount)
   return {
@@ -58,8 +39,9 @@ function toContract(record: {
   }
 }
 
-export function createPrismaBudgetRepository(): BudgetRepository {
-  const client = getPrismaClient()
+export function createPrismaBudgetRepository(
+  client: DatabaseClient = getPrismaClient(),
+): BudgetRepository {
   return {
     async list() {
       return (
@@ -94,48 +76,55 @@ export function createPrismaBudgetRepository(): BudgetRepository {
     },
     async create(input) {
       const { userId, ...data } = input
-      const record = await client.budgetRecord.create({
-        data: {
-          ...data,
-          documentTitle: data.documentTitle || null,
-          documentUrl: data.documentUrl || null,
-          createdById: userId,
-          updatedById: userId,
-        },
-      })
-      return toContract(record)
+      const record = await resultOrNullOnPrismaError(
+        () =>
+          client.budgetRecord.create({
+            data: {
+              ...data,
+              documentTitle: data.documentTitle || null,
+              documentUrl: data.documentUrl || null,
+              createdById: userId,
+              updatedById: userId,
+            },
+          }),
+        ['P2002'],
+      )
+      return record ? toContract(record) : null
     },
     async update(id, input) {
       const { userId, ...data } = input
-      const record = await client.budgetRecord
-        .update({
-          where: { id },
-          data: {
-            ...data,
-            documentTitle: data.documentTitle || null,
-            documentUrl: data.documentUrl || null,
-            updatedById: userId,
-            ...(data.status === 'DRAFT' ? { publishedAt: null } : {}),
-          },
-        })
-        .catch(() => null)
+      const record = await resultOrNullOnPrismaError(
+        () =>
+          client.budgetRecord.update({
+            where: { id },
+            data: {
+              ...data,
+              documentTitle: data.documentTitle || null,
+              documentUrl: data.documentUrl || null,
+              updatedById: userId,
+              ...(data.status === 'DRAFT' ? { publishedAt: null } : {}),
+            },
+          }),
+        ['P2025', 'P2002'],
+      )
       return record ? toContract(record) : null
     },
     async publishExercise(exercise, userId) {
-      await client.budgetRecord.updateMany({
-        where: { exercise },
-        data: {
-          status: 'PUBLISHED',
-          publishedAt: new Date(),
-          updatedById: userId,
-        },
-      })
-      return (
-        await client.budgetRecord.findMany({
+      const records = await client.$transaction(async (transaction) => {
+        await transaction.budgetRecord.updateMany({
+          where: { exercise },
+          data: {
+            status: 'PUBLISHED',
+            publishedAt: new Date(),
+            updatedById: userId,
+          },
+        })
+        return transaction.budgetRecord.findMany({
           where: { exercise },
           orderBy: { informationType: 'asc' },
         })
-      ).map(toContract)
+      })
+      return records.map(toContract)
     },
   }
 }

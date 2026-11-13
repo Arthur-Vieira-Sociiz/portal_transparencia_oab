@@ -1,22 +1,16 @@
-import { PrismaPg } from '@prisma/adapter-pg'
-import { PrismaClient } from '../generated/prisma/client.js'
 import type {
   AdminPatrimonialAsset,
   PublicPatrimonialPage,
 } from '@oab-transparencia/contracts/transparency'
+import type { PatrimonialAsset } from '../generated/prisma/client.js'
+import {
+  getPrismaClient,
+  resultOrNullOnPrismaError,
+  type DatabaseClient,
+} from '../infrastructure/database/prisma.js'
 import type { PatrimonialAssetRepository } from './patrimonial-asset-service.js'
 
-let prisma: PrismaClient | undefined
-function getPrismaClient() {
-  if (prisma) return prisma
-  const connectionString =
-    process.env.DATABASE_URL_POOLED ?? process.env.DATABASE_URL
-  if (!connectionString) throw new Error('DATABASE_URL não configurada.')
-  prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString }) })
-  return prisma
-}
-
-function toContract(record: any): AdminPatrimonialAsset {
+function toContract(record: PatrimonialAsset): AdminPatrimonialAsset {
   return {
     id: record.id,
     informationType: record.informationType,
@@ -42,8 +36,9 @@ function toContract(record: any): AdminPatrimonialAsset {
   }
 }
 
-export function createPrismaPatrimonialAssetRepository(): PatrimonialAssetRepository {
-  const client = getPrismaClient()
+export function createPrismaPatrimonialAssetRepository(
+  client: DatabaseClient = getPrismaClient(),
+): PatrimonialAssetRepository {
   return {
     async list() {
       return (
@@ -66,51 +61,57 @@ export function createPrismaPatrimonialAssetRepository(): PatrimonialAssetReposi
     },
     async create(input) {
       const { userId, ...data } = input
-      return toContract(
-        await client.patrimonialAsset.create({
-          data: {
-            ...data,
-            documentTitle: data.documentTitle || null,
-            documentUrl: data.documentUrl || null,
-            createdById: userId,
-            updatedById: userId,
-          },
-        }),
+      const record = await resultOrNullOnPrismaError(
+        () =>
+          client.patrimonialAsset.create({
+            data: {
+              ...data,
+              documentTitle: data.documentTitle || null,
+              documentUrl: data.documentUrl || null,
+              createdById: userId,
+              updatedById: userId,
+            },
+          }),
+        ['P2002'],
       )
+      return record ? toContract(record) : null
     },
     async update(id, input) {
       const { userId, ...data } = input
       const { publicationStatus, ...fields } = data
-      const record = await client.patrimonialAsset
-        .update({
-          where: { id },
-          data: {
-            ...fields,
-            ...(publicationStatus ? { statusState: publicationStatus } : {}),
-            documentTitle: fields.documentTitle || null,
-            documentUrl: fields.documentUrl || null,
-            updatedById: userId,
-            ...(publicationStatus === 'DRAFT' ? { publishedAt: null } : {}),
-          },
-        })
-        .catch(() => null)
+      const record = await resultOrNullOnPrismaError(
+        () =>
+          client.patrimonialAsset.update({
+            where: { id },
+            data: {
+              ...fields,
+              ...(publicationStatus ? { statusState: publicationStatus } : {}),
+              documentTitle: fields.documentTitle || null,
+              documentUrl: fields.documentUrl || null,
+              updatedById: userId,
+              ...(publicationStatus === 'DRAFT' ? { publishedAt: null } : {}),
+            },
+          }),
+        ['P2025', 'P2002'],
+      )
       return record ? toContract(record) : null
     },
     async publishExercise(exercise, userId) {
-      await client.patrimonialAsset.updateMany({
-        where: { exercise },
-        data: {
-          statusState: 'PUBLISHED',
-          publishedAt: new Date(),
-          updatedById: userId,
-        },
-      })
-      return (
-        await client.patrimonialAsset.findMany({
+      const records = await client.$transaction(async (transaction) => {
+        await transaction.patrimonialAsset.updateMany({
+          where: { exercise },
+          data: {
+            statusState: 'PUBLISHED',
+            publishedAt: new Date(),
+            updatedById: userId,
+          },
+        })
+        return transaction.patrimonialAsset.findMany({
           where: { exercise },
           orderBy: { informationType: 'asc' },
         })
-      ).map(toContract)
+      })
+      return records.map(toContract)
     },
     async listPublished(): Promise<PublicPatrimonialPage> {
       const records = await client.patrimonialAsset.findMany({

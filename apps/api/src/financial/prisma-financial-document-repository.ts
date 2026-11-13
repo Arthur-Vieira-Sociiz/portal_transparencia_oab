@@ -1,35 +1,16 @@
-import { PrismaPg } from '@prisma/adapter-pg'
-import { PrismaClient } from '../generated/prisma/client.js'
 import type {
   AdminFinancialDocumentRecord,
   PublicFinancialPage,
 } from '@oab-transparencia/contracts/transparency'
+import type { FinancialDocument } from '../generated/prisma/client.js'
+import {
+  getPrismaClient,
+  resultOrNullOnPrismaError,
+  type DatabaseClient,
+} from '../infrastructure/database/prisma.js'
 import type { FinancialDocumentRepository } from './financial-document-service.js'
 
-let prisma: PrismaClient | undefined
-function getPrismaClient() {
-  if (prisma) return prisma
-  const connectionString =
-    process.env.DATABASE_URL_POOLED ?? process.env.DATABASE_URL
-  if (!connectionString) throw new Error('DATABASE_URL não configurada.')
-  prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString }) })
-  return prisma
-}
-
-function toContract(record: {
-  id: string
-  informationType: string
-  period: string
-  exercise: number
-  documentTitle: string
-  documentUrl: string | null
-  pdfUrl: string | null
-  csvUrl: string | null
-  status: 'DRAFT' | 'PUBLISHED'
-  createdAt: Date
-  updatedAt: Date
-  publishedAt: Date | null
-}): AdminFinancialDocumentRecord {
+function toContract(record: FinancialDocument): AdminFinancialDocumentRecord {
   return {
     id: record.id,
     informationType:
@@ -84,8 +65,9 @@ function toContract(record: {
   }
 }
 
-export function createPrismaFinancialDocumentRepository(): FinancialDocumentRepository {
-  const client = getPrismaClient()
+export function createPrismaFinancialDocumentRepository(
+  client: DatabaseClient = getPrismaClient(),
+): FinancialDocumentRepository {
   const sectionTitles = {
     'trial-balances': 'Balancetes',
     'financial-statements': 'Demonstrativos Financeiros',
@@ -154,51 +136,58 @@ export function createPrismaFinancialDocumentRepository(): FinancialDocumentRepo
     },
     async create(input) {
       const { userId, ...data } = input
-      const record = await client.financialDocument.create({
-        data: {
-          ...data,
-          documentTitle: `${data.informationType} — ${data.period}`,
-          documentUrl: data.pdfUrl || data.csvUrl || null,
-          createdById: userId,
-          updatedById: userId,
-        },
-      })
-      return toContract(record)
+      const record = await resultOrNullOnPrismaError(
+        () =>
+          client.financialDocument.create({
+            data: {
+              ...data,
+              documentTitle: `${data.informationType} — ${data.period}`,
+              documentUrl: data.pdfUrl || data.csvUrl || null,
+              createdById: userId,
+              updatedById: userId,
+            },
+          }),
+        ['P2002'],
+      )
+      return record ? toContract(record) : null
     },
     async update(id, input) {
       const { userId, ...data } = input
-      const record = await client.financialDocument
-        .update({
-          where: { id },
-          data: {
-            ...data,
-            ...(data.pdfUrl !== undefined || data.csvUrl !== undefined
-              ? {
-                  documentUrl: data.pdfUrl || data.csvUrl || null,
-                }
-              : {}),
-            updatedById: userId,
-            ...(data.status === 'DRAFT' ? { publishedAt: null } : {}),
-          },
-        })
-        .catch(() => null)
+      const record = await resultOrNullOnPrismaError(
+        () =>
+          client.financialDocument.update({
+            where: { id },
+            data: {
+              ...data,
+              ...(data.pdfUrl !== undefined || data.csvUrl !== undefined
+                ? {
+                    documentUrl: data.pdfUrl || data.csvUrl || null,
+                  }
+                : {}),
+              updatedById: userId,
+              ...(data.status === 'DRAFT' ? { publishedAt: null } : {}),
+            },
+          }),
+        ['P2025', 'P2002'],
+      )
       return record ? toContract(record) : null
     },
     async publishExercise(exercise, userId) {
-      await client.financialDocument.updateMany({
-        where: { exercise },
-        data: {
-          status: 'PUBLISHED',
-          publishedAt: new Date(),
-          updatedById: userId,
-        },
-      })
-      return (
-        await client.financialDocument.findMany({
+      const records = await client.$transaction(async (transaction) => {
+        await transaction.financialDocument.updateMany({
+          where: { exercise },
+          data: {
+            status: 'PUBLISHED',
+            publishedAt: new Date(),
+            updatedById: userId,
+          },
+        })
+        return transaction.financialDocument.findMany({
           where: { exercise },
           orderBy: { informationType: 'asc' },
         })
-      ).map(toContract)
+      })
+      return records.map(toContract)
     },
   }
 }

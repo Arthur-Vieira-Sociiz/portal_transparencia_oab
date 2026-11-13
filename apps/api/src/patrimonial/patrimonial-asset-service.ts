@@ -26,7 +26,7 @@ export type PatrimonialAssetRepository = {
   ): Promise<AdminPatrimonialAsset | null>
   create(
     input: CreatePatrimonialAssetRequest & { userId: string },
-  ): Promise<AdminPatrimonialAsset>
+  ): Promise<AdminPatrimonialAsset | null>
   update(
     id: string,
     input: UpdatePatrimonialAssetRequest & { userId: string },
@@ -53,7 +53,11 @@ export function createPatrimonialAssetService(
       ) {
         throw new PatrimonialAssetError('PATRIMONIAL_ASSET_ALREADY_EXISTS')
       }
-      return repository.create(input)
+      const result = await repository.create(input)
+      if (!result) {
+        throw new PatrimonialAssetError('PATRIMONIAL_ASSET_ALREADY_EXISTS')
+      }
+      return result
     },
     async update(
       id: string,
