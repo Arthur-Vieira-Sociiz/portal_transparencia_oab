@@ -2,10 +2,17 @@ import { useState } from 'react'
 
 import { useQuery } from '@tanstack/react-query'
 import type { BudgetRecord } from '@oab-transparencia/contracts'
+import {
+  PublicFilters,
+  PublicPageState,
+  PublicSectionHeader,
+  PublicSelectField,
+  PublicTableScroll,
+} from '@/components/shared/public-page'
 
 import { getPublicBudgetRecords } from '../../../lib/api'
 import { formatCurrency } from '../../../lib/formatters'
-import { PublicPortalLayout } from '../components/PublicPortalLayout'
+import { PublicPortalLayout } from '@/features/public-shell/components/PublicPortalLayout'
 import '../public-portal.css'
 
 const CURRENT_EXERCISE = new Date().getFullYear()
@@ -69,14 +76,14 @@ export function BudgetPage() {
   })
 
   if (page.isPending) {
-    return <p className="public-page-state">Carregando informações…</p>
+    return <PublicPageState>Carregando informações…</PublicPageState>
   }
 
   if (page.isError) {
     return (
-      <p className="public-page-state">
+      <PublicPageState kind="error">
         Não foi possível carregar as informações.
-      </p>
+      </PublicPageState>
     )
   }
 
@@ -89,57 +96,51 @@ export function BudgetPage() {
   return (
     <PublicPortalLayout>
       <section aria-labelledby="budget-title" className="budget-content">
-        <h2 className="public-section-title" id="budget-title">
-          Visão orçamentária por exercício
-        </h2>
-        <p className="budget-content__intro">
-          Acompanhe o orçamento anual, a previsão e a execução financeira por
-          categoria.
-        </p>
+        <PublicSectionHeader
+          description="Acompanhe o orçamento anual, a previsão e a execução financeira por categoria."
+          id="budget-title"
+          title="Visão orçamentária por exercício"
+        />
 
-        <div className="budget-filters">
-          <label className="budget-filter" htmlFor="budget-exercise">
-            <span>Exercício/Ano</span>
-            <select
-              id="budget-exercise"
-              onChange={(event) => setExercise(Number(event.target.value))}
-              value={exercise}
-            >
-              {(page.data.availableExercises.length
-                ? page.data.availableExercises
-                : [exercise]
-              ).map((year) => (
-                <option key={year} value={year}>
-                  {year}
+        <PublicFilters className="budget-filters">
+          <PublicSelectField
+            containerClassName="budget-filter"
+            id="budget-exercise"
+            label="Exercício/Ano"
+            onChange={(event) => setExercise(Number(event.target.value))}
+            value={exercise}
+          >
+            {(page.data.availableExercises.length
+              ? page.data.availableExercises
+              : [exercise]
+            ).map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
+          </PublicSelectField>
+
+          <PublicSelectField
+            containerClassName="budget-filter"
+            id="budget-information-type"
+            label="Tipo de informação"
+            onChange={(event) =>
+              setInformationType(event.target.value as 'all' | InformationType)
+            }
+            value={informationType}
+          >
+            <option value="all">Todos</option>
+            {(Object.keys(informationTypeLabels) as InformationType[]).map(
+              (type) => (
+                <option key={type} value={type}>
+                  {informationTypeLabels[type]}
                 </option>
-              ))}
-            </select>
-          </label>
+              ),
+            )}
+          </PublicSelectField>
+        </PublicFilters>
 
-          <label className="budget-filter" htmlFor="budget-information-type">
-            <span>Tipo de informação</span>
-            <select
-              id="budget-information-type"
-              onChange={(event) =>
-                setInformationType(
-                  event.target.value as 'all' | InformationType,
-                )
-              }
-              value={informationType}
-            >
-              <option value="all">Todos</option>
-              {(Object.keys(informationTypeLabels) as InformationType[]).map(
-                (type) => (
-                  <option key={type} value={type}>
-                    {informationTypeLabels[type]}
-                  </option>
-                ),
-              )}
-            </select>
-          </label>
-        </div>
-
-        <div className="budget-table-scroll">
+        <PublicTableScroll className="budget-table-scroll">
           <table className="budget-table">
             <thead>
               <tr>
@@ -197,7 +198,7 @@ export function BudgetPage() {
               )}
             </tbody>
           </table>
-        </div>
+        </PublicTableScroll>
 
         <p className="budget-note">
           *O percentual indica quanto do orçamento já foi utilizado no exercício

@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import type { Chart as ChartInstance, ChartConfiguration } from 'chart.js'
+import { PublicPageState } from '@/components/shared/public-page'
 import { formatCurrency, formatInteger } from '../../../lib/formatters'
 import { getPublicReportsPage } from '../../../lib/api'
-import { PublicPortalLayout } from '../components/PublicPortalLayout'
+import { PublicPortalLayout } from '@/features/public-shell/components/PublicPortalLayout'
 import { localPublicTransparencyRepository } from '../data/public.repository'
 import '../public-portal.css'
 
@@ -74,12 +75,12 @@ export function ReportsIndicatorsPage() {
     staleTime: Number.POSITIVE_INFINITY,
   })
   if (page.isPending)
-    return <p className="public-page-state">Carregando informações…</p>
+    return <PublicPageState>Carregando informações…</PublicPageState>
   if (page.isError)
     return (
-      <p className="public-page-state">
+      <PublicPageState kind="error">
         Não foi possível carregar as informações.
-      </p>
+      </PublicPageState>
     )
   const selectedExercise =
     exercise !== null && page.data.availableExercises.includes(exercise)
@@ -91,9 +92,9 @@ export function ReportsIndicatorsPage() {
   if (!current) {
     return (
       <PublicPortalLayout>
-        <p className="public-page-state">
+        <PublicPageState kind="empty">
           Nenhum relatório ou indicador foi publicado ainda.
-        </p>
+        </PublicPageState>
       </PublicPortalLayout>
     )
   }

@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
+import { PublicPageState } from '@/components/shared/public-page'
 
 import { AdministrativeEmbed } from '../components/AdministrativeEmbed'
-import { PublicPortalLayout } from '../components/PublicPortalLayout'
+import { PublicPortalLayout } from '@/features/public-shell/components/PublicPortalLayout'
 import { localPublicTransparencyRepository } from '../data/public.repository'
 import '../public-portal.css'
 
@@ -31,14 +32,14 @@ export function AdministrativePage() {
   })
 
   if (page.isPending) {
-    return <p className="public-page-state">Carregando informações…</p>
+    return <PublicPageState>Carregando informações…</PublicPageState>
   }
 
   if (page.isError) {
     return (
-      <p className="public-page-state">
+      <PublicPageState kind="error">
         Não foi possível carregar as informações.
-      </p>
+      </PublicPageState>
     )
   }
 

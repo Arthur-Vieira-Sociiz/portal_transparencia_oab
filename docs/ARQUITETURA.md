@@ -55,13 +55,27 @@ apps/web/src/
 ├── app/
 │   ├── admin/                # rotas e layout autenticados
 │   └── public/               # rotas e layout incorporáveis
-├── features/                 # módulos por domínio
-├── components/               # componentes compartilhados da aplicação
-├── data/                     # cliente HTTP e repositório local temporário
+├── components/
+│   ├── ui/                   # primitivas visuais
+│   └── shared/               # componentes com usos equivalentes comprovados
+├── features/
+│   ├── public-shell/         # hero, navegação e layout público
+│   ├── general-data/         # API, queries e componentes de Dados Gerais
+│   └── public/               # páginas e domínios públicos ainda em migração
+├── data/                     # repositório local temporário
+├── lib/
+│   ├── api-client.ts         # transporte HTTP e tratamento central de sessão
+│   └── api.ts                # adaptador temporário dos domínios não migrados
 └── styles/                   # tokens e estilos globais
 ```
 
 O compartilhamento ocorre em componentes e módulos de domínio, não pela mistura dos layouts. A área pública nunca importa componentes de autenticação ou edição.
+
+Dados Gerais é o módulo piloto do frontend: valida respostas na borda, encapsula
+queries e mutations do TanStack Query e mantém suas query keys no próprio domínio.
+Estados de página, cabeçalhos, filtros, links de download e contêineres de tabela
+são compartilhados somente quando preservam a mesma semântica entre páginas; regras
+de negócio e formatos de cada domínio permanecem na respectiva feature.
 
 ## Fronteiras internas da API
 

@@ -2,10 +2,15 @@ import { useState } from 'react'
 
 import { useQuery } from '@tanstack/react-query'
 import type { TransparencyDocument } from '@oab-transparencia/contracts'
+import {
+  PublicFilters,
+  PublicPageState,
+  PublicSelectField,
+} from '@/components/shared/public-page'
 
 import { formatCurrency } from '../../../lib/formatters'
 import { getPublicContractsPage } from '../../../lib/api'
-import { PublicPortalLayout } from '../components/PublicPortalLayout'
+import { PublicPortalLayout } from '@/features/public-shell/components/PublicPortalLayout'
 import { localPublicTransparencyRepository } from '../data/public.repository'
 import '../public-portal.css'
 
@@ -72,14 +77,14 @@ export function ContractsPage() {
   })
 
   if (page.isPending) {
-    return <p className="public-page-state">Carregando informações…</p>
+    return <PublicPageState>Carregando informações…</PublicPageState>
   }
 
   if (page.isError) {
     return (
-      <p className="public-page-state">
+      <PublicPageState kind="error">
         Não foi possível carregar as informações.
-      </p>
+      </PublicPageState>
     )
   }
 
@@ -127,45 +132,43 @@ export function ContractsPage() {
           </label>
         </div>
 
-        <div className="contracts-filters">
-          <label className="contracts-filter" htmlFor="contracts-exercise">
-            <span>Ano</span>
-            <select
-              id="contracts-exercise"
-              onChange={(event) =>
-                setExercise(
-                  event.target.value === 'all'
-                    ? 'all'
-                    : Number(event.target.value),
-                )
-              }
-              value={exercise}
-            >
-              <option value="all">Todos</option>
-              {page.data.availableExercises.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-          </label>
+        <PublicFilters className="contracts-filters">
+          <PublicSelectField
+            containerClassName="contracts-filter"
+            id="contracts-exercise"
+            label="Ano"
+            onChange={(event) =>
+              setExercise(
+                event.target.value === 'all'
+                  ? 'all'
+                  : Number(event.target.value),
+              )
+            }
+            value={exercise}
+          >
+            <option value="all">Todos</option>
+            {page.data.availableExercises.map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
+          </PublicSelectField>
 
-          <label className="contracts-filter" htmlFor="contracts-supplier">
-            <span>Fornecedor</span>
-            <select
-              id="contracts-supplier"
-              onChange={(event) => setSupplier(event.target.value)}
-              value={supplier}
-            >
-              <option value="all">Todos os fornecedores</option>
-              {suppliers.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
+          <PublicSelectField
+            containerClassName="contracts-filter"
+            id="contracts-supplier"
+            label="Fornecedor"
+            onChange={(event) => setSupplier(event.target.value)}
+            value={supplier}
+          >
+            <option value="all">Todos os fornecedores</option>
+            {suppliers.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </PublicSelectField>
+        </PublicFilters>
 
         {contracts.length > 0 ? (
           <div className="contracts-grid">

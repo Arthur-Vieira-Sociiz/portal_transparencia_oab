@@ -322,10 +322,12 @@ explicitamente destinadas ao plano Firebase.
 
 ### Etapa 18 — Base modular do frontend e piloto Dados Gerais
 
-- [ ] Criar `public-shell` e mover somente os componentes estruturais públicos.
-- [ ] Criar o módulo `general-data` com API, hook, componentes e consumidores.
-- [ ] Definir query keys no módulo e manter funções de query estáveis.
-- [ ] Atualizar imports e rotas sem mudança visual ou de contrato.
+- [x] Criar `public-shell` e mover somente os componentes estruturais públicos.
+- [x] Criar o módulo `general-data` com API, hook, componentes e consumidores.
+- [x] Definir query keys no módulo e manter funções de query estáveis.
+- [x] Atualizar imports e rotas sem mudança visual ou de contrato.
+- [x] Extrair estados, cabeçalhos, filtros, links de download e rolagem de tabela
+      comprovadamente repetidos nas páginas públicas.
 
 **Aceite:** Dados Gerais demonstra a estrutura que os outros domínios seguirão,
 sem dependência lateral e sem abstração genérica prematura.
@@ -425,5 +427,5 @@ sem dependência lateral e sem abstração genérica prematura.
 
 ## Próxima ação
 
-As Etapas 12 a 17 estão concluídas. Depois da revisão do usuário, iniciar somente
-a Etapa 18 pela base modular do frontend e pelo piloto de Dados Gerais.
+As Etapas 12 a 18 estão concluídas. Depois da revisão do usuário, iniciar a Etapa
+19 pelo módulo Orçamentário, seguindo o piloto de Dados Gerais.

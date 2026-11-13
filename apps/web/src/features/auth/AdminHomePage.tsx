@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import {
   Building2,
@@ -33,11 +33,11 @@ import {
   sanitizeNumericInput,
 } from '@/lib/numeric-format'
 import {
-  createGeneralData,
-  listGeneralData,
-  publishGeneralData,
-  updateGeneralData,
-} from '../../lib/api'
+  useAdminGeneralData,
+  usePublishGeneralData,
+  useSaveGeneralData,
+} from '@/features/general-data/general-data.queries'
+import { GeneralDataPreviewGrid } from '@/features/general-data/components/GeneralDataPreviewGrid'
 import { getStoredAuthSession } from './auth-session'
 import { AdminShell } from './AdminShell'
 
@@ -96,38 +96,22 @@ function formatCurrency(value: number) {
 export function AdminHomePage() {
   const session = getStoredAuthSession()
   const sessionToken = session?.token
-  const [records, setRecords] = useState<GeneralData[]>([])
   const [form, setForm] = useState<CreateGeneralDataRequest>(emptyForm)
   const [inputValues, setInputValues] = useState(() =>
     getNumericInputValues(emptyForm),
   )
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
   const [pendingConfirmation, setPendingConfirmation] = useState<
     'clear' | 'publish' | null
   >(null)
   const { toast } = useToast()
-
-  useEffect(() => {
-    if (!sessionToken) return
-    listGeneralData(sessionToken)
-      .then(setRecords)
-      .catch((error: unknown) =>
-        toast({
-          title: 'Não foi possível carregar os dados',
-          description:
-            error instanceof Error
-              ? error.message
-              : 'Tente novamente em alguns instantes.',
-          variant: 'error',
-        }),
-      )
-      .finally(() => setIsLoading(false))
-  }, [sessionToken, toast])
+  const recordsQuery = useAdminGeneralData(sessionToken)
+  const saveMutation = useSaveGeneralData(sessionToken ?? '')
+  const publishMutation = usePublishGeneralData(sessionToken ?? '')
+  const records = recordsQuery.data ?? []
+  const isSaving = saveMutation.isPending || publishMutation.isPending
 
   if (!session) return <Navigate replace to="/login" />
-  const authenticatedSession = session
 
   const previewItems = [
     {
@@ -259,16 +243,11 @@ export function AdminHomePage() {
   }
 
   async function saveDraft() {
-    setIsSaving(true)
     try {
-      const saved = editingId
-        ? await updateGeneralData(authenticatedSession.token, editingId, form)
-        : await createGeneralData(authenticatedSession.token, form)
-      setRecords((current) =>
-        [...current.filter((record) => record.id !== saved.id), saved].sort(
-          (a, b) => b.exercise - a.exercise,
-        ),
-      )
+      const saved = await saveMutation.mutateAsync({
+        id: editingId ?? undefined,
+        input: form,
+      })
       setEditingId(saved.id)
       toast({
         title: 'Rascunho salvo',
@@ -282,8 +261,6 @@ export function AdminHomePage() {
           error instanceof Error ? error.message : 'Tente novamente.',
         variant: 'error',
       })
-    } finally {
-      setIsSaving(false)
     }
   }
 
@@ -297,17 +274,8 @@ export function AdminHomePage() {
       })
       return
     }
-    setIsSaving(true)
     try {
-      const published = await publishGeneralData(
-        authenticatedSession.token,
-        editingId,
-      )
-      setRecords((current) =>
-        current.map((record) =>
-          record.id === published.id ? published : record,
-        ),
-      )
+      await publishMutation.mutateAsync(editingId)
       toast({
         title: 'Dados gerais publicados',
         description: 'Os indicadores já estão disponíveis na área pública.',
@@ -320,8 +288,6 @@ export function AdminHomePage() {
           error instanceof Error ? error.message : 'Tente novamente.',
         variant: 'error',
       })
-    } finally {
-      setIsSaving(false)
     }
   }
 
@@ -418,12 +384,17 @@ export function AdminHomePage() {
               <CardTitle>Exercícios cadastrados</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-3">
-              {isLoading ? (
+              {recordsQuery.isPending ? (
                 <p className="text-sm text-muted-foreground">
                   Carregando registros…
                 </p>
               ) : null}
-              {!isLoading && records.length === 0 ? (
+              {recordsQuery.isError ? (
+                <p className="text-sm text-destructive" role="alert">
+                  Não foi possível carregar os registros.
+                </p>
+              ) : null}
+              {!recordsQuery.isPending && records.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                   Nenhum exercício cadastrado. Comece pelo formulário acima.
                 </p>
@@ -462,24 +433,11 @@ export function AdminHomePage() {
                 É assim que os cards serão exibidos no portal público.
               </p>
             </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-3">
-              {previewItems.map(({ icon: Icon, label, value }) => (
-                <div
-                  className="min-h-[110px] rounded-lg border border-[#1e3a67] bg-white p-3"
-                  key={label}
-                >
-                  <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Icon className="size-3.5 text-[#ff3557]" />
-                    {label}
-                  </p>
-                  <strong className="mt-2 block text-sm text-primary">
-                    {value}
-                  </strong>
-                  <span className="mt-1 block text-xs text-muted-foreground">
-                    Exercício {form.exercise}
-                  </span>
-                </div>
-              ))}
+            <CardContent>
+              <GeneralDataPreviewGrid
+                exercise={form.exercise}
+                items={previewItems}
+              />
             </CardContent>
           </Card>
         </aside>
@@ -506,25 +464,11 @@ export function AdminHomePage() {
         }
       >
         {pendingConfirmation === 'publish' ? (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {previewItems.map(({ icon: Icon, label, value }) => (
-              <div
-                className="rounded-lg border border-[#1e3a67]/20 bg-[#f7f9fc] p-3"
-                key={label}
-              >
-                <p className="flex items-center gap-1.5 text-xs text-[#52617a]">
-                  <Icon className="size-3.5 text-[#ff3557]" />
-                  {label}
-                </p>
-                <strong className="mt-2 block text-sm text-[#223149]">
-                  {value}
-                </strong>
-                <span className="mt-1 block text-xs text-[#52617a]">
-                  Exercício {form.exercise}
-                </span>
-              </div>
-            ))}
-          </div>
+          <GeneralDataPreviewGrid
+            exercise={form.exercise}
+            items={previewItems}
+            variant="dialog"
+          />
         ) : null}
       </ConfirmationDialog>
     </AdminShell>

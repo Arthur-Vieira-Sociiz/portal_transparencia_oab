@@ -1,52 +1,25 @@
 import { useState } from 'react'
 
 import { useQuery } from '@tanstack/react-query'
-import type {
-  FinancialSectionId,
-  TransparencyDocument,
-} from '@oab-transparencia/contracts'
+import type { FinancialSectionId } from '@oab-transparencia/contracts'
+import {
+  PublicDownloadLink,
+  PublicFilters,
+  PublicPageState,
+  PublicSectionHeader,
+  PublicSelectField,
+} from '@/components/shared/public-page'
 import { getPublicFinancialPage } from '../../../lib/api'
 
-import { PublicPortalLayout } from '../components/PublicPortalLayout'
+import { PublicPortalLayout } from '@/features/public-shell/components/PublicPortalLayout'
 import { localPublicTransparencyRepository } from '../data/public.repository'
 import '../public-portal.css'
-
-function DownloadIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      fill="none"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
-    >
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-      <path d="m7 10 5 5 5-5M12 15V3" />
-    </svg>
-  )
-}
 
 function ChevronIcon() {
   return (
     <svg aria-hidden="true" fill="none" viewBox="0 0 24 24">
       <path d="m6 9 6 6 6-6" />
     </svg>
-  )
-}
-
-function DownloadLink({ document }: { document: TransparencyDocument }) {
-  return (
-    <a
-      className="financial-download"
-      href={document.url}
-      rel="noreferrer"
-      target="_blank"
-    >
-      <DownloadIcon />
-      {document.title}
-    </a>
   )
 }
 
@@ -68,14 +41,14 @@ export function FinancialPage() {
   })
 
   if (page.isPending) {
-    return <p className="public-page-state">Carregando informações…</p>
+    return <PublicPageState>Carregando informações…</PublicPageState>
   }
 
   if (page.isError) {
     return (
-      <p className="public-page-state">
+      <PublicPageState kind="error">
         Não foi possível carregar as informações.
-      </p>
+      </PublicPageState>
     )
   }
 
@@ -87,51 +60,45 @@ export function FinancialPage() {
   return (
     <PublicPortalLayout>
       <section aria-labelledby="financial-title" className="financial-content">
-        <h2 className="public-section-title" id="financial-title">
-          Financeiro
-        </h2>
-        <p className="financial-content__intro">
-          Acompanhe as informações sobre receitas, despesas, balancetes e
-          demonstrativos financeiros.
-        </p>
+        <PublicSectionHeader
+          description="Acompanhe as informações sobre receitas, despesas, balancetes e demonstrativos financeiros."
+          id="financial-title"
+          title="Financeiro"
+        />
 
-        <div className="financial-filters">
-          <label className="financial-filter" htmlFor="financial-exercise">
-            <span>Exercício/Ano</span>
-            <select
-              id="financial-exercise"
-              onChange={(event) => setExercise(Number(event.target.value))}
-              value={exercise}
-            >
-              {page.data.availableExercises.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="financial-filter" htmlFor="financial-section">
-            <span>Tipo de informação</span>
-            <select
-              id="financial-section"
-              onChange={(event) =>
-                setSectionFilter(
-                  event.target.value as 'all' | FinancialSectionId,
-                )
-              }
-              value={sectionFilter}
-            >
-              <option value="all">Todos</option>
-              <option value="trial-balances">Balancetes</option>
-              <option value="financial-statements">
-                Demonstrativos Financeiros
+        <PublicFilters className="financial-filters">
+          <PublicSelectField
+            containerClassName="financial-filter"
+            id="financial-exercise"
+            label="Exercício/Ano"
+            onChange={(event) => setExercise(Number(event.target.value))}
+            value={exercise}
+          >
+            {page.data.availableExercises.map((year) => (
+              <option key={year} value={year}>
+                {year}
               </option>
-              <option value="revenues">Quadro Sintético de Receitas</option>
-              <option value="expenses">Quadro Sintético de Despesas</option>
-            </select>
-          </label>
-        </div>
+            ))}
+          </PublicSelectField>
+
+          <PublicSelectField
+            containerClassName="financial-filter"
+            id="financial-section"
+            label="Tipo de informação"
+            onChange={(event) =>
+              setSectionFilter(event.target.value as 'all' | FinancialSectionId)
+            }
+            value={sectionFilter}
+          >
+            <option value="all">Todos</option>
+            <option value="trial-balances">Balancetes</option>
+            <option value="financial-statements">
+              Demonstrativos Financeiros
+            </option>
+            <option value="revenues">Quadro Sintético de Receitas</option>
+            <option value="expenses">Quadro Sintético de Despesas</option>
+          </PublicSelectField>
+        </PublicFilters>
 
         {sections && sections.length > 0 ? (
           <div className="financial-accordion">
@@ -165,7 +132,8 @@ export function FinancialPage() {
                           <span>{item.title}</span>
                           <div className="financial-document-row__actions">
                             {item.documents.map((document) => (
-                              <DownloadLink
+                              <PublicDownloadLink
+                                className="financial-download"
                                 document={document}
                                 key={document.id}
                               />

@@ -1,10 +1,17 @@
 import { useState } from 'react'
 
 import { useQuery } from '@tanstack/react-query'
+import {
+  PublicFilters,
+  PublicPageState,
+  PublicSectionHeader,
+  PublicSelectField,
+  PublicTableScroll,
+} from '@/components/shared/public-page'
 
 import { formatCurrency } from '../../../lib/formatters'
 import { getPublicPatrimonialPage } from '../../../lib/api'
-import { PublicPortalLayout } from '../components/PublicPortalLayout'
+import { PublicPortalLayout } from '@/features/public-shell/components/PublicPortalLayout'
 import { localPublicTransparencyRepository } from '../data/public.repository'
 import '../public-portal.css'
 
@@ -46,14 +53,14 @@ export function PatrimonialPage() {
   })
 
   if (page.isPending) {
-    return <p className="public-page-state">Carregando informações…</p>
+    return <PublicPageState>Carregando informações…</PublicPageState>
   }
 
   if (page.isError) {
     return (
-      <p className="public-page-state">
+      <PublicPageState kind="error">
         Não foi possível carregar as informações.
-      </p>
+      </PublicPageState>
     )
   }
 
@@ -76,65 +83,59 @@ export function PatrimonialPage() {
         aria-labelledby="patrimonial-title"
         className="patrimonial-content"
       >
-        <h2 className="public-section-title" id="patrimonial-title">
-          Patrimonial
-        </h2>
-        <p className="patrimonial-content__intro">
-          Aqui você encontra os bens pertencentes à OAB Alagoas e informações
-          consolidadas sobre o patrimônio institucional. Use os filtros abaixo
-          para localizar dados por ano, tipo de bem ou situação.
-        </p>
+        <PublicSectionHeader
+          description="Aqui você encontra os bens pertencentes à OAB Alagoas e informações consolidadas sobre o patrimônio institucional. Use os filtros abaixo para localizar dados por ano, tipo de bem ou situação."
+          id="patrimonial-title"
+          title="Patrimonial"
+        />
 
-        <div className="patrimonial-filters">
-          <label className="patrimonial-filter" htmlFor="patrimonial-exercise">
-            <span>Ano</span>
-            <select
-              id="patrimonial-exercise"
-              onChange={(event) => setExercise(Number(event.target.value))}
-              value={exercise}
-            >
-              {page.data.availableExercises.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-          </label>
+        <PublicFilters className="patrimonial-filters">
+          <PublicSelectField
+            containerClassName="patrimonial-filter"
+            id="patrimonial-exercise"
+            label="Ano"
+            onChange={(event) => setExercise(Number(event.target.value))}
+            value={exercise}
+          >
+            {page.data.availableExercises.map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
+          </PublicSelectField>
 
-          <label className="patrimonial-filter" htmlFor="patrimonial-type">
-            <span>Tipo de bem</span>
-            <select
-              id="patrimonial-type"
-              onChange={(event) => setInformationType(event.target.value)}
-              value={informationType}
-            >
-              <option value="all">Todos os tipos</option>
-              {informationTypes.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
-          </label>
+          <PublicSelectField
+            containerClassName="patrimonial-filter"
+            id="patrimonial-type"
+            label="Tipo de bem"
+            onChange={(event) => setInformationType(event.target.value)}
+            value={informationType}
+          >
+            <option value="all">Todos os tipos</option>
+            {informationTypes.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </PublicSelectField>
 
-          <label className="patrimonial-filter" htmlFor="patrimonial-status">
-            <span>Situação</span>
-            <select
-              id="patrimonial-status"
-              onChange={(event) => setStatus(event.target.value)}
-              value={status}
-            >
-              <option value="all">Todas</option>
-              {statuses.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
+          <PublicSelectField
+            containerClassName="patrimonial-filter"
+            id="patrimonial-status"
+            label="Situação"
+            onChange={(event) => setStatus(event.target.value)}
+            value={status}
+          >
+            <option value="all">Todas</option>
+            {statuses.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </PublicSelectField>
+        </PublicFilters>
 
-        <div className="patrimonial-table-scroll">
+        <PublicTableScroll className="patrimonial-table-scroll">
           <table className="patrimonial-table">
             <thead>
               <tr>
@@ -188,7 +189,7 @@ export function PatrimonialPage() {
               )}
             </tbody>
           </table>
-        </div>
+        </PublicTableScroll>
       </section>
     </PublicPortalLayout>
   )
