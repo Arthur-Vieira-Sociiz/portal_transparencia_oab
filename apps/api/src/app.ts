@@ -14,7 +14,6 @@ import {
   AdminCreatedUserResponseSchema,
 } from '@oab-transparencia/contracts/auth'
 import { ExerciseSchema } from '@oab-transparencia/contracts/common'
-import { HealthResponseSchema } from '@oab-transparencia/contracts/health'
 import cors from 'cors'
 import express, {
   type Express,
@@ -87,6 +86,7 @@ import {
   UpdateSupplierRequestSchema,
   PublicContractsPageSchema,
 } from '@oab-transparencia/contracts/transparency'
+import { healthRoutes } from './routes/health/health.routes.js'
 
 type AppOptions = {
   authService?: AuthService
@@ -323,14 +323,7 @@ export function createApp(options: AppOptions = {}): Express {
     return user
   }
 
-  app.get('/api/health', (_request, response) => {
-    const body = HealthResponseSchema.parse({
-      status: 'ok',
-      service: 'portal-transparencia-api',
-    })
-
-    response.json(body)
-  })
+  app.use(healthRoutes)
 
   app.post('/api/auth/register', async (request, response, next) => {
     try {
