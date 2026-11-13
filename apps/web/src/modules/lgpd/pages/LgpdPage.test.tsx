@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest'
 import { LgpdPage } from './LgpdPage'
 
 describe('LgpdPage', () => {
-  it('renders the policy and expands its privacy sections', async () => {
+  it('renders the static policy and expands its privacy sections', async () => {
     const client = new QueryClient({
       defaultOptions: { queries: { retry: false } },
     })

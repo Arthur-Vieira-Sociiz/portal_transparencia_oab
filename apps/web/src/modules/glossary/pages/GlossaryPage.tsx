@@ -1,11 +1,8 @@
 import { useState } from 'react'
 
-import { useQuery } from '@tanstack/react-query'
-import { PublicPageState } from '@/components/shared/public-page'
-
 import { PublicPortalLayout } from '@/modules/public-shell/components/PublicPortalLayout'
-import { localPublicTransparencyRepository } from '../data/public.repository'
-import '../public-portal.css'
+import { glossaryContent } from '../data/glossary.content'
+import '@/modules/public/public-portal.css'
 
 const alphabet = Array.from({ length: 26 }, (_, index) =>
   String.fromCharCode(65 + index),
@@ -21,25 +18,7 @@ function initialLetter(value: string) {
 
 export function GlossaryPage() {
   const [activeLetter, setActiveLetter] = useState('A')
-  const page = useQuery({
-    queryFn: () => localPublicTransparencyRepository.getGlossaryPage(),
-    queryKey: ['public-transparency', 'glossary'],
-    staleTime: Number.POSITIVE_INFINITY,
-  })
-
-  if (page.isPending) {
-    return <PublicPageState>Carregando informações…</PublicPageState>
-  }
-
-  if (page.isError) {
-    return (
-      <PublicPageState kind="error">
-        Não foi possível carregar as informações.
-      </PublicPageState>
-    )
-  }
-
-  const entries = page.data.entries.filter(
+  const entries = glossaryContent.entries.filter(
     (entry) => initialLetter(entry.term) === activeLetter,
   )
 
@@ -49,7 +28,9 @@ export function GlossaryPage() {
         <h2 className="public-section-title" id="glossary-title">
           Glossário Contábil e Administrativo
         </h2>
-        <p className="glossary-content__intro">{page.data.introduction}</p>
+        <p className="glossary-content__intro">
+          {glossaryContent.introduction}
+        </p>
 
         <div
           className="glossary-tabs"

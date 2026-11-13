@@ -1,12 +1,10 @@
 import { useState } from 'react'
 
-import { useQuery } from '@tanstack/react-query'
 import type { LgpdSectionGroup } from '@oab-transparencia/contracts'
-import { PublicPageState } from '@/components/shared/public-page'
 
 import { PublicPortalLayout } from '@/modules/public-shell/components/PublicPortalLayout'
-import { localPublicTransparencyRepository } from '../data/public.repository'
-import '../public-portal.css'
+import { lgpdContent } from '../data/lgpd.content'
+import '@/modules/public/public-portal.css'
 
 function ToggleIcon({ isOpen }: { isOpen: boolean }) {
   return (
@@ -55,24 +53,6 @@ function LgpdAccordionGroup({ group }: { group: LgpdSectionGroup }) {
 }
 
 export function LgpdPage() {
-  const page = useQuery({
-    queryFn: () => localPublicTransparencyRepository.getLgpdPage(),
-    queryKey: ['public-transparency', 'lgpd'],
-    staleTime: Number.POSITIVE_INFINITY,
-  })
-
-  if (page.isPending) {
-    return <PublicPageState>Carregando informações…</PublicPageState>
-  }
-
-  if (page.isError) {
-    return (
-      <PublicPageState kind="error">
-        Não foi possível carregar as informações.
-      </PublicPageState>
-    )
-  }
-
   return (
     <PublicPortalLayout>
       <section aria-labelledby="lgpd-title" className="lgpd-content">
@@ -80,12 +60,12 @@ export function LgpdPage() {
           LGPD
         </h2>
         <div className="lgpd-content__intro">
-          {page.data.introduction.map((paragraph) => (
+          {lgpdContent.introduction.map((paragraph) => (
             <p key={paragraph}>{paragraph}</p>
           ))}
         </div>
 
-        {page.data.groups.map((group) => (
+        {lgpdContent.groups.map((group) => (
           <LgpdAccordionGroup group={group} key={group.id} />
         ))}
       </section>

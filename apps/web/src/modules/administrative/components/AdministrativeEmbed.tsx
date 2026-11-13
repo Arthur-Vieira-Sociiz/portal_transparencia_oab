@@ -1,6 +1,6 @@
 export const ADMINISTRATIVE_EMBED_URL = 'https://oab-transparencia.netlify.app'
 
-type AdministrativeEmbedProps = {
+interface AdministrativeEmbedProps {
   src?: string
 }
 

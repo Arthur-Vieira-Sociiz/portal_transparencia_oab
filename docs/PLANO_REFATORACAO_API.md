@@ -166,7 +166,11 @@ apps/web/src/
 │   ├── human-resources/            # meses e localidades pertencem ao domínio
 │   ├── patrimonial/                # situação do bem ≠ status de publicação
 │   ├── contracts/                  # contratos e fornecedores no mesmo domínio
-│   └── reports/                    # seções e gráficos do próprio domínio
+│   ├── reports/                    # seções e gráficos do próprio domínio
+│   ├── institutional/              # conteúdo institucional estático tipado
+│   ├── administrative/             # organograma e embed institucional
+│   ├── glossary/                   # glossário estático tipado
+│   └── lgpd/                       # política e acordeões estáticos tipados
 └── lib/                            # utilitários sem regra de domínio
 ```
 
@@ -394,11 +398,17 @@ Contratos e Recursos Humanos. O componente de gráfico continua importando
 
 ### Etapa 25 — Módulos frontend dos conteúdos estáticos
 
-- [ ] Migrar Institucional, Administrativo, Glossário e LGPD para seus módulos sem
+- [x] Migrar Institucional, Administrativo, Glossário e LGPD para seus módulos sem
       criar CRUD ou API.
-- [ ] Renomear fixtures usadas em produção para conteúdo estático tipado, deixando
+- [x] Renomear fixtures usadas em produção para conteúdo estático tipado, deixando
       claro que são a fonte oficial dessas telas.
-- [ ] Preservar textos, embeds, acessibilidade e navegação atuais.
+- [x] Preservar textos, embeds, acessibilidade e navegação atuais.
+
+Cada módulo agora mantém sua fonte oficial em um arquivo `.content.ts`, validado
+pelos schemas compartilhados. Como esses dados são locais e estáticos, as páginas
+os importam diretamente, sem criar uma camada assíncrona ou cache artificial no
+TanStack Query. O organograma, a navegação por letras e os acordeões da LGPD foram
+verificados manualmente no navegador.
 
 ### Etapa 26 — Limpeza dos adaptadores temporários
 
@@ -443,5 +453,5 @@ Contratos e Recursos Humanos. O componente de gráfico continua importando
 
 ## Próxima ação
 
-As Etapas 12 a 24 estão concluídas. Depois da revisão do usuário, iniciar a Etapa
-25 pelos módulos frontend dos conteúdos estáticos.
+As Etapas 12 a 25 estão concluídas. Depois da revisão do usuário, iniciar a Etapa
+26 pela remoção dos adaptadores temporários que já não possuem consumidores.

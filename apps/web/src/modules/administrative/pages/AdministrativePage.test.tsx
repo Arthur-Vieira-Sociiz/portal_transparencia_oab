@@ -12,7 +12,7 @@ vi.mock('../components/AdministrativeEmbed', () => ({
 }))
 
 describe('AdministrativePage', () => {
-  it('renders the organogram and the existing administrative iframe', async () => {
+  it('renders the static organogram and administrative iframe', async () => {
     const client = new QueryClient({
       defaultOptions: { queries: { retry: false } },
     })

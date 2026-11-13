@@ -3,7 +3,7 @@ import {
   type PublicLgpdPage,
 } from '@oab-transparencia/contracts'
 
-const lgpdFixture = {
+const content = {
   introduction: [
     'A OAB Alagoas preza pela transparência, pela segurança das informações e pelo respeito aos direitos dos titulares de dados pessoais. Em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018), esta seção reúne, de forma clara e acessível, as informações sobre como os dados pessoais são tratados, protegidos e utilizados pela instituição.',
     'Aqui, o(a) cidadão(ã) poderá conhecer as políticas adotadas, os direitos garantidos pela legislação, os canais de atendimento ao titular de dados e as responsabilidades da OAB/AL no tratamento dessas informações, reforçando o compromisso institucional com a privacidade, a legalidade e a boa governança.',
@@ -154,4 +154,4 @@ const lgpdFixture = {
   ],
 } satisfies PublicLgpdPage
 
-export const parsedLgpdFixture = PublicLgpdPageSchema.parse(lgpdFixture)
+export const lgpdContent = PublicLgpdPageSchema.parse(content)

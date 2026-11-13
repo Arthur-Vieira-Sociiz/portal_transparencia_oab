@@ -3,7 +3,7 @@ import {
   type PublicGlossaryPage,
 } from '@oab-transparencia/contracts'
 
-const glossaryFixture = {
+const content = {
   introduction:
     'Este glossário foi elaborado para facilitar a compreensão dos principais termos financeiros, contábeis, orçamentários, patrimoniais e administrativos utilizados no Portal da Transparência da OAB Alagoas.',
   entries: [
@@ -315,5 +315,4 @@ const glossaryFixture = {
   ],
 } satisfies PublicGlossaryPage
 
-export const parsedGlossaryFixture =
-  PublicGlossaryPageSchema.parse(glossaryFixture)
+export const glossaryContent = PublicGlossaryPageSchema.parse(content)

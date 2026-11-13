@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest'
 import { GlossaryPage } from './GlossaryPage'
 
 describe('GlossaryPage', () => {
-  it('shows the terms grouped by their initial letter', async () => {
+  it('shows the static terms grouped by their initial letter', async () => {
     const client = new QueryClient({
       defaultOptions: { queries: { retry: false } },
     })

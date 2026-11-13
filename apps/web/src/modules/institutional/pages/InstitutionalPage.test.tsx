@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 import { InstitutionalPage } from './InstitutionalPage'
 
 describe('InstitutionalPage', () => {
-  it('renders the institutional content and active category', async () => {
+  it('renders the static institutional content and active category', async () => {
     const client = new QueryClient({
       defaultOptions: { queries: { retry: false } },
     })

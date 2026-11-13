@@ -6,7 +6,7 @@ import {
 } from './AdministrativeEmbed'
 
 describe('AdministrativeEmbed', () => {
-  it('preserves the iframe attributes received from WordPress', () => {
+  it('preserves the official iframe attributes', () => {
     const iframe = AdministrativeEmbed()
 
     expect(iframe.props).toMatchObject({
