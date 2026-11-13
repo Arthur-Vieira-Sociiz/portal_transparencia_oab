@@ -5,14 +5,12 @@ import type {
   PublicInstitutionalPage,
   PublicLgpdPage,
   PublicContractsPage,
-  PublicPatrimonialPage,
   PublicReportsPage,
 } from '@oab-transparencia/contracts'
 
 import { parsedAdministrativeFixture } from './administrative.fixture'
 import { parsedBudgetFixture } from './budget.fixture'
 import { parsedInstitutionalFixture } from './institutional.fixture'
-import { parsedPatrimonialFixture } from './patrimonial.fixture'
 import { parsedReportsFixture } from './reports.fixture'
 import { parsedLgpdFixture } from './lgpd.fixture'
 import { parsedContractsFixture } from './contracts.fixture'
@@ -25,7 +23,6 @@ export interface PublicTransparencyRepository {
   getContractsPage(): Promise<PublicContractsPage>
   getInstitutionalPage(): Promise<PublicInstitutionalPage>
   getLgpdPage(): Promise<PublicLgpdPage>
-  getPatrimonialPage(): Promise<PublicPatrimonialPage>
   getReportsPage(): Promise<PublicReportsPage>
 }
 
@@ -47,9 +44,6 @@ export const localPublicTransparencyRepository: PublicTransparencyRepository = {
   },
   async getLgpdPage() {
     return parsedLgpdFixture
-  },
-  async getPatrimonialPage() {
-    return parsedPatrimonialFixture
   },
   async getReportsPage() {
     return parsedReportsFixture

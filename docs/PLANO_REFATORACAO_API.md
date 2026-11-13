@@ -164,7 +164,7 @@ apps/web/src/
 │   ├── budget/
 │   ├── financial/
 │   ├── human-resources/            # meses e localidades pertencem ao domínio
-│   ├── patrimonial/
+│   ├── patrimonial/                # situação do bem ≠ status de publicação
 │   ├── contracts/
 │   └── reports/
 └── lib/                            # utilitários sem regra de domínio
@@ -361,9 +361,13 @@ sem copiar os resultados das queries para estado local.
 
 ### Etapa 22 — Módulo Patrimonial
 
-- [ ] Migrar API, hooks, páginas pública/administrativa e testes.
-- [ ] Preservar a diferença entre situação do bem e status de publicação.
-- [ ] Manter filtros e documentos dentro do domínio.
+- [x] Migrar API, hooks, páginas pública/administrativa e testes.
+- [x] Preservar a diferença entre situação do bem e status de publicação.
+- [x] Manter filtros e documentos dentro do domínio.
+
+O módulo usa `status` exclusivamente para a situação física do bem e
+`publicationStatus` para o fluxo de rascunho/publicação. A publicação atualiza o
+cache administrativo e invalida os dados públicos.
 
 ### Etapa 23 — Módulo Contratos e Fornecedores
 
@@ -431,5 +435,5 @@ sem copiar os resultados das queries para estado local.
 
 ## Próxima ação
 
-As Etapas 12 a 21 estão concluídas. Depois da revisão do usuário, iniciar a Etapa
-22 pelo módulo Patrimonial, seguindo os módulos já migrados.
+As Etapas 12 a 22 estão concluídas. Depois da revisão do usuário, iniciar a Etapa
+23 pelo módulo Contratos e Fornecedores, seguindo os módulos já migrados.

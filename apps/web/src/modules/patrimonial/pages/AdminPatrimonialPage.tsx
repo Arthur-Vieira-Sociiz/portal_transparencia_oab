@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   Eye,
   FileText,
@@ -22,20 +22,16 @@ import { Label } from '@/components/ui/label'
 import { NumericInput } from '@/components/ui/numeric-input'
 import { useToast } from '@/components/ui/use-toast'
 import {
-  createPatrimonialAsset,
-  listPatrimonialAssets,
-  publishPatrimonialExercise,
-  updatePatrimonialAsset,
-} from '../../lib/api'
-import { getStoredAuthSession } from './auth-session'
-import { AdminShell } from './AdminShell'
-
-const informationTypes = [
-  'Imóvel',
-  'Mobiliário',
-  'Equipamentos de informática',
-] as const
-const assetStatuses = ['Ativo', 'Locado', 'Emprestado'] as const
+  patrimonialAssetStatuses,
+  patrimonialInformationTypes,
+} from '../data/patrimonial.constants'
+import {
+  useAdminPatrimonial,
+  usePublishPatrimonialExercise,
+  useSavePatrimonialAsset,
+} from '../hooks/usePatrimonial'
+import { AdminShell } from '@/modules/auth/AdminShell'
+import { useAuthSession } from '@/modules/auth/useAuth'
 
 function assetStatusClass(status: string) {
   if (status === 'Locado') return 'bg-[#dbeafe] text-[#1e40af]'
@@ -53,26 +49,18 @@ const emptyForm: CreatePatrimonialAssetRequest = {
   documentTitle: '',
   documentUrl: '',
 }
+const emptyAssets: AdminPatrimonialAsset[] = []
 
 export function AdminPatrimonialPage() {
-  const session = getStoredAuthSession()
-  const [records, setRecords] = useState<AdminPatrimonialAsset[]>([])
+  const session = useAuthSession()
+  const patrimonial = useAdminPatrimonial(session?.token)
+  const saveAsset = useSavePatrimonialAsset(session?.token)
+  const publishExercise = usePublishPatrimonialExercise(session?.token)
+  const records = patrimonial.data ?? emptyAssets
   const [form, setForm] = useState<CreatePatrimonialAssetRequest>(emptyForm)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [selectedExercise, setSelectedExercise] = useState<number | null>(null)
-  const [saving, setSaving] = useState(false)
   const { toast } = useToast()
-  useEffect(() => {
-    if (!session?.token) return
-    listPatrimonialAssets(session.token)
-      .then(setRecords)
-      .catch(() =>
-        toast({
-          title: 'Não foi possível carregar o patrimônio',
-          variant: 'error',
-        }),
-      )
-  }, [session?.token, toast])
   const exercises = useMemo(
     () =>
       [...new Set(records.map((record) => record.exercise))].sort(
@@ -94,7 +82,7 @@ export function AdminPatrimonialPage() {
       ? []
       : (recordsByExercise.get(selectedExercise) ?? [])
   if (!session) return <Navigate replace to="/login" />
-  const authenticatedSession = session
+  const saving = saveAsset.isPending || publishExercise.isPending
 
   function reset() {
     setForm({ ...emptyForm, exercise: form.exercise })
@@ -114,19 +102,11 @@ export function AdminPatrimonialPage() {
     })
   }
   async function save() {
-    setSaving(true)
     try {
-      const result = editingId
-        ? await updatePatrimonialAsset(
-            authenticatedSession.token,
-            editingId,
-            form,
-          )
-        : await createPatrimonialAsset(authenticatedSession.token, form)
-      setRecords((current) => [
-        ...current.filter((item) => item.id !== result.id),
-        result,
-      ])
+      const result = await saveAsset.mutateAsync({
+        id: editingId ?? undefined,
+        input: editingId ? { ...form, publicationStatus: 'DRAFT' } : form,
+      })
       setEditingId(result.id)
       toast({
         title: 'Bem patrimonial salvo',
@@ -140,21 +120,11 @@ export function AdminPatrimonialPage() {
           error instanceof Error ? error.message : 'Tente novamente.',
         variant: 'error',
       })
-    } finally {
-      setSaving(false)
     }
   }
   async function publish() {
-    setSaving(true)
     try {
-      const published = await publishPatrimonialExercise(
-        authenticatedSession.token,
-        form.exercise,
-      )
-      setRecords((current) => [
-        ...current.filter((item) => item.exercise !== form.exercise),
-        ...published,
-      ])
+      await publishExercise.mutateAsync(form.exercise)
       toast({ title: 'Patrimônio publicado', variant: 'success' })
     } catch (error) {
       toast({
@@ -163,8 +133,6 @@ export function AdminPatrimonialPage() {
           error instanceof Error ? error.message : 'Tente novamente.',
         variant: 'error',
       })
-    } finally {
-      setSaving(false)
     }
   }
   return (
@@ -213,7 +181,7 @@ export function AdminPatrimonialPage() {
                   }
                   value={form.informationType}
                 >
-                  {informationTypes.map((type) => (
+                  {patrimonialInformationTypes.map((type) => (
                     <option key={type} value={type}>
                       {type}
                     </option>
@@ -233,7 +201,7 @@ export function AdminPatrimonialPage() {
                   }
                   value={form.status}
                 >
-                  {assetStatuses.map((status) => (
+                  {patrimonialAssetStatuses.map((status) => (
                     <option key={status} value={status}>
                       {status}
                     </option>
@@ -365,7 +333,15 @@ export function AdminPatrimonialPage() {
             </p>
           </CardHeader>
           <CardContent className="grid gap-3">
-            {exercises.length === 0 ? (
+            {patrimonial.isPending ? (
+              <p className="text-sm text-muted-foreground">
+                Carregando bens cadastrados…
+              </p>
+            ) : patrimonial.isError ? (
+              <p className="text-sm text-destructive" role="alert">
+                Não foi possível carregar os bens patrimoniais.
+              </p>
+            ) : exercises.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 Nenhum bem cadastrado.
               </p>
@@ -431,11 +407,12 @@ export function AdminPatrimonialPage() {
                 <table className="w-full min-w-[760px] table-fixed text-left text-sm">
                   <thead className="bg-[#edeff1]">
                     <tr className="text-[13px] font-semibold text-[#52617a]">
-                      <th className="w-[16%] px-4 py-3">Tipo</th>
-                      <th className="w-[24%] px-4 py-3">Descrição</th>
-                      <th className="w-[20%] px-4 py-3">Localização</th>
-                      <th className="w-[14%] px-4 py-3">Situação</th>
-                      <th className="w-[26%] px-4 py-3 text-right">Ação</th>
+                      <th className="w-[14%] px-4 py-3">Tipo</th>
+                      <th className="w-[20%] px-4 py-3">Descrição</th>
+                      <th className="w-[18%] px-4 py-3">Localização</th>
+                      <th className="w-[12%] px-4 py-3">Situação</th>
+                      <th className="w-[12%] px-4 py-3">Publicação</th>
+                      <th className="w-[24%] px-4 py-3 text-right">Ação</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -459,6 +436,11 @@ export function AdminPatrimonialPage() {
                           >
                             {record.status}
                           </span>
+                        </td>
+                        <td className="px-4 py-4 text-xs font-semibold text-[#52617a]">
+                          {record.publicationStatus === 'PUBLISHED'
+                            ? 'Publicado'
+                            : 'Rascunho'}
                         </td>
                         <td className="px-4 py-4 text-right">
                           <div className="flex items-center justify-end gap-2 whitespace-nowrap">

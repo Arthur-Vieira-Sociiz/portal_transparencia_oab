@@ -1,6 +1,5 @@
 import { useState } from 'react'
 
-import { useQuery } from '@tanstack/react-query'
 import {
   PublicFilters,
   PublicPageState,
@@ -10,10 +9,13 @@ import {
 } from '@/components/shared/public-page'
 
 import { formatCurrency } from '../../../lib/formatters'
-import { getPublicPatrimonialPage } from '../../../lib/api'
 import { PublicPortalLayout } from '@/modules/public-shell/components/PublicPortalLayout'
-import { localPublicTransparencyRepository } from '../data/public.repository'
-import '../public-portal.css'
+import {
+  patrimonialAssetStatuses,
+  patrimonialInformationTypes,
+} from '../data/patrimonial.constants'
+import { usePublicPatrimonial } from '../hooks/usePatrimonial'
+import '@/modules/public/public-portal.css'
 
 function DocumentIcon() {
   return (
@@ -43,14 +45,7 @@ export function PatrimonialPage() {
   const [exercise, setExercise] = useState(2026)
   const [informationType, setInformationType] = useState('all')
   const [status, setStatus] = useState('all')
-  const page = useQuery({
-    queryFn: () =>
-      import.meta.env.MODE === 'test'
-        ? localPublicTransparencyRepository.getPatrimonialPage()
-        : getPublicPatrimonialPage(),
-    queryKey: ['public-transparency', 'patrimonial'],
-    staleTime: Number.POSITIVE_INFINITY,
-  })
+  const page = usePublicPatrimonial()
 
   if (page.isPending) {
     return <PublicPageState>Carregando informações…</PublicPageState>
@@ -64,12 +59,6 @@ export function PatrimonialPage() {
     )
   }
 
-  const informationTypes = [
-    'Imóvel',
-    'Mobiliário',
-    'Equipamentos de informática',
-  ]
-  const statuses = ['Ativo', 'Locado', 'Emprestado']
   const assets = page.data.assets.filter(
     (asset) =>
       asset.exercise === exercise &&
@@ -112,7 +101,7 @@ export function PatrimonialPage() {
             value={informationType}
           >
             <option value="all">Todos os tipos</option>
-            {informationTypes.map((type) => (
+            {patrimonialInformationTypes.map((type) => (
               <option key={type} value={type}>
                 {type}
               </option>
@@ -127,7 +116,7 @@ export function PatrimonialPage() {
             value={status}
           >
             <option value="all">Todas</option>
-            {statuses.map((item) => (
+            {patrimonialAssetStatuses.map((item) => (
               <option key={item} value={item}>
                 {item}
               </option>

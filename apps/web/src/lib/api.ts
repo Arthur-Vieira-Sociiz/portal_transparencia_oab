@@ -15,10 +15,6 @@ import {
   type AuthenticatedUser,
 } from '@oab-transparencia/contracts/auth'
 import {
-  AdminPatrimonialAssetSchema,
-  CreatePatrimonialAssetRequestSchema,
-  UpdatePatrimonialAssetRequestSchema,
-  PublicPatrimonialPageSchema,
   AdminContractRecordSchema,
   CreateContractRecordRequestSchema,
   UpdateContractRecordRequestSchema,
@@ -30,10 +26,6 @@ import {
   CreateReportsIndicatorRequestSchema,
   UpdateReportsIndicatorRequestSchema,
   PublicReportsPageSchema,
-  type AdminPatrimonialAsset,
-  type CreatePatrimonialAssetRequest,
-  type UpdatePatrimonialAssetRequest,
-  type PublicPatrimonialPage,
   type AdminContractRecord,
   type CreateContractRecordRequest,
   type UpdateContractRecordRequest,
@@ -112,62 +104,6 @@ export async function createAdminUser(
     { body: JSON.stringify(valid), method: 'POST' },
     (value) => AdminCreatedUserResponseSchema.parse(value),
   )
-}
-
-export async function listPatrimonialAssets(
-  token: string,
-): Promise<AdminPatrimonialAsset[]> {
-  const payload = await authenticatedRequest(
-    token,
-    `/admin/patrimonial${currentAdminPageQuery}`,
-    {},
-    (value) => value as { records: unknown[] },
-  )
-  return payload.records.map((record) =>
-    AdminPatrimonialAssetSchema.parse(record),
-  )
-}
-export async function createPatrimonialAsset(
-  token: string,
-  input: CreatePatrimonialAssetRequest,
-): Promise<AdminPatrimonialAsset> {
-  const valid = CreatePatrimonialAssetRequestSchema.parse(input)
-  return authenticatedRequest(
-    token,
-    '/admin/patrimonial',
-    { body: JSON.stringify(valid), method: 'POST' },
-    (value) => AdminPatrimonialAssetSchema.parse(value),
-  )
-}
-export async function updatePatrimonialAsset(
-  token: string,
-  id: string,
-  input: UpdatePatrimonialAssetRequest,
-): Promise<AdminPatrimonialAsset> {
-  const valid = UpdatePatrimonialAssetRequestSchema.parse(input)
-  return authenticatedRequest(
-    token,
-    `/admin/patrimonial/${id}`,
-    { body: JSON.stringify(valid), method: 'PATCH' },
-    (value) => AdminPatrimonialAssetSchema.parse(value),
-  )
-}
-export async function publishPatrimonialExercise(
-  token: string,
-  exercise: number,
-): Promise<AdminPatrimonialAsset[]> {
-  const payload = await authenticatedRequest(
-    token,
-    `/admin/patrimonial/${exercise}/publish`,
-    { method: 'POST' },
-    (value) => value as unknown[],
-  )
-  return payload.map((record) => AdminPatrimonialAssetSchema.parse(record))
-}
-export async function getPublicPatrimonialPage(): Promise<PublicPatrimonialPage> {
-  const response = await fetch(`${apiBaseUrl}/public/patrimonial`)
-  if (!response.ok) throw await getApiError(response)
-  return PublicPatrimonialPageSchema.parse(await response.json())
 }
 
 export async function listContracts(
