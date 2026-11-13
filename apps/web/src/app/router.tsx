@@ -7,7 +7,7 @@ import { AdminFinancialPage } from '../modules/financial/pages/AdminFinancialPag
 import { AdminPatrimonialPage } from '../modules/patrimonial/pages/AdminPatrimonialPage'
 import { AdminContractsPage } from '../modules/contracts/pages/AdminContractsPage'
 import { AdminHumanResourcesPage } from '../modules/human-resources/pages/AdminHumanResourcesPage'
-import { AdminReportsIndicatorsPage } from '../modules/auth/AdminReportsIndicatorsPage'
+import { AdminReportsIndicatorsPage } from '../modules/reports/pages/AdminReportsIndicatorsPage'
 import { AdminUsersPage } from '../modules/auth/AdminUsersPage'
 import { AdminSectionPlaceholderPage } from '../modules/auth/AdminSectionPlaceholderPage'
 import { LoginPage } from '../modules/auth/LoginPage'
@@ -20,7 +20,7 @@ import { HumanResourcesPage } from '../modules/human-resources/pages/HumanResour
 import { LgpdPage } from '../modules/public/pages/LgpdPage'
 import { GlossaryPage } from '../modules/public/pages/GlossaryPage'
 import { PatrimonialPage } from '../modules/patrimonial/pages/PatrimonialPage'
-import { ReportsIndicatorsPage } from '../modules/public/pages/ReportsIndicatorsPage'
+import { ReportsIndicatorsPage } from '../modules/reports/pages/ReportsIndicatorsPage'
 
 export const router = createBrowserRouter([
   {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { BarChart3, Eye, Pencil, Plus, Save, Send, Trash2 } from 'lucide-react'
 import { Navigate } from 'react-router-dom'
 import type {
@@ -13,14 +13,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/components/ui/use-toast'
 import {
-  createReportsIndicator,
-  deleteReportsIndicator,
-  listReportsIndicators,
-  publishReportsExercise,
-  updateReportsIndicator,
-} from '../../lib/api'
-import { getStoredAuthSession } from './auth-session'
-import { AdminShell } from './AdminShell'
+  useAdminReports,
+  useDeleteReportsIndicator,
+  usePublishReports,
+  useSaveReportsIndicator,
+} from '../hooks/useReports'
+import { AdminShell } from '@/modules/auth/AdminShell'
+import { useAuthSession } from '@/modules/auth/useAuth'
 
 const emptyForm = (): CreateReportsIndicatorRequest => ({
   exercise: new Date().getFullYear(),
@@ -65,34 +64,30 @@ const countFields = [
   ['closedContracts', 'Contratos encerrados'],
   ['employees', 'Colaboradores'],
 ] as const
+const emptyRecords: ReportsIndicator[] = []
 
 export function AdminReportsIndicatorsPage() {
-  const session = getStoredAuthSession()
-  const [records, setRecords] = useState<ReportsIndicator[]>([])
+  const session = useAuthSession()
+  const reports = useAdminReports(session?.token)
+  const saveIndicator = useSaveReportsIndicator(session?.token)
+  const publishReports = usePublishReports(session?.token)
+  const removeIndicator = useDeleteReportsIndicator(session?.token)
+  const records = reports.data ?? emptyRecords
   const [form, setForm] = useState<CreateReportsIndicatorRequest>(emptyForm)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [pending, setPending] = useState<'publish' | 'delete' | null>(null)
   const [target, setTarget] = useState<ReportsIndicator | null>(null)
-  const [saving, setSaving] = useState(false)
   const { toast } = useToast()
-  const token = session?.token ?? ''
-  useEffect(() => {
-    if (!token) return
-    listReportsIndicators(token)
-      .then(setRecords)
-      .catch(() =>
-        toast({
-          title: 'Não foi possível carregar os indicadores',
-          variant: 'error',
-        }),
-      )
-  }, [token, toast])
   const exercises = useMemo(
     () =>
       [...new Set(records.map((item) => item.exercise))].sort((a, b) => b - a),
     [records],
   )
   if (!session) return <Navigate replace to="/login" />
+  const saving =
+    saveIndicator.isPending ||
+    publishReports.isPending ||
+    removeIndicator.isPending
   const startEdit = (record: ReportsIndicator) => {
     const {
       id: _id,
@@ -106,7 +101,6 @@ export function AdminReportsIndicatorsPage() {
     setEditingId(record.id)
   }
   const save = async () => {
-    setSaving(true)
     try {
       const normalizedForm = {
         ...form,
@@ -115,16 +109,12 @@ export function AdminReportsIndicatorsPage() {
             ? Math.min(100, (form.executedBudget / form.plannedBudget) * 100)
             : 0,
       }
-      const result = editingId
-        ? await updateReportsIndicator(token, editingId, {
-            ...normalizedForm,
-            status: 'DRAFT',
-          })
-        : await createReportsIndicator(token, normalizedForm)
-      setRecords((current) => [
-        ...current.filter((item) => item.id !== result.id),
-        result,
-      ])
+      const result = await saveIndicator.mutateAsync({
+        id: editingId ?? undefined,
+        input: editingId
+          ? { ...normalizedForm, status: 'DRAFT' }
+          : normalizedForm,
+      })
       setEditingId(result.id)
       toast({ title: 'Indicadores salvos como rascunho', variant: 'success' })
     } catch (error) {
@@ -134,18 +124,11 @@ export function AdminReportsIndicatorsPage() {
           error instanceof Error ? error.message : 'Tente novamente.',
         variant: 'error',
       })
-    } finally {
-      setSaving(false)
     }
   }
   const publish = async () => {
-    setSaving(true)
     try {
-      const result = await publishReportsExercise(token, form.exercise)
-      setRecords((current) => [
-        ...current.filter((item) => item.exercise !== form.exercise),
-        ...result,
-      ])
+      await publishReports.mutateAsync(form.exercise)
       toast({ title: 'Indicadores publicados', variant: 'success' })
     } catch (error) {
       toast({
@@ -155,16 +138,13 @@ export function AdminReportsIndicatorsPage() {
         variant: 'error',
       })
     } finally {
-      setSaving(false)
       setPending(null)
     }
   }
   const remove = async () => {
     if (!target) return
-    setSaving(true)
     try {
-      await deleteReportsIndicator(token, target.id)
-      setRecords((current) => current.filter((item) => item.id !== target.id))
+      await removeIndicator.mutateAsync(target.id)
       if (editingId === target.id) {
         setEditingId(null)
         setForm(emptyForm())
@@ -178,7 +158,6 @@ export function AdminReportsIndicatorsPage() {
         variant: 'error',
       })
     } finally {
-      setSaving(false)
       setPending(null)
       setTarget(null)
     }
@@ -315,7 +294,15 @@ export function AdminReportsIndicatorsPage() {
           <CardTitle>Exercícios cadastrados</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-3">
-          {exercises.length === 0 ? (
+          {reports.isPending ? (
+            <p className="text-sm text-muted-foreground">
+              Carregando indicadores…
+            </p>
+          ) : reports.isError ? (
+            <p className="text-sm text-destructive" role="alert">
+              Não foi possível carregar os indicadores.
+            </p>
+          ) : exercises.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               Nenhum exercício cadastrado.
             </p>

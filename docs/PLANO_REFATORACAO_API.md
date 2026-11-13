@@ -166,7 +166,7 @@ apps/web/src/
 │   ├── human-resources/            # meses e localidades pertencem ao domínio
 │   ├── patrimonial/                # situação do bem ≠ status de publicação
 │   ├── contracts/                  # contratos e fornecedores no mesmo domínio
-│   └── reports/
+│   └── reports/                    # seções e gráficos do próprio domínio
 └── lib/                            # utilitários sem regra de domínio
 ```
 
@@ -382,11 +382,15 @@ sincronizam os contratos relacionados e invalidam os dados públicos.
 
 ### Etapa 24 — Módulo Relatórios e Indicadores
 
-- [ ] Migrar API, hook, páginas e testes.
-- [ ] Dividir a página pública em seções e componentes de gráfico do próprio
+- [x] Migrar API, hook, páginas e testes.
+- [x] Dividir a página pública em seções e componentes de gráfico do próprio
       módulo.
-- [ ] Manter o carregamento dinâmico de Chart.js e evitar aumentar o bundle inicial.
-- [ ] Preservar seleção do exercício mais recente e todos os indicadores.
+- [x] Manter o carregamento dinâmico de Chart.js e evitar aumentar o bundle inicial.
+- [x] Preservar seleção do exercício mais recente e todos os indicadores.
+
+A página pública foi dividida nas seções Financeiro/Orçamento, Administrativo,
+Contratos e Recursos Humanos. O componente de gráfico continua importando
+`chart.js/auto` dinamicamente apenas quando o canvas é montado.
 
 ### Etapa 25 — Módulos frontend dos conteúdos estáticos
 
@@ -439,5 +443,5 @@ sincronizam os contratos relacionados e invalidam os dados públicos.
 
 ## Próxima ação
 
-As Etapas 12 a 23 estão concluídas. Depois da revisão do usuário, iniciar a Etapa
-24 pelo módulo Relatórios e Indicadores, seguindo os módulos já migrados.
+As Etapas 12 a 24 estão concluídas. Depois da revisão do usuário, iniciar a Etapa
+25 pelos módulos frontend dos conteúdos estáticos.
