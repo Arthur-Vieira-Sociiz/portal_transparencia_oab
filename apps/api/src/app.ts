@@ -39,9 +39,6 @@ import {
 } from './contracts/contract-service.js'
 import { createPrismaContractRepository } from './contracts/prisma-contract-repository.js'
 import {
-  CreatePatrimonialAssetRequestSchema,
-  UpdatePatrimonialAssetRequestSchema,
-  PublicPatrimonialPageSchema,
   CreateContractRecordRequestSchema,
   UpdateContractRecordRequestSchema,
   CreateSupplierRequestSchema,
@@ -58,6 +55,7 @@ import { createFinancialRoutes } from './routes/financial/financial.routes.js'
 import { createGeneralDataRoutes } from './routes/general-data/general-data.routes.js'
 import { healthRoutes } from './routes/health/health.routes.js'
 import { createHumanResourcesRoutes } from './routes/human-resources/human-resources.routes.js'
+import { createPatrimonialRoutes } from './routes/patrimonial/patrimonial.routes.js'
 import { createReportsIndicatorsRoutes } from './routes/reports-indicators/reports-indicators.routes.js'
 
 type AppOptions = {
@@ -257,67 +255,8 @@ export function createApp(options: AppOptions = {}): Express {
   app.use(
     createFinancialRoutes({ getFinancialDocumentService, requireUser }),
   )
-
-  app.get('/api/public/patrimonial', async (_request, response, next) => {
-    try {
-      response.json(
-        PublicPatrimonialPageSchema.parse(
-          await getPatrimonialAssetService().listPublished(),
-        ),
-      )
-    } catch (error) {
-      next(error)
-    }
-  })
-  app.get('/api/admin/patrimonial', async (request, response, next) => {
-    try {
-      await requireUser(request)
-      response.json({ records: await getPatrimonialAssetService().list() })
-    } catch (error) {
-      next(error)
-    }
-  })
-  app.post('/api/admin/patrimonial', async (request, response, next) => {
-    try {
-      const user = await requireUser(request)
-      const input = CreatePatrimonialAssetRequestSchema.parse(request.body)
-      response.status(201).json(
-        await getPatrimonialAssetService().create({
-          ...input,
-          userId: user.id,
-        }),
-      )
-    } catch (error) {
-      next(error)
-    }
-  })
-  app.patch('/api/admin/patrimonial/:id', async (request, response, next) => {
-    try {
-      const user = await requireUser(request)
-      const input = UpdatePatrimonialAssetRequestSchema.parse(request.body)
-      response.json(
-        await getPatrimonialAssetService().update(request.params.id, {
-          ...input,
-          userId: user.id,
-        }),
-      )
-    } catch (error) {
-      next(error)
-    }
-  })
-  app.post(
-    '/api/admin/patrimonial/:exercise/publish',
-    async (request, response, next) => {
-      try {
-        const user = await requireUser(request)
-        const exercise = ExerciseSchema.parse(Number(request.params.exercise))
-        response.json(
-          await getPatrimonialAssetService().publishExercise(exercise, user.id),
-        )
-      } catch (error) {
-        next(error)
-      }
-    },
+  app.use(
+    createPatrimonialRoutes({ getPatrimonialAssetService, requireUser }),
   )
 
   app.use(errorHandler)

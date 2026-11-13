@@ -122,8 +122,8 @@ internas de `createApp`, sem mudança de status ou payload.
 
 ### Etapa 9 — Patrimonial
 
-- [ ] Extrair rotas públicas, CRUD administrativo e publicação por exercício.
-- [ ] Preservar a distinção entre `status` do bem e `statusState` de publicação.
+- [x] Extrair rotas públicas, CRUD administrativo e publicação por exercício.
+- [x] Preservar a distinção entre `status` do bem e `statusState` de publicação.
 
 ### Etapa 10 — Contratos e fornecedores
 
