@@ -107,8 +107,8 @@ internas de `createApp`, sem mudança de status ou payload.
 
 ### Etapa 6 — Recursos humanos
 
-- [ ] Extrair rotas públicas, CRUD administrativo e publicação por exercício.
-- [ ] Preservar a validação de localidade, meses e exercício.
+- [x] Extrair rotas públicas, CRUD administrativo e publicação por exercício.
+- [x] Preservar a validação de localidade, meses e exercício.
 
 ### Etapa 7 — Orçamentário
 

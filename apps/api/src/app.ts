@@ -44,9 +44,6 @@ import {
   UpdateBudgetRecordRequestSchema,
   CreateFinancialDocumentRequestSchema,
   UpdateFinancialDocumentRequestSchema,
-  CreateHumanResourcesRequestSchema,
-  UpdateHumanResourcesRequestSchema,
-  PublicHumanResourcesPageSchema,
   CreatePatrimonialAssetRequestSchema,
   UpdatePatrimonialAssetRequestSchema,
   PublicPatrimonialPageSchema,
@@ -63,6 +60,7 @@ import { createRequireUser } from './middlewares/require-user.js'
 import { createAuthRoutes } from './routes/auth/auth.routes.js'
 import { createGeneralDataRoutes } from './routes/general-data/general-data.routes.js'
 import { healthRoutes } from './routes/health/health.routes.js'
+import { createHumanResourcesRoutes } from './routes/human-resources/human-resources.routes.js'
 import { createReportsIndicatorsRoutes } from './routes/reports-indicators/reports-indicators.routes.js'
 
 type AppOptions = {
@@ -255,81 +253,8 @@ export function createApp(options: AppOptions = {}): Express {
     }),
   )
 
-  app.get('/api/admin/human-resources', async (request, response, next) => {
-    try {
-      await requireUser(request)
-      response.json({ records: await getHumanResourcesService().list() })
-    } catch (error) {
-      next(error)
-    }
-  })
-  app.get('/api/public/human-resources', async (_request, response, next) => {
-    try {
-      response.json(
-        PublicHumanResourcesPageSchema.parse(
-          await getHumanResourcesService().listPublished(),
-        ),
-      )
-    } catch (error) {
-      next(error)
-    }
-  })
-  app.post('/api/admin/human-resources', async (request, response, next) => {
-    try {
-      const user = await requireUser(request)
-      const input = CreateHumanResourcesRequestSchema.parse(request.body)
-      response.status(201).json(
-        await getHumanResourcesService().create({
-          ...input,
-          userId: user.id,
-        }),
-      )
-    } catch (error) {
-      next(error)
-    }
-  })
-  app.patch(
-    '/api/admin/human-resources/:id',
-    async (request, response, next) => {
-      try {
-        const user = await requireUser(request)
-        const input = UpdateHumanResourcesRequestSchema.parse(request.body)
-        response.json(
-          await getHumanResourcesService().update(request.params.id, {
-            ...input,
-            userId: user.id,
-          }),
-        )
-      } catch (error) {
-        next(error)
-      }
-    },
-  )
-  app.delete(
-    '/api/admin/human-resources/:id',
-    async (request, response, next) => {
-      try {
-        await requireUser(request)
-        await getHumanResourcesService().delete(request.params.id)
-        response.status(204).send()
-      } catch (error) {
-        next(error)
-      }
-    },
-  )
-  app.post(
-    '/api/admin/human-resources/:exercise/publish',
-    async (request, response, next) => {
-      try {
-        const user = await requireUser(request)
-        const exercise = ExerciseSchema.parse(Number(request.params.exercise))
-        response.json(
-          await getHumanResourcesService().publishExercise(exercise, user.id),
-        )
-      } catch (error) {
-        next(error)
-      }
-    },
+  app.use(
+    createHumanResourcesRoutes({ getHumanResourcesService, requireUser }),
   )
 
   app.get('/api/public/budget', async (request, response, next) => {
