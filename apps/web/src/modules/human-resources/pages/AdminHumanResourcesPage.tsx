@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   CalendarDays,
   Eye,
@@ -24,28 +24,33 @@ import { Label } from '@/components/ui/label'
 import { NumericInput } from '@/components/ui/numeric-input'
 import { useToast } from '@/components/ui/use-toast'
 import {
-  createHumanResources,
-  deleteHumanResources,
-  listHumanResources,
-  publishHumanResourcesExercise,
-  updateHumanResources,
-} from '../../lib/api'
-import { humanResourcesMonths } from '../public/data/human-resources.fixture'
-import { getStoredAuthSession } from './auth-session'
-import { AdminShell } from './AdminShell'
+  createEmptyHumanResourcesMonths,
+  humanResourcesMonths,
+} from '../data/human-resources.constants'
+import {
+  useAdminHumanResources,
+  useDeleteHumanResources,
+  usePublishHumanResources,
+  useSaveHumanResources,
+} from '../hooks/useHumanResources'
+import { useAuthSession } from '@/modules/auth/useAuth'
+import { AdminShell } from '@/modules/auth/AdminShell'
 
 type Form = CreateHumanResourcesRequest
-const emptyMonths = () =>
-  humanResourcesMonths.map(({ id }) => ({ month: id, pdfUrl: '', xlsxUrl: '' }))
 const emptyForm = (): Form => ({
   exercise: new Date().getFullYear(),
   locality: '',
-  months: emptyMonths(),
+  months: createEmptyHumanResourcesMonths(),
 })
+const emptyRecords: AdminHumanResourcesRecord[] = []
 
 export function AdminHumanResourcesPage() {
-  const session = getStoredAuthSession()
-  const [records, setRecords] = useState<AdminHumanResourcesRecord[]>([])
+  const session = useAuthSession()
+  const humanResources = useAdminHumanResources(session?.token)
+  const saveHumanResources = useSaveHumanResources(session?.token)
+  const publishHumanResources = usePublishHumanResources(session?.token)
+  const removeHumanResources = useDeleteHumanResources(session?.token)
+  const records = humanResources.data ?? emptyRecords
   const [form, setForm] = useState<Form>(emptyForm)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [selectedExercise, setSelectedExercise] = useState<number | null>(null)
@@ -57,22 +62,8 @@ export function AdminHumanResourcesPage() {
     monthIndex: number
   } | null>(null)
   const [pending, setPending] = useState<'clear' | 'publish' | null>(null)
-  const [saving, setSaving] = useState(false)
   const [activeMonthIndex, setActiveMonthIndex] = useState(0)
   const { toast } = useToast()
-  useEffect(() => {
-    if (!session?.token) return
-    listHumanResources(session.token)
-      .then(setRecords)
-      .catch((error: unknown) =>
-        toast({
-          title: 'Não foi possível carregar recursos humanos',
-          description:
-            error instanceof Error ? error.message : 'Tente novamente.',
-          variant: 'error',
-        }),
-      )
-  }, [session?.token, toast])
   const exercises = useMemo(
     () =>
       [...new Set(records.map((record) => record.exercise))].sort(
@@ -85,7 +76,10 @@ export function AdminHumanResourcesPage() {
       ? []
       : records.filter((record) => record.exercise === selectedExercise)
   if (!session) return <Navigate replace to="/login" />
-  const token = session.token
+  const saving =
+    saveHumanResources.isPending ||
+    publishHumanResources.isPending ||
+    removeHumanResources.isPending
 
   function reset() {
     setForm({ ...emptyForm(), exercise: form.exercise })
@@ -132,18 +126,11 @@ export function AdminHumanResourcesPage() {
       })
       return
     }
-    setSaving(true)
     try {
-      const result = editingId
-        ? await updateHumanResources(token, editingId, {
-            ...form,
-            status: 'DRAFT',
-          })
-        : await createHumanResources(token, form)
-      setRecords((current) => [
-        ...current.filter((item) => item.id !== result.id),
-        result,
-      ])
+      const result = await saveHumanResources.mutateAsync({
+        id: editingId ?? undefined,
+        input: editingId ? { ...form, status: 'DRAFT' } : form,
+      })
       setEditingId(result.id)
       toast({ title: 'Recursos humanos salvos', variant: 'success' })
     } catch (error) {
@@ -153,21 +140,11 @@ export function AdminHumanResourcesPage() {
           error instanceof Error ? error.message : 'Tente novamente.',
         variant: 'error',
       })
-    } finally {
-      setSaving(false)
     }
   }
   async function publish() {
-    setSaving(true)
     try {
-      const published = await publishHumanResourcesExercise(
-        token,
-        form.exercise,
-      )
-      setRecords((current) => [
-        ...current.filter((item) => item.exercise !== form.exercise),
-        ...published,
-      ])
+      await publishHumanResources.mutateAsync(form.exercise)
       toast({ title: 'Recursos humanos publicados', variant: 'success' })
     } catch (error) {
       toast({
@@ -177,16 +154,13 @@ export function AdminHumanResourcesPage() {
         variant: 'error',
       })
     } finally {
-      setSaving(false)
       setPending(null)
     }
   }
   async function remove() {
     if (!deleting) return
-    setSaving(true)
     try {
-      await deleteHumanResources(token, deleting.id)
-      setRecords((current) => current.filter((item) => item.id !== deleting.id))
+      await removeHumanResources.mutateAsync(deleting.id)
       setDeleting(null)
       toast({ title: 'Cadastro excluído', variant: 'success' })
     } catch (error) {
@@ -196,13 +170,10 @@ export function AdminHumanResourcesPage() {
           error instanceof Error ? error.message : 'Tente novamente.',
         variant: 'error',
       })
-    } finally {
-      setSaving(false)
     }
   }
   async function clearMonth() {
     if (!clearingMonth) return
-    setSaving(true)
     try {
       const { record, monthIndex } = clearingMonth
       const input = {
@@ -222,10 +193,10 @@ export function AdminHumanResourcesPage() {
                 ''),
         })),
       }
-      const updated = await updateHumanResources(token, record.id, input)
-      setRecords((current) =>
-        current.map((item) => (item.id === updated.id ? updated : item)),
-      )
+      const updated = await saveHumanResources.mutateAsync({
+        id: record.id,
+        input,
+      })
       if (editingId === record.id) {
         setForm({
           exercise: updated.exercise,
@@ -248,8 +219,6 @@ export function AdminHumanResourcesPage() {
           error instanceof Error ? error.message : 'Tente novamente.',
         variant: 'error',
       })
-    } finally {
-      setSaving(false)
     }
   }
 
@@ -304,7 +273,7 @@ export function AdminHumanResourcesPage() {
                         setForm({
                           ...form,
                           locality: nextLocality,
-                          months: emptyMonths(),
+                          months: createEmptyHumanResourcesMonths(),
                         })
                         toast({
                           title: 'Novo cadastro iniciado',
@@ -451,7 +420,15 @@ export function AdminHumanResourcesPage() {
               </p>
             </CardHeader>
             <CardContent className="grid gap-3">
-              {exercises.length ? (
+              {humanResources.isPending ? (
+                <p className="text-sm text-muted-foreground">
+                  Carregando cadastros…
+                </p>
+              ) : humanResources.isError ? (
+                <p className="text-sm text-destructive" role="alert">
+                  Não foi possível carregar os cadastros de recursos humanos.
+                </p>
+              ) : exercises.length ? (
                 exercises.map((exercise) => (
                   <button
                     className="flex w-full items-center justify-between rounded-lg border border-border p-4 text-left hover:bg-[#f7f9fc]"

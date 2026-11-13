@@ -163,7 +163,7 @@ apps/web/src/
 │   │   └── test-fixtures/              # somente enquanto necessário
 │   ├── budget/
 │   ├── financial/
-│   ├── human-resources/
+│   ├── human-resources/            # meses e localidades pertencem ao domínio
 │   ├── patrimonial/
 │   ├── contracts/
 │   └── reports/
@@ -350,10 +350,14 @@ sem dependência lateral e sem abstração genérica prematura.
 
 ### Etapa 21 — Módulo Recursos Humanos
 
-- [ ] Migrar API, hooks, páginas pública/administrativa e testes.
-- [ ] Manter meses/localidades como conceitos do domínio, sem componente genérico
+- [x] Migrar API, hooks, páginas pública/administrativa e testes.
+- [x] Manter meses/localidades como conceitos do domínio, sem componente genérico
       conhecer essa regra.
-- [ ] Remover a dependência de fixture em produção.
+- [x] Remover a dependência de fixture em produção.
+
+As mutations atualizam o cache administrativo do próprio módulo. A publicação e
+a exclusão também invalidam os dados públicos, mantendo as telas sincronizadas
+sem copiar os resultados das queries para estado local.
 
 ### Etapa 22 — Módulo Patrimonial
 
@@ -427,5 +431,5 @@ sem dependência lateral e sem abstração genérica prematura.
 
 ## Próxima ação
 
-As Etapas 12 a 20 estão concluídas. Depois da revisão do usuário, iniciar a Etapa
-21 pelo módulo Recursos Humanos, seguindo os módulos já migrados.
+As Etapas 12 a 21 estão concluídas. Depois da revisão do usuário, iniciar a Etapa
+22 pelo módulo Patrimonial, seguindo os módulos já migrados.

@@ -1,6 +1,5 @@
 import { useState } from 'react'
 
-import { useQuery } from '@tanstack/react-query'
 import {
   PublicDownloadLink,
   PublicFilters,
@@ -8,28 +7,16 @@ import {
   PublicSectionHeader,
   PublicSelectField,
 } from '@/components/shared/public-page'
-import { getPublicHumanResourcesPage } from '../../../lib/api'
 
 import { PublicPortalLayout } from '@/modules/public-shell/components/PublicPortalLayout'
-import { humanResourcesMonths } from '../data/human-resources.fixture'
-import { localPublicTransparencyRepository } from '../data/public.repository'
-import '../public-portal.css'
-
-const monthLabels = Object.fromEntries(
-  humanResourcesMonths.map(({ id, label }) => [id, label]),
-)
+import { humanResourcesMonthLabels } from '../data/human-resources.constants'
+import { usePublicHumanResources } from '../hooks/useHumanResources'
+import '@/modules/public/public-portal.css'
 
 export function HumanResourcesPage() {
   const [exercise, setExercise] = useState(2026)
   const [locality, setLocality] = useState('JACARECICA')
-  const page = useQuery({
-    queryFn: () =>
-      import.meta.env.MODE === 'test'
-        ? localPublicTransparencyRepository.getHumanResourcesPage()
-        : getPublicHumanResourcesPage(),
-    queryKey: ['public-transparency', 'human-resources'],
-    staleTime: Number.POSITIVE_INFINITY,
-  })
+  const page = usePublicHumanResources()
 
   if (page.isPending) {
     return <PublicPageState>Carregando informações…</PublicPageState>
@@ -105,8 +92,8 @@ export function HumanResourcesPage() {
             <div className="human-resources-list__body">
               {record.months.map((month) => (
                 <div className="human-resources-month" key={month.month}>
-                  <span>{monthLabels[month.month]}</span>
-                  {month.documents.length > 0 && (
+                  <span>{humanResourcesMonthLabels[month.month]}</span>
+                  {month.documents.length > 0 ? (
                     <div className="human-resources-month__actions">
                       {month.documents.map((document) => (
                         <PublicDownloadLink
@@ -116,7 +103,7 @@ export function HumanResourcesPage() {
                         />
                       ))}
                     </div>
-                  )}
+                  ) : null}
                 </div>
               ))}
             </div>
