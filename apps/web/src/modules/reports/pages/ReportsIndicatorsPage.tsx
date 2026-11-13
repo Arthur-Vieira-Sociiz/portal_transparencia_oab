@@ -6,7 +6,7 @@ import { ContractsReportSection } from '../components/ContractsReportSection'
 import { FinancialReportSection } from '../components/FinancialReportSection'
 import { HumanResourcesReportSection } from '../components/HumanResourcesReportSection'
 import { usePublicReports } from '../hooks/useReports'
-import '@/modules/public/public-portal.css'
+import '@/modules/public-shell/styles/public-portal.css'
 
 export function ReportsIndicatorsPage() {
   const [exercise, setExercise] = useState<number | null>(null)

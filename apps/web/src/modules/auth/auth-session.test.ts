@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { authenticationInvalidatedEvent } from '@/lib/auth-events'
-import { listAdminUsers } from '@/lib/api'
+import { listAdminUsers } from './data/auth.api'
 import {
   clearAuthSession,
   getStoredAuthSession,

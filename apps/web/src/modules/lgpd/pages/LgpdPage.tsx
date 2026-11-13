@@ -4,7 +4,7 @@ import type { LgpdSectionGroup } from '@oab-transparencia/contracts'
 
 import { PublicPortalLayout } from '@/modules/public-shell/components/PublicPortalLayout'
 import { lgpdContent } from '../data/lgpd.content'
-import '@/modules/public/public-portal.css'
+import '@/modules/public-shell/styles/public-portal.css'
 
 function ToggleIcon({ isOpen }: { isOpen: boolean }) {
   return (

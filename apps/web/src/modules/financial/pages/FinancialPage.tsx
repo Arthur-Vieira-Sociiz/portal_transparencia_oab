@@ -11,7 +11,7 @@ import {
 import { PublicPortalLayout } from '@/modules/public-shell/components/PublicPortalLayout'
 import { FinancialAccordion } from '../components/FinancialAccordion'
 import { usePublicFinancial } from '../hooks/useFinancial'
-import '@/modules/public/public-portal.css'
+import '@/modules/public-shell/styles/public-portal.css'
 
 export function FinancialPage() {
   const [exercise, setExercise] = useState(2026)

@@ -2,7 +2,7 @@ import { useState } from 'react'
 
 import { PublicPortalLayout } from '@/modules/public-shell/components/PublicPortalLayout'
 import { glossaryContent } from '../data/glossary.content'
-import '@/modules/public/public-portal.css'
+import '@/modules/public-shell/styles/public-portal.css'
 
 const alphabet = Array.from({ length: 26 }, (_, index) =>
   String.fromCharCode(65 + index),

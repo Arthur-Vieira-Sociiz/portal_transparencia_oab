@@ -12,7 +12,7 @@ import {
 import { formatCurrency } from '@/lib/formatters'
 import { PublicPortalLayout } from '@/modules/public-shell/components/PublicPortalLayout'
 import { usePublicBudget } from '../hooks/useBudget'
-import '@/modules/public/public-portal.css'
+import '@/modules/public-shell/styles/public-portal.css'
 
 const CURRENT_EXERCISE = new Date().getFullYear()
 

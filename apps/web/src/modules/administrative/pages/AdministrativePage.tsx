@@ -1,7 +1,7 @@
 import { AdministrativeEmbed } from '../components/AdministrativeEmbed'
 import { PublicPortalLayout } from '@/modules/public-shell/components/PublicPortalLayout'
 import { administrativeOrganogram } from '../data/administrative.content'
-import '@/modules/public/public-portal.css'
+import '@/modules/public-shell/styles/public-portal.css'
 
 function DocumentIcon() {
   return (

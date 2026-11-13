@@ -2,7 +2,7 @@ import {
   AuthSessionSchema,
   type AuthSession,
 } from '@oab-transparencia/contracts/auth'
-import { getCurrentUser } from '@/lib/api'
+import { getCurrentUser } from './data/auth.api'
 import { broadcastLogout, subscribeToForcedLogout } from './authSync'
 
 const sessionKey = 'oab-transparencia.admin-session'
@@ -61,7 +61,7 @@ async function revalidateStoredSession() {
       saveAuthSession({ ...currentSession, user })
     }
   } catch {
-    // Respostas 401/429 disparam a invalidação centralizada em lib/api.
+    // Respostas 401/429 disparam a invalidação centralizada em api-client.
     // Falhas transitórias de rede preservam a sessão para permitir nova tentativa.
   }
 }

@@ -11,7 +11,7 @@ import {
 import { PublicPortalLayout } from '@/modules/public-shell/components/PublicPortalLayout'
 import { humanResourcesMonthLabels } from '../data/human-resources.constants'
 import { usePublicHumanResources } from '../hooks/useHumanResources'
-import '@/modules/public/public-portal.css'
+import '@/modules/public-shell/styles/public-portal.css'
 
 export function HumanResourcesPage() {
   const [exercise, setExercise] = useState(2026)

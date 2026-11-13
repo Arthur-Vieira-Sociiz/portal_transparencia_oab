@@ -15,7 +15,7 @@ import {
   patrimonialInformationTypes,
 } from '../data/patrimonial.constants'
 import { usePublicPatrimonial } from '../hooks/usePatrimonial'
-import '@/modules/public/public-portal.css'
+import '@/modules/public-shell/styles/public-portal.css'
 
 function DocumentIcon() {
   return (

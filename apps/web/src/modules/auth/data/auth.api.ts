@@ -1,31 +1,18 @@
 import {
-  HealthResponseSchema,
-  type HealthResponse,
-} from '@oab-transparencia/contracts/health'
-import {
-  AuthSessionSchema,
-  AuthenticatedUserSchema,
   AdminCreateUserRequestSchema,
   AdminCreatedUserResponseSchema,
   AdminUserSchema,
-  type AuthSession,
+  AuthSessionSchema,
+  AuthenticatedUserSchema,
   type AdminCreateUserRequest,
   type AdminCreatedUserResponse,
   type AdminUser,
+  type AuthSession,
   type AuthenticatedUser,
 } from '@oab-transparencia/contracts/auth'
-import { apiBaseUrl, authenticatedRequest, getApiError } from './api-client'
+import { apiBaseUrl, authenticatedRequest, getApiError } from '@/lib/api-client'
+
 const currentAdminPageQuery = '?page=1&limit=100'
-
-export async function getApiHealth(): Promise<HealthResponse> {
-  const response = await fetch(`${apiBaseUrl}/health`)
-
-  if (!response.ok) {
-    throw new Error('A API não respondeu corretamente.')
-  }
-
-  return HealthResponseSchema.parse(await response.json())
-}
 
 export async function login(input: {
   email: string

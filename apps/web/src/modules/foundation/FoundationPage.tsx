@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 
-import { getApiHealth } from '../../lib/api'
+import { getApiHealth } from './data/foundation.api'
 
 type FoundationPageProps = {
   description: string

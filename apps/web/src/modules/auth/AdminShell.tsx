@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { clearAuthSession } from './auth-session'
 import { useAuthSession } from './useAuth'
-import { logout } from '../../lib/api'
+import { logout } from './data/auth.api'
 
 type AdminShellProps = {
   children: ReactNode

@@ -155,6 +155,7 @@ apps/web/src/
 ├── modules/
 │   ├── public-shell/               # hero, navegação e layout público
 │   ├── auth/
+│   ├── foundation/                 # diagnóstico de disponibilidade da API
 │   ├── general-data/
 │   │   ├── api/
 │   │   ├── components/
@@ -412,11 +413,17 @@ verificados manualmente no navegador.
 
 ### Etapa 26 — Limpeza dos adaptadores temporários
 
-- [ ] Remover `localPublicTransparencyRepository` quando não houver consumidores.
-- [ ] Esvaziar o `apps/web/src/lib/api.ts`, movendo as funções restantes para os
+- [x] Remover `localPublicTransparencyRepository` quando não houver consumidores.
+- [x] Esvaziar o `apps/web/src/lib/api.ts`, movendo as funções restantes para os
       respectivos módulos.
-- [ ] Remover fixtures e exports mortos somente após busca de referências.
-- [ ] Atualizar router e documentação da arquitetura.
+- [x] Remover fixtures e exports mortos somente após busca de referências.
+- [x] Atualizar router e documentação da arquitetura.
+
+As chamadas de autenticação agora pertencem a `modules/auth/data/auth.api.ts`, e
+o health check pertence a `modules/foundation/data/foundation.api.ts`. O agregador
+`lib/api.ts`, o repository público local e sua última fixture sem consumidores
+foram removidos. O estilo compartilhado das páginas públicas passou para
+`modules/public-shell/styles`, eliminando o antigo diretório `modules/public`.
 
 ### Etapa 27 — Componentes compartilhados comprovados
 
@@ -453,5 +460,5 @@ verificados manualmente no navegador.
 
 ## Próxima ação
 
-As Etapas 12 a 25 estão concluídas. Depois da revisão do usuário, iniciar a Etapa
-26 pela remoção dos adaptadores temporários que já não possuem consumidores.
+As Etapas 12 a 26 estão concluídas. Depois da revisão do usuário, iniciar a Etapa
+27 pelo inventário das repetições reais entre os módulos frontend.

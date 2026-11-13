@@ -10,7 +10,7 @@ import {
 import { formatCurrency } from '../../../lib/formatters'
 import { PublicPortalLayout } from '@/modules/public-shell/components/PublicPortalLayout'
 import { usePublicContracts } from '../hooks/useContracts'
-import '@/modules/public/public-portal.css'
+import '@/modules/public-shell/styles/public-portal.css'
 
 function SearchIcon() {
   return (

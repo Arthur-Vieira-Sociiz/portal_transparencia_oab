@@ -1,6 +1,6 @@
 import { PublicPortalLayout } from '@/modules/public-shell/components/PublicPortalLayout'
 import { institutionalContent } from '../data/institutional.content'
-import '@/modules/public/public-portal.css'
+import '@/modules/public-shell/styles/public-portal.css'
 
 export function InstitutionalPage() {
   return (
