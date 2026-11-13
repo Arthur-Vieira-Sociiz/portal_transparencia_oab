@@ -15,10 +15,6 @@ import {
   type AuthenticatedUser,
 } from '@oab-transparencia/contracts/auth'
 import {
-  AdminBudgetRecordSchema,
-  CreateBudgetRecordRequestSchema,
-  PublicBudgetRecordsSchema,
-  UpdateBudgetRecordRequestSchema,
   AdminFinancialDocumentRecordSchema,
   CreateFinancialDocumentRequestSchema,
   UpdateFinancialDocumentRequestSchema,
@@ -42,10 +38,6 @@ import {
   CreateReportsIndicatorRequestSchema,
   UpdateReportsIndicatorRequestSchema,
   PublicReportsPageSchema,
-  type AdminBudgetRecord,
-  type CreateBudgetRecordRequest,
-  type PublicBudgetRecords,
-  type UpdateBudgetRecordRequest,
   type AdminFinancialDocumentRecord,
   type CreateFinancialDocumentRequest,
   type UpdateFinancialDocumentRequest,
@@ -136,63 +128,6 @@ export async function createAdminUser(
     { body: JSON.stringify(valid), method: 'POST' },
     (value) => AdminCreatedUserResponseSchema.parse(value),
   )
-}
-
-export async function listBudgetRecords(
-  token: string,
-): Promise<AdminBudgetRecord[]> {
-  const payload = await authenticatedRequest(
-    token,
-    '/admin/budget',
-    {},
-    (value) => value as { records: unknown[] },
-  )
-  return payload.records.map((record) => AdminBudgetRecordSchema.parse(record))
-}
-export async function createBudgetRecord(
-  token: string,
-  input: CreateBudgetRecordRequest,
-): Promise<AdminBudgetRecord> {
-  const valid = CreateBudgetRecordRequestSchema.parse(input)
-  return authenticatedRequest(
-    token,
-    '/admin/budget',
-    { body: JSON.stringify(valid), method: 'POST' },
-    (value) => AdminBudgetRecordSchema.parse(value),
-  )
-}
-export async function updateBudgetRecord(
-  token: string,
-  id: string,
-  input: UpdateBudgetRecordRequest,
-): Promise<AdminBudgetRecord> {
-  const valid = UpdateBudgetRecordRequestSchema.parse(input)
-  return authenticatedRequest(
-    token,
-    `/admin/budget/${id}`,
-    { body: JSON.stringify(valid), method: 'PATCH' },
-    (value) => AdminBudgetRecordSchema.parse(value),
-  )
-}
-export async function publishBudgetExercise(
-  token: string,
-  exercise: number,
-): Promise<AdminBudgetRecord[]> {
-  const payload = await authenticatedRequest(
-    token,
-    `/admin/budget/${exercise}/publish`,
-    { method: 'POST' },
-    (value) => value as unknown[],
-  )
-  return payload.map((record) => AdminBudgetRecordSchema.parse(record))
-}
-export async function getPublicBudgetRecords(
-  exercise?: number,
-): Promise<PublicBudgetRecords> {
-  const query = exercise ? `?exercise=${exercise}` : ''
-  const response = await fetch(`${apiBaseUrl}/public/budget${query}`)
-  if (!response.ok) throw await getApiError(response)
-  return PublicBudgetRecordsSchema.parse(await response.json())
 }
 
 export async function listFinancialDocuments(

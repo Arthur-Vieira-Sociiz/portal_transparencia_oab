@@ -334,10 +334,10 @@ sem dependência lateral e sem abstração genérica prematura.
 
 ### Etapa 19 — Módulo Orçamentário
 
-- [ ] Mover API, hooks, página pública, página administrativa e testes do
+- [x] Mover API, hooks, página pública, página administrativa e testes do
       domínio.
-- [ ] Remover o acesso direto ao cliente HTTP/repository antigo nesse módulo.
-- [ ] Preservar filtros, documentos e estados de loading/vazio/erro.
+- [x] Remover o acesso direto ao cliente HTTP/repository antigo nesse módulo.
+- [x] Preservar filtros, documentos e estados de loading/vazio/erro.
 
 **Aceite:** Orçamentário funciona de ponta a ponta dentro da própria feature.
 
@@ -427,5 +427,5 @@ sem dependência lateral e sem abstração genérica prematura.
 
 ## Próxima ação
 
-As Etapas 12 a 18 estão concluídas. Depois da revisão do usuário, iniciar a Etapa
-19 pelo módulo Orçamentário, seguindo o piloto de Dados Gerais.
+As Etapas 12 a 19 estão concluídas. Depois da revisão do usuário, iniciar a Etapa
+20 pelo módulo Financeiro, seguindo os pilotos de Dados Gerais e Orçamentário.

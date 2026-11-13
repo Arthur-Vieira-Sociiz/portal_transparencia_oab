@@ -1,6 +1,5 @@
 import { useState } from 'react'
 
-import { useQuery } from '@tanstack/react-query'
 import type { BudgetRecord } from '@oab-transparencia/contracts'
 import {
   PublicFilters,
@@ -10,10 +9,10 @@ import {
   PublicTableScroll,
 } from '@/components/shared/public-page'
 
-import { getPublicBudgetRecords } from '../../../lib/api'
-import { formatCurrency } from '../../../lib/formatters'
+import { formatCurrency } from '@/lib/formatters'
 import { PublicPortalLayout } from '@/features/public-shell/components/PublicPortalLayout'
-import '../public-portal.css'
+import { usePublicBudget } from '../budget.queries'
+import '@/features/public/public-portal.css'
 
 const CURRENT_EXERCISE = new Date().getFullYear()
 
@@ -57,23 +56,7 @@ export function BudgetPage() {
   const [informationType, setInformationType] = useState<
     'all' | InformationType
   >('all')
-  const page = useQuery({
-    queryFn: async () => {
-      try {
-        return await getPublicBudgetRecords()
-      } catch (error) {
-        const status =
-          error instanceof Error && 'status' in error
-            ? (error as Error & { status?: number }).status
-            : undefined
-        if (status === undefined || status === 404)
-          return { availableExercises: [], records: [] }
-        throw error
-      }
-    },
-    queryKey: ['public-transparency', 'budget'],
-    staleTime: 30_000,
-  })
+  const page = usePublicBudget()
 
   if (page.isPending) {
     return <PublicPageState>Carregando informações…</PublicPageState>

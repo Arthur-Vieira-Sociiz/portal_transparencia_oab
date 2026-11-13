@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import {
   CalendarDays,
@@ -24,13 +24,12 @@ import { NumericInput } from '@/components/ui/numeric-input'
 import { useToast } from '@/components/ui/use-toast'
 import { formatNumericInput, parseNumericInput } from '@/lib/numeric-format'
 import {
-  createBudgetRecord,
-  listBudgetRecords,
-  publishBudgetExercise,
-  updateBudgetRecord,
-} from '../../lib/api'
-import { getStoredAuthSession } from './auth-session'
-import { AdminShell } from './AdminShell'
+  useAdminBudget,
+  usePublishBudgetExercise,
+  useSaveBudgetRecord,
+} from '../budget.queries'
+import { useAuthSession } from '@/features/auth/useAuth'
+import { AdminShell } from '@/features/auth/AdminShell'
 
 const types = [
   ['budget-proposal', 'Proposta orçamentária'],
@@ -56,8 +55,11 @@ const displayMoney = (value: number) =>
   })
 
 export function AdminBudgetPage() {
-  const session = getStoredAuthSession()
-  const [records, setRecords] = useState<AdminBudgetRecord[]>([])
+  const session = useAuthSession()
+  const budget = useAdminBudget(session?.token)
+  const saveBudget = useSaveBudgetRecord(session?.token)
+  const publishBudget = usePublishBudgetExercise(session?.token)
+  const records = budget.data ?? []
   const [form, setForm] = useState<Form>(emptyForm)
   const [values, setValues] = useState({
     annualBudget: '0,00',
@@ -67,25 +69,10 @@ export function AdminBudgetPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [pending, setPending] = useState<'clear' | 'publish' | null>(null)
   const [selectedExercise, setSelectedExercise] = useState<number | null>(null)
-  const [saving, setSaving] = useState(false)
   const { toast } = useToast()
 
-  useEffect(() => {
-    if (!session?.token) return
-    listBudgetRecords(session.token)
-      .then(setRecords)
-      .catch((error: unknown) =>
-        toast({
-          title: 'Não foi possível carregar o orçamento',
-          description:
-            error instanceof Error ? error.message : 'Tente novamente.',
-          variant: 'error',
-        }),
-      )
-      .finally(() => undefined)
-  }, [session?.token, toast])
   if (!session) return <Navigate replace to="/login" />
-  const authenticatedSession = session
+  const saving = saveBudget.isPending || publishBudget.isPending
   const currentRecords = records.filter(
     (record) => record.exercise === form.exercise,
   )
@@ -158,15 +145,11 @@ export function AdminBudgetPage() {
       })
       return
     }
-    setSaving(true)
     try {
-      const record = editingId
-        ? await updateBudgetRecord(authenticatedSession.token, editingId, form)
-        : await createBudgetRecord(authenticatedSession.token, form)
-      setRecords((current) => [
-        ...current.filter((item) => item.id !== record.id),
-        record,
-      ])
+      const record = await saveBudget.mutateAsync({
+        id: editingId ?? undefined,
+        input: form,
+      })
       setEditingId(record.id)
       toast({
         title: 'Rascunho salvo',
@@ -180,21 +163,11 @@ export function AdminBudgetPage() {
           error instanceof Error ? error.message : 'Tente novamente.',
         variant: 'error',
       })
-    } finally {
-      setSaving(false)
     }
   }
   async function publish() {
-    setSaving(true)
     try {
-      const published = await publishBudgetExercise(
-        authenticatedSession.token,
-        form.exercise,
-      )
-      setRecords((current) => [
-        ...current.filter((item) => item.exercise !== form.exercise),
-        ...published,
-      ])
+      await publishBudget.mutateAsync(form.exercise)
       toast({
         title: 'Orçamentário publicado',
         description: 'Os dados já estão disponíveis no portal público.',
@@ -208,7 +181,6 @@ export function AdminBudgetPage() {
         variant: 'error',
       })
     } finally {
-      setSaving(false)
       setPending(null)
     }
   }
@@ -371,7 +343,15 @@ export function AdminBudgetPage() {
               </p>
             </CardHeader>
             <CardContent className="grid gap-3">
-              {records.length === 0 ? (
+              {budget.isPending ? (
+                <p className="text-sm text-muted-foreground">
+                  Carregando registros…
+                </p>
+              ) : budget.isError ? (
+                <p className="text-sm text-destructive" role="alert">
+                  Não foi possível carregar os registros orçamentários.
+                </p>
+              ) : records.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                   Nenhum registro cadastrado.
                 </p>

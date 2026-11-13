@@ -61,6 +61,7 @@ apps/web/src/
 ├── features/
 │   ├── public-shell/         # hero, navegação e layout público
 │   ├── general-data/         # API, queries e componentes de Dados Gerais
+│   ├── budget/               # API, queries e páginas do Orçamentário
 │   └── public/               # páginas e domínios públicos ainda em migração
 ├── data/                     # repositório local temporário
 ├── lib/
@@ -71,8 +72,10 @@ apps/web/src/
 
 O compartilhamento ocorre em componentes e módulos de domínio, não pela mistura dos layouts. A área pública nunca importa componentes de autenticação ou edição.
 
-Dados Gerais é o módulo piloto do frontend: valida respostas na borda, encapsula
-queries e mutations do TanStack Query e mantém suas query keys no próprio domínio.
+Dados Gerais é o módulo piloto do frontend. Dados Gerais e Orçamentário validam
+respostas na borda, encapsulam queries e mutations do TanStack Query e mantêm suas
+query keys no próprio domínio. O Orçamentário atualiza o cache administrativo após
+salvar ou publicar e invalida somente as consultas públicas afetadas.
 Estados de página, cabeçalhos, filtros, links de download e contêineres de tabela
 são compartilhados somente quando preservam a mesma semântica entre páginas; regras
 de negócio e formatos de cada domínio permanecem na respectiva feature.
