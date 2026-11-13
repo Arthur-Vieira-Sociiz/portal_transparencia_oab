@@ -1,6 +1,5 @@
 import { useState } from 'react'
 
-import { useQuery } from '@tanstack/react-query'
 import type { TransparencyDocument } from '@oab-transparencia/contracts'
 import {
   PublicFilters,
@@ -9,10 +8,9 @@ import {
 } from '@/components/shared/public-page'
 
 import { formatCurrency } from '../../../lib/formatters'
-import { getPublicContractsPage } from '../../../lib/api'
 import { PublicPortalLayout } from '@/modules/public-shell/components/PublicPortalLayout'
-import { localPublicTransparencyRepository } from '../data/public.repository'
-import '../public-portal.css'
+import { usePublicContracts } from '../hooks/useContracts'
+import '@/modules/public/public-portal.css'
 
 function SearchIcon() {
   return (
@@ -67,14 +65,7 @@ export function ContractsPage() {
   const [search, setSearch] = useState('')
   const [exercise, setExercise] = useState<'all' | number>(2026)
   const [supplier, setSupplier] = useState('all')
-  const page = useQuery({
-    queryFn: () =>
-      import.meta.env.MODE === 'test'
-        ? localPublicTransparencyRepository.getContractsPage()
-        : getPublicContractsPage(),
-    queryKey: ['public-transparency', 'contracts'],
-    staleTime: Number.POSITIVE_INFINITY,
-  })
+  const page = usePublicContracts()
 
   if (page.isPending) {
     return <PublicPageState>Carregando informações…</PublicPageState>

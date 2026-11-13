@@ -165,7 +165,7 @@ apps/web/src/
 │   ├── financial/
 │   ├── human-resources/            # meses e localidades pertencem ao domínio
 │   ├── patrimonial/                # situação do bem ≠ status de publicação
-│   ├── contracts/
+│   ├── contracts/                  # contratos e fornecedores no mesmo domínio
 │   └── reports/
 └── lib/                            # utilitários sem regra de domínio
 ```
@@ -371,10 +371,14 @@ cache administrativo e invalida os dados públicos.
 
 ### Etapa 23 — Módulo Contratos e Fornecedores
 
-- [ ] Migrar API, hooks, páginas pública/administrativa e testes.
-- [ ] Manter contratos e fornecedores no mesmo módulo, com componentes internos
+- [x] Migrar API, hooks, páginas pública/administrativa e testes.
+- [x] Manter contratos e fornecedores no mesmo módulo, com componentes internos
       separados.
-- [ ] Preservar CNPJ, aditivos, documentos e publicação por exercício.
+- [x] Preservar CNPJ, aditivos, documentos e publicação por exercício.
+
+Contratos e fornecedores usam caches administrativos independentes. O painel de
+fornecedores é um componente interno do módulo; alterações de CNPJ ou nome
+sincronizam os contratos relacionados e invalidam os dados públicos.
 
 ### Etapa 24 — Módulo Relatórios e Indicadores
 
@@ -435,5 +439,5 @@ cache administrativo e invalida os dados públicos.
 
 ## Próxima ação
 
-As Etapas 12 a 22 estão concluídas. Depois da revisão do usuário, iniciar a Etapa
-23 pelo módulo Contratos e Fornecedores, seguindo os módulos já migrados.
+As Etapas 12 a 23 estão concluídas. Depois da revisão do usuário, iniciar a Etapa
+24 pelo módulo Relatórios e Indicadores, seguindo os módulos já migrados.

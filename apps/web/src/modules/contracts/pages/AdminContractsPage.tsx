@@ -1,7 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
-  Building2,
-  Check,
   Eye,
   FileText,
   Pencil,
@@ -26,17 +24,20 @@ import { Label } from '@/components/ui/label'
 import { NumericInput } from '@/components/ui/numeric-input'
 import { useToast } from '@/components/ui/use-toast'
 import {
-  createContract,
-  deleteContract,
-  deleteSupplier,
-  listContracts,
-  listSuppliers,
-  publishContractExercise,
-  updateSupplier,
-  updateContract,
-} from '../../lib/api'
-import { getStoredAuthSession } from './auth-session'
-import { AdminShell } from './AdminShell'
+  formatCnpj,
+  formatContractDate,
+  formatContractTerm,
+} from '../data/contracts.formatters'
+import {
+  useAdminContracts,
+  useAdminSuppliers,
+  useDeleteContract,
+  usePublishContracts,
+  useSaveContract,
+} from '../hooks/useContracts'
+import { SuppliersPanel } from '../components/SuppliersPanel'
+import { AdminShell } from '@/modules/auth/AdminShell'
+import { useAuthSession } from '@/modules/auth/useAuth'
 
 const emptyForm: CreateContractRecordRequest = {
   supplierName: '',
@@ -49,76 +50,24 @@ const emptyForm: CreateContractRecordRequest = {
   amendmentUrls: [],
 }
 
-function digits(value: string, max: number) {
-  return value.replace(/\D/g, '').slice(0, max)
-}
-
-function formatCnpj(value: string) {
-  const raw = digits(value, 14)
-  return raw
-    .replace(/^(\d{2})(\d)/, '$1.$2')
-    .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
-    .replace(/\.(\d{3})(\d)/, '.$1/$2')
-    .replace(/(\d{4})(\d)/, '$1-$2')
-}
-
-function formatDate(value: string) {
-  const input = digits(value, 8)
-  const day =
-    input.length >= 2
-      ? Math.min(Number(input.slice(0, 2)), 31)
-          .toString()
-          .padStart(2, '0')
-      : input
-  const month =
-    input.length >= 4
-      ? Math.min(Number(input.slice(2, 4)), 12)
-          .toString()
-          .padStart(2, '0')
-      : input.slice(2)
-  const raw = `${day}${month}${input.slice(4)}`.slice(0, 8)
-  return raw
-    .replace(/^(\d{2})(\d)/, '$1/$2')
-    .replace(/^(\d{2})\/(\d{2})(\d)/, '$1/$2/$3')
-}
-
-function formatTerm(value: string) {
-  const raw = digits(value, 16)
-  if (raw.length <= 8) return formatDate(raw)
-  return `${formatDate(raw.slice(0, 8))} a ${formatDate(raw.slice(8))}`
-}
+const emptyContracts: AdminContractRecord[] = []
+const emptySuppliers: Supplier[] = []
 
 export function AdminContractsPage() {
-  const session = getStoredAuthSession()
-  const [records, setRecords] = useState<AdminContractRecord[]>([])
-  const [suppliers, setSuppliers] = useState<Supplier[]>([])
+  const session = useAuthSession()
+  const contracts = useAdminContracts(session?.token)
+  const supplierList = useAdminSuppliers(session?.token)
+  const saveContract = useSaveContract(session?.token)
+  const publishContracts = usePublishContracts(session?.token)
+  const removeContractMutation = useDeleteContract(session?.token)
+  const records = contracts.data ?? emptyContracts
+  const suppliers = supplierList.data ?? emptySuppliers
   const [form, setForm] = useState<CreateContractRecordRequest>(emptyForm)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [selectedExercise, setSelectedExercise] = useState<number | null>(null)
-  const [saving, setSaving] = useState(false)
-  const [deletingSupplier, setDeletingSupplier] = useState<Supplier | null>(
-    null,
-  )
   const [deletingContract, setDeletingContract] =
     useState<AdminContractRecord | null>(null)
-  const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null)
-  const [supplierDraftName, setSupplierDraftName] = useState('')
-  const [supplierDraftCnpj, setSupplierDraftCnpj] = useState('')
   const { toast } = useToast()
-  useEffect(() => {
-    if (!session?.token) return
-    Promise.all([listContracts(session.token), listSuppliers(session.token)])
-      .then(([contracts, supplierList]) => {
-        setRecords(contracts)
-        setSuppliers(supplierList)
-      })
-      .catch(() =>
-        toast({
-          title: 'Não foi possível carregar contratos',
-          variant: 'error',
-        }),
-      )
-  }, [session?.token, toast])
   const exercises = useMemo(
     () =>
       [...new Set(records.map((record) => record.exercise))].sort(
@@ -131,7 +80,10 @@ export function AdminContractsPage() {
       ? []
       : records.filter((record) => record.exercise === selectedExercise)
   if (!session) return <Navigate replace to="/login" />
-  const authenticatedSession = session
+  const saving =
+    saveContract.isPending ||
+    publishContracts.isPending ||
+    removeContractMutation.isPending
   function setField<K extends keyof CreateContractRecordRequest>(
     key: K,
     value: CreateContractRecordRequest[K],
@@ -156,28 +108,12 @@ export function AdminContractsPage() {
     })
   }
   async function save() {
-    setSaving(true)
     try {
-      const result = editingId
-        ? await updateContract(authenticatedSession.token, editingId, form)
-        : await createContract(authenticatedSession.token, form)
-      setRecords((current) => [
-        ...current.filter((item) => item.id !== result.id),
-        result,
-      ])
+      const result = await saveContract.mutateAsync({
+        id: editingId ?? undefined,
+        input: editingId ? { ...form, publicationStatus: 'DRAFT' } : form,
+      })
       setEditingId(result.id)
-      const supplier = suppliers.find((item) => item.cnpj === form.cnpj)
-      if (!supplier)
-        setSuppliers((current) => [
-          ...current,
-          {
-            id: `local-${form.cnpj}`,
-            name: form.supplierName,
-            cnpj: form.cnpj,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-        ])
       toast({ title: 'Contrato salvo', variant: 'success' })
     } catch (error) {
       toast({
@@ -186,21 +122,11 @@ export function AdminContractsPage() {
           error instanceof Error ? error.message : 'Tente novamente.',
         variant: 'error',
       })
-    } finally {
-      setSaving(false)
     }
   }
   async function publish() {
-    setSaving(true)
     try {
-      const published = await publishContractExercise(
-        authenticatedSession.token,
-        form.exercise,
-      )
-      setRecords((current) => [
-        ...current.filter((item) => item.exercise !== form.exercise),
-        ...published,
-      ])
+      await publishContracts.mutateAsync(form.exercise)
       toast({ title: 'Contratos publicados', variant: 'success' })
     } catch (error) {
       toast({
@@ -209,39 +135,12 @@ export function AdminContractsPage() {
           error instanceof Error ? error.message : 'Tente novamente.',
         variant: 'error',
       })
-    } finally {
-      setSaving(false)
-    }
-  }
-  async function removeSupplier() {
-    if (!deletingSupplier) return
-    setSaving(true)
-    try {
-      await deleteSupplier(authenticatedSession.token, deletingSupplier.id)
-      setSuppliers((current) =>
-        current.filter((item) => item.id !== deletingSupplier.id),
-      )
-      setDeletingSupplier(null)
-      toast({ title: 'Fornecedor excluído', variant: 'success' })
-    } catch (error) {
-      toast({
-        title: 'Não foi possível excluir o fornecedor',
-        description:
-          error instanceof Error ? error.message : 'Tente novamente.',
-        variant: 'error',
-      })
-    } finally {
-      setSaving(false)
     }
   }
   async function removeContract() {
     if (!deletingContract) return
-    setSaving(true)
     try {
-      await deleteContract(authenticatedSession.token, deletingContract.id)
-      setRecords((current) =>
-        current.filter((item) => item.id !== deletingContract.id),
-      )
+      await removeContractMutation.mutateAsync(deletingContract.id)
       setDeletingContract(null)
       toast({ title: 'Contrato excluído', variant: 'success' })
     } catch (error) {
@@ -251,47 +150,6 @@ export function AdminContractsPage() {
           error instanceof Error ? error.message : 'Tente novamente.',
         variant: 'error',
       })
-    } finally {
-      setSaving(false)
-    }
-  }
-  async function saveSupplier() {
-    if (!editingSupplier) return
-    setSaving(true)
-    try {
-      const updated = await updateSupplier(
-        authenticatedSession.token,
-        editingSupplier.id,
-        {
-          name: supplierDraftName,
-          cnpj: supplierDraftCnpj,
-        },
-      )
-      setSuppliers((current) =>
-        current.map((item) => (item.id === updated.id ? updated : item)),
-      )
-      setRecords((current) =>
-        current.map((record) =>
-          record.cnpj === editingSupplier.cnpj
-            ? { ...record, supplier: updated.name, cnpj: updated.cnpj }
-            : record,
-        ),
-      )
-      if (form.cnpj === editingSupplier.cnpj) {
-        setField('supplierName', updated.name)
-        setField('cnpj', updated.cnpj)
-      }
-      setEditingSupplier(null)
-      toast({ title: 'Fornecedor atualizado', variant: 'success' })
-    } catch (error) {
-      toast({
-        title: 'Não foi possível atualizar o fornecedor',
-        description:
-          error instanceof Error ? error.message : 'Tente novamente.',
-        variant: 'error',
-      })
-    } finally {
-      setSaving(false)
     }
   }
   return (
@@ -389,7 +247,7 @@ export function AdminContractsPage() {
                     id="contract-signed"
                     inputMode="numeric"
                     onChange={(event) => {
-                      const start = formatDate(event.target.value)
+                      const start = formatContractDate(event.target.value)
                       setField('signedAt', start)
                       const end = form.term.split(' a ')[1] ?? ''
                       setField('term', `${start} a ${end}`)
@@ -404,7 +262,7 @@ export function AdminContractsPage() {
                     id="contract-term"
                     inputMode="numeric"
                     onChange={(event) =>
-                      setField('term', formatTerm(event.target.value))
+                      setField('term', formatContractTerm(event.target.value))
                     }
                     placeholder="DD/MM/AAAA a DD/MM/AAAA"
                     value={form.term}
@@ -486,7 +344,15 @@ export function AdminContractsPage() {
                 </p>
               </CardHeader>
               <CardContent className="grid gap-3">
-                {exercises.length ? (
+                {contracts.isPending ? (
+                  <p className="text-sm text-muted-foreground">
+                    Carregando contratos…
+                  </p>
+                ) : contracts.isError ? (
+                  <p className="text-sm text-destructive" role="alert">
+                    Não foi possível carregar os contratos.
+                  </p>
+                ) : exercises.length ? (
                   exercises.map((exercise) => (
                     <button
                       className="flex w-full items-center justify-between rounded-lg border border-border p-4 text-left hover:bg-[#f7f9fc]"
@@ -546,78 +412,22 @@ export function AdminContractsPage() {
               </div>
             </CardContent>
           </Card>
-          <Card className="min-w-0">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 size={18} /> Fornecedores cadastrados
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                {suppliers.length} fornecedor(es) disponível(is) para
-                reutilização.
-              </p>
-            </CardHeader>
-            <CardContent className="max-h-72 space-y-3 overflow-y-auto">
-              {suppliers.length ? (
-                suppliers.map((supplier) => (
-                  <div
-                    className="rounded-lg border border-[#dfe4ea] bg-[#f8fafc] p-3 transition-colors hover:border-[#b8c7d9] hover:bg-white"
-                    key={supplier.id}
-                  >
-                    <div className="flex items-start gap-3">
-                      <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-white text-[#52617a] shadow-sm ring-1 ring-[#dfe4ea]">
-                        <Building2 size={15} />
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <strong className="block truncate text-sm text-[#223149]">
-                          {supplier.name}
-                        </strong>
-                        <span className="mt-1 block text-xs text-muted-foreground">
-                          CNPJ: {supplier.cnpj}
-                        </span>
-                      </span>
-                    </div>
-                    <div className="mt-3 flex items-center justify-end gap-2 border-t border-[#e6ebf1] pt-3">
-                      <Button
-                        className="h-8 px-2.5 text-xs"
-                        onClick={() => {
-                          setField('supplierName', supplier.name)
-                          setField('cnpj', supplier.cnpj)
-                        }}
-                        type="button"
-                        variant="outline"
-                      >
-                        <Check size={14} /> Usar
-                      </Button>
-                      <Button
-                        className="h-8 px-2.5 text-xs"
-                        onClick={() => {
-                          setEditingSupplier(supplier)
-                          setSupplierDraftName(supplier.name)
-                          setSupplierDraftCnpj(supplier.cnpj)
-                        }}
-                        type="button"
-                        variant="outline"
-                      >
-                        <Pencil size={14} /> Editar
-                      </Button>
-                      <Button
-                        className="h-8 px-2.5 text-xs text-red-700 hover:bg-red-50 hover:text-red-800"
-                        onClick={() => setDeletingSupplier(supplier)}
-                        type="button"
-                        variant="outline"
-                      >
-                        <Trash2 size={14} /> Excluir
-                      </Button>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  Nenhum fornecedor cadastrado.
-                </p>
-              )}
-            </CardContent>
-          </Card>
+          <SuppliersPanel
+            isError={supplierList.isError}
+            isPending={supplierList.isPending}
+            onSelect={(supplier) => {
+              setField('supplierName', supplier.name)
+              setField('cnpj', supplier.cnpj)
+            }}
+            onUpdated={(supplier, previousCnpj) => {
+              if (form.cnpj === previousCnpj) {
+                setField('supplierName', supplier.name)
+                setField('cnpj', supplier.cnpj)
+              }
+            }}
+            suppliers={suppliers}
+            token={session.token}
+          />
         </aside>
       </div>
       {selectedExercise !== null && (
@@ -715,84 +525,6 @@ export function AdminContractsPage() {
           </div>
         </div>
       )}
-      {editingSupplier && (
-        <div
-          aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[#223149]/45 p-4"
-          role="dialog"
-        >
-          <div className="w-full max-w-md rounded-xl border border-[#dfe4ea] bg-white p-6 shadow-xl">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.1em] text-[#52617a]">
-                  Cadastro de fornecedor
-                </p>
-                <h2 className="mt-2 text-xl font-semibold text-[#223149]">
-                  Editar fornecedor
-                </h2>
-              </div>
-              <button
-                aria-label="Fechar edição do fornecedor"
-                className="flex size-9 items-center justify-center rounded-md border border-[#d1d9e4] text-[#52617a] hover:bg-[#f1f4f7]"
-                onClick={() => setEditingSupplier(null)}
-                type="button"
-              >
-                <X size={17} />
-              </button>
-            </div>
-            <div className="mt-6 grid gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="edit-supplier-name">Nome</Label>
-                <Input
-                  id="edit-supplier-name"
-                  onChange={(event) => setSupplierDraftName(event.target.value)}
-                  value={supplierDraftName}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="edit-supplier-cnpj">CNPJ</Label>
-                <Input
-                  id="edit-supplier-cnpj"
-                  inputMode="numeric"
-                  onChange={(event) =>
-                    setSupplierDraftCnpj(formatCnpj(event.target.value))
-                  }
-                  value={supplierDraftCnpj}
-                />
-              </div>
-            </div>
-            <div className="mt-6 flex justify-end gap-3 border-t border-[#e6ebf1] pt-4">
-              <Button
-                onClick={() => setEditingSupplier(null)}
-                type="button"
-                variant="outline"
-              >
-                Cancelar
-              </Button>
-              <Button
-                disabled={
-                  saving ||
-                  !supplierDraftName.trim() ||
-                  supplierDraftCnpj.length < 14
-                }
-                onClick={() => void saveSupplier()}
-                type="button"
-              >
-                <Save size={16} /> Salvar alterações
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-      <ConfirmationDialog
-        confirmLabel="Excluir fornecedor"
-        description="O fornecedor será removido da lista de fornecedores cadastrados."
-        isLoading={saving}
-        onCancel={() => setDeletingSupplier(null)}
-        onConfirm={() => void removeSupplier()}
-        open={deletingSupplier !== null}
-        title="Excluir fornecedor?"
-      />
       <ConfirmationDialog
         confirmLabel="Excluir contrato"
         description="O contrato será removido permanentemente deste exercício."
