@@ -228,8 +228,8 @@ Pendências confirmadas:
 - [x] Usar transações nas operações de conteúdo com mais de uma escrita/leitura
       dependente. A atomicidade específica do bootstrap/sessões de autenticação
       permanece na Etapa 16.
-- [ ] Validar variáveis de ambiente, params e queries com schemas Zod explícitos.
-- [ ] Padronizar `404`, erro de CORS e JSON malformado como respostas JSON.
+- [x] Validar variáveis de ambiente, params e queries com schemas Zod explícitos.
+- [x] Padronizar `404`, erro de CORS e JSON malformado como respostas JSON.
 - [ ] Definir permissões reais para `ADMIN`, `EDITOR` e `REVIEWER`; hoje as
       mutações de conteúdo exigem apenas usuário autenticado.
 - [ ] Adicionar rate limit em login/cadastro, logging estruturado e request ID.
@@ -280,10 +280,10 @@ sem dependências circulares ou acesso direto ao Prisma pelo controller.
 
 ### Etapa 15 — Bordas HTTP e validação
 
-- [ ] Criar schemas compartilhados para IDs, params, queries e paginação.
-- [ ] Validar todas as variáveis de ambiente na inicialização.
-- [ ] Padronizar erros de validação, rota inexistente, CORS e JSON malformado.
-- [ ] Preservar mensagens e status já consumidos pelo frontend.
+- [x] Criar schemas compartilhados para IDs, params, queries e paginação.
+- [x] Validar todas as variáveis de ambiente na inicialização.
+- [x] Padronizar erros de validação, rota inexistente, CORS e JSON malformado.
+- [x] Preservar mensagens e status já consumidos pelo frontend.
 
 ### Etapa 16 — Autorização e proteção operacional
 
@@ -411,6 +411,6 @@ sem dependência lateral e sem abstração genérica prematura.
 
 ## Próxima ação
 
-As Etapas 12, 13 e 14 estão concluídas. Depois da revisão do usuário, iniciar
-somente a Etapa 15 pelas bordas HTTP compartilhadas, preservando os contratos já
-consumidos pelo frontend.
+As Etapas 12 a 15 estão concluídas. Depois da revisão do usuário, iniciar somente
+a Etapa 16 pela definição explícita da matriz de permissões antes de alterar os
+guards das features.

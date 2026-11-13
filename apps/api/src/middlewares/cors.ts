@@ -1,15 +1,18 @@
 import cors from 'cors'
 import type { RequestHandler } from 'express'
+import { readEnvironment } from '../environment.js'
+
+export class CorsOriginError extends Error {
+  constructor() {
+    super('Origem não autorizada pelo CORS.')
+    this.name = 'CorsOriginError'
+  }
+}
 
 export function createCorsMiddleware(
-  webOrigin = process.env.WEB_ORIGIN,
+  webOrigins: readonly string[] = readEnvironment().webOrigins,
 ): RequestHandler {
-  const allowedOrigins = new Set(
-    (webOrigin ?? 'http://localhost:5173')
-      .split(',')
-      .map((origin) => origin.trim())
-      .filter(Boolean),
-  )
+  const allowedOrigins = new Set(webOrigins)
 
   return cors({
     origin(origin, callback) {
@@ -18,7 +21,7 @@ export function createCorsMiddleware(
         return
       }
 
-      callback(new Error('Origem não autorizada pelo CORS.'))
+      callback(new CorsOriginError())
     },
   })
 }

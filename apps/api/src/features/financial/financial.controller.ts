@@ -1,9 +1,14 @@
-import { ExerciseSchema } from '@oab-transparencia/contracts/common'
 import {
   CreateFinancialDocumentRequestSchema,
   UpdateFinancialDocumentRequestSchema,
 } from '@oab-transparencia/contracts/transparency'
 import type { RequestHandler } from 'express'
+import {
+  ExerciseParamsSchema,
+  IdParamsSchema,
+  type ExerciseParams,
+  type IdParams,
+} from '../../http/request-schemas.js'
 import type { FinancialDocumentService } from './financial-document-service.js'
 import type { RequireUser } from '../../middlewares/require-user.js'
 
@@ -12,20 +17,12 @@ export type FinancialControllerDependencies = {
   requireUser: RequireUser
 }
 
-type FinancialIdParams = {
-  id: string
-}
-
-type FinancialExerciseParams = {
-  exercise: string
-}
-
 export type FinancialController = {
   list: RequestHandler
   listPublished: RequestHandler
   create: RequestHandler
-  update: RequestHandler<FinancialIdParams>
-  publish: RequestHandler<FinancialExerciseParams>
+  update: RequestHandler<IdParams>
+  publish: RequestHandler<ExerciseParams>
 }
 
 export function createFinancialController({
@@ -70,9 +67,10 @@ export function createFinancialController({
     async update(request, response, next) {
       try {
         const user = await requireUser(request)
+        const { id } = IdParamsSchema.parse(request.params)
         const input = UpdateFinancialDocumentRequestSchema.parse(request.body)
         response.json(
-          await getFinancialDocumentService().update(request.params.id, {
+          await getFinancialDocumentService().update(id, {
             ...input,
             userId: user.id,
           }),
@@ -85,7 +83,7 @@ export function createFinancialController({
     async publish(request, response, next) {
       try {
         const user = await requireUser(request)
-        const exercise = ExerciseSchema.parse(Number(request.params.exercise))
+        const { exercise } = ExerciseParamsSchema.parse(request.params)
         response.json(
           await getFinancialDocumentService().publishExercise(
             exercise,

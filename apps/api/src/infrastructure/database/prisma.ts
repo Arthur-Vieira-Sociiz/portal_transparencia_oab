@@ -1,13 +1,15 @@
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '../../generated/prisma/client.js'
+import { readEnvironment } from '../../environment.js'
 
 let prismaClient: PrismaClient | undefined
 
 export function getPrismaClient(): PrismaClient {
   if (prismaClient) return prismaClient
 
+  const environment = readEnvironment()
   const connectionString =
-    process.env.DATABASE_URL_POOLED ?? process.env.DATABASE_URL
+    environment.pooledDatabaseUrl ?? environment.databaseUrl
   if (!connectionString) {
     throw new Error('DATABASE_URL_POOLED ou DATABASE_URL não foi configurada.')
   }

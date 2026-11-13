@@ -1,13 +1,11 @@
 import { createAuthService } from './auth-service.js'
 import { createPrismaAuthRepository } from './prisma-auth-repository.js'
+import { readEnvironment } from '../../environment.js'
 
 export function createPrismaAuthService() {
-  const sessionTtlHours = Number(process.env.SESSION_TTL_HOURS ?? 8)
+  const environment = readEnvironment()
   return createAuthService(createPrismaAuthRepository(), {
-    registrationKey: process.env.ADMIN_REGISTRATION_KEY,
-    sessionTtlHours:
-      Number.isFinite(sessionTtlHours) && sessionTtlHours > 0
-        ? sessionTtlHours
-        : 8,
+    registrationKey: environment.adminRegistrationKey,
+    sessionTtlHours: environment.sessionTtlHours,
   })
 }

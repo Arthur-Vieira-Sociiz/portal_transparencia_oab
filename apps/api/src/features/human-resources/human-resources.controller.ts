@@ -1,10 +1,15 @@
-import { ExerciseSchema } from '@oab-transparencia/contracts/common'
 import {
   CreateHumanResourcesRequestSchema,
   PublicHumanResourcesPageSchema,
   UpdateHumanResourcesRequestSchema,
 } from '@oab-transparencia/contracts/transparency'
 import type { RequestHandler } from 'express'
+import {
+  ExerciseParamsSchema,
+  IdParamsSchema,
+  type ExerciseParams,
+  type IdParams,
+} from '../../http/request-schemas.js'
 import type { HumanResourcesService } from './human-resources-service.js'
 import type { RequireUser } from '../../middlewares/require-user.js'
 
@@ -13,21 +18,13 @@ export type HumanResourcesControllerDependencies = {
   requireUser: RequireUser
 }
 
-type HumanResourcesIdParams = {
-  id: string
-}
-
-type HumanResourcesExerciseParams = {
-  exercise: string
-}
-
 export type HumanResourcesController = {
   list: RequestHandler
   listPublished: RequestHandler
   create: RequestHandler
-  update: RequestHandler<HumanResourcesIdParams>
-  delete: RequestHandler<HumanResourcesIdParams>
-  publish: RequestHandler<HumanResourcesExerciseParams>
+  update: RequestHandler<IdParams>
+  delete: RequestHandler<IdParams>
+  publish: RequestHandler<ExerciseParams>
 }
 
 export function createHumanResourcesController({
@@ -74,9 +71,10 @@ export function createHumanResourcesController({
     async update(request, response, next) {
       try {
         const user = await requireUser(request)
+        const { id } = IdParamsSchema.parse(request.params)
         const input = UpdateHumanResourcesRequestSchema.parse(request.body)
         response.json(
-          await getHumanResourcesService().update(request.params.id, {
+          await getHumanResourcesService().update(id, {
             ...input,
             userId: user.id,
           }),
@@ -89,7 +87,8 @@ export function createHumanResourcesController({
     async delete(request, response, next) {
       try {
         await requireUser(request)
-        await getHumanResourcesService().delete(request.params.id)
+        const { id } = IdParamsSchema.parse(request.params)
+        await getHumanResourcesService().delete(id)
         response.status(204).send()
       } catch (error) {
         next(error)
@@ -99,7 +98,7 @@ export function createHumanResourcesController({
     async publish(request, response, next) {
       try {
         const user = await requireUser(request)
-        const exercise = ExerciseSchema.parse(Number(request.params.exercise))
+        const { exercise } = ExerciseParamsSchema.parse(request.params)
         response.json(
           await getHumanResourcesService().publishExercise(exercise, user.id),
         )

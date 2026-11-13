@@ -1,10 +1,16 @@
-import { ExerciseSchema } from '@oab-transparencia/contracts/common'
 import {
   CreateBudgetRecordRequestSchema,
   PublicBudgetRecordsSchema,
   UpdateBudgetRecordRequestSchema,
 } from '@oab-transparencia/contracts/transparency'
 import type { RequestHandler } from 'express'
+import {
+  BudgetQuerySchema,
+  ExerciseParamsSchema,
+  IdParamsSchema,
+  type ExerciseParams,
+  type IdParams,
+} from '../../http/request-schemas.js'
 import type { BudgetService } from './budget-service.js'
 import type { RequireUser } from '../../middlewares/require-user.js'
 
@@ -13,20 +19,12 @@ export type BudgetControllerDependencies = {
   requireUser: RequireUser
 }
 
-type BudgetIdParams = {
-  id: string
-}
-
-type BudgetExerciseParams = {
-  exercise: string
-}
-
 export type BudgetController = {
   listPublished: RequestHandler
   list: RequestHandler
   create: RequestHandler
-  update: RequestHandler<BudgetIdParams>
-  publish: RequestHandler<BudgetExerciseParams>
+  update: RequestHandler<IdParams>
+  publish: RequestHandler<ExerciseParams>
 }
 
 export function createBudgetController({
@@ -36,13 +34,9 @@ export function createBudgetController({
   return {
     async listPublished(request, response, next) {
       try {
-        const exercise = request.query.exercise
-          ? ExerciseSchema.parse(Number(request.query.exercise))
-          : undefined
-        const informationType =
-          typeof request.query.informationType === 'string'
-            ? request.query.informationType
-            : undefined
+        const { exercise, informationType } = BudgetQuerySchema.parse(
+          request.query,
+        )
         response.json(
           PublicBudgetRecordsSchema.parse(
             await getBudgetService().getPublished(exercise, informationType),
@@ -77,9 +71,10 @@ export function createBudgetController({
     async update(request, response, next) {
       try {
         const user = await requireUser(request)
+        const { id } = IdParamsSchema.parse(request.params)
         const input = UpdateBudgetRecordRequestSchema.parse(request.body)
         response.json(
-          await getBudgetService().update(request.params.id, {
+          await getBudgetService().update(id, {
             ...input,
             userId: user.id,
           }),
@@ -92,7 +87,7 @@ export function createBudgetController({
     async publish(request, response, next) {
       try {
         const user = await requireUser(request)
-        const exercise = ExerciseSchema.parse(Number(request.params.exercise))
+        const { exercise } = ExerciseParamsSchema.parse(request.params)
         response.json(
           await getBudgetService().publishExercise(exercise, user.id),
         )

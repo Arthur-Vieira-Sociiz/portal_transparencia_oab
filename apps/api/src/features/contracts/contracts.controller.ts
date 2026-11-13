@@ -1,4 +1,3 @@
-import { ExerciseSchema } from '@oab-transparencia/contracts/common'
 import {
   CreateContractRecordRequestSchema,
   CreateSupplierRequestSchema,
@@ -7,6 +6,12 @@ import {
   UpdateSupplierRequestSchema,
 } from '@oab-transparencia/contracts/transparency'
 import type { RequestHandler } from 'express'
+import {
+  ExerciseParamsSchema,
+  IdParamsSchema,
+  type ExerciseParams,
+  type IdParams,
+} from '../../http/request-schemas.js'
 import type { ContractService } from './contract-service.js'
 import type { RequireUser } from '../../middlewares/require-user.js'
 
@@ -15,25 +20,17 @@ export type ContractsControllerDependencies = {
   requireUser: RequireUser
 }
 
-type ContractIdParams = {
-  id: string
-}
-
-type ContractExerciseParams = {
-  exercise: string
-}
-
 export type ContractsController = {
   listPublished: RequestHandler
   list: RequestHandler
   listSuppliers: RequestHandler
   createSupplier: RequestHandler
-  updateSupplier: RequestHandler<ContractIdParams>
-  deleteSupplier: RequestHandler<ContractIdParams>
+  updateSupplier: RequestHandler<IdParams>
+  deleteSupplier: RequestHandler<IdParams>
   create: RequestHandler
-  update: RequestHandler<ContractIdParams>
-  delete: RequestHandler<ContractIdParams>
-  publish: RequestHandler<ContractExerciseParams>
+  update: RequestHandler<IdParams>
+  delete: RequestHandler<IdParams>
+  publish: RequestHandler<ExerciseParams>
 }
 
 export function createContractsController({
@@ -86,10 +83,9 @@ export function createContractsController({
     async updateSupplier(request, response, next) {
       try {
         await requireUser(request)
+        const { id } = IdParamsSchema.parse(request.params)
         const input = UpdateSupplierRequestSchema.parse(request.body)
-        response.json(
-          await getContractService().updateSupplier(request.params.id, input),
-        )
+        response.json(await getContractService().updateSupplier(id, input))
       } catch (error) {
         next(error)
       }
@@ -98,7 +94,8 @@ export function createContractsController({
     async deleteSupplier(request, response, next) {
       try {
         await requireUser(request)
-        await getContractService().deleteSupplier(request.params.id)
+        const { id } = IdParamsSchema.parse(request.params)
+        await getContractService().deleteSupplier(id)
         response.status(204).send()
       } catch (error) {
         next(error)
@@ -122,9 +119,10 @@ export function createContractsController({
     async update(request, response, next) {
       try {
         const user = await requireUser(request)
+        const { id } = IdParamsSchema.parse(request.params)
         const input = UpdateContractRecordRequestSchema.parse(request.body)
         response.json(
-          await getContractService().update(request.params.id, {
+          await getContractService().update(id, {
             ...input,
             userId: user.id,
           }),
@@ -137,7 +135,8 @@ export function createContractsController({
     async delete(request, response, next) {
       try {
         await requireUser(request)
-        await getContractService().delete(request.params.id)
+        const { id } = IdParamsSchema.parse(request.params)
+        await getContractService().delete(id)
         response.status(204).send()
       } catch (error) {
         next(error)
@@ -147,7 +146,7 @@ export function createContractsController({
     async publish(request, response, next) {
       try {
         const user = await requireUser(request)
-        const exercise = ExerciseSchema.parse(Number(request.params.exercise))
+        const { exercise } = ExerciseParamsSchema.parse(request.params)
         response.json(
           await getContractService().publishExercise(exercise, user.id),
         )

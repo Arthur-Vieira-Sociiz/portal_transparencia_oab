@@ -1,5 +1,6 @@
-import type { ErrorRequestHandler, Response } from 'express'
+import type { ErrorRequestHandler, RequestHandler, Response } from 'express'
 import { ZodError } from 'zod'
+import { CorsOriginError } from '../middlewares/cors.js'
 import {
   AuthenticationError,
   BudgetError,
@@ -40,12 +41,32 @@ function generalDataErrorResponse(error: GeneralDataError, response: Response) {
   response.status(status).json({ message })
 }
 
+function isMalformedJsonError(
+  error: unknown,
+): error is SyntaxError & { status: 400; type: 'entity.parse.failed' } {
+  return (
+    error instanceof SyntaxError &&
+    'status' in error &&
+    error.status === 400 &&
+    'type' in error &&
+    error.type === 'entity.parse.failed'
+  )
+}
+
+export const notFoundHandler: RequestHandler = (_request, response) => {
+  response.status(404).json({ message: 'Rota não encontrada.' })
+}
+
 export const errorHandler: ErrorRequestHandler = (
   error: unknown,
   _request,
   response,
   _next,
 ) => {
+  if (isMalformedJsonError(error)) {
+    response.status(400).json({ message: 'JSON malformado.' })
+    return
+  }
   if (error instanceof ZodError) {
     response.status(400).json({
       message: 'Dados inválidos.',
@@ -54,6 +75,10 @@ export const errorHandler: ErrorRequestHandler = (
         message: issue.message,
       })),
     })
+    return
+  }
+  if (error instanceof CorsOriginError) {
+    response.status(403).json({ message: error.message })
     return
   }
   if (error instanceof AuthenticationError) {

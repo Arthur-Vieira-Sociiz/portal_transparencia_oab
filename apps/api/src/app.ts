@@ -37,7 +37,7 @@ import {
   type ContractService,
 } from './features/contracts/contract-service.js'
 import { createPrismaContractRepository } from './features/contracts/prisma-contract-repository.js'
-import { errorHandler } from './errors/error-handlers.js'
+import { errorHandler, notFoundHandler } from './errors/error-handlers.js'
 import { createCorsMiddleware } from './middlewares/cors.js'
 import { createRequireAdmin } from './middlewares/require-admin.js'
 import { createRequireUser } from './middlewares/require-user.js'
@@ -141,6 +141,7 @@ export function createApp(options: AppOptions = {}): Express {
   app.use(createPatrimonialRoutes({ getPatrimonialAssetService, requireUser }))
   app.use(createContractsRoutes({ getContractService, requireUser }))
 
+  app.use(notFoundHandler)
   app.use(errorHandler)
 
   return app

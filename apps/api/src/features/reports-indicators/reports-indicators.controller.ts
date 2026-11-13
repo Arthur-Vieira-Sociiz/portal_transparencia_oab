@@ -1,10 +1,15 @@
-import { ExerciseSchema } from '@oab-transparencia/contracts/common'
 import {
   CreateReportsIndicatorRequestSchema,
   PublicReportsPageSchema,
   UpdateReportsIndicatorRequestSchema,
 } from '@oab-transparencia/contracts/transparency'
 import type { RequestHandler } from 'express'
+import {
+  ExerciseParamsSchema,
+  IdParamsSchema,
+  type ExerciseParams,
+  type IdParams,
+} from '../../http/request-schemas.js'
 import type { RequireUser } from '../../middlewares/require-user.js'
 import type { ReportsIndicatorsService } from './reports-indicators-service.js'
 
@@ -13,21 +18,13 @@ export type ReportsIndicatorsControllerDependencies = {
   requireUser: RequireUser
 }
 
-type ReportIdParams = {
-  id: string
-}
-
-type ReportExerciseParams = {
-  exercise: string
-}
-
 export type ReportsIndicatorsController = {
   listPublished: RequestHandler
   list: RequestHandler
   create: RequestHandler
-  update: RequestHandler<ReportIdParams>
-  delete: RequestHandler<ReportIdParams>
-  publish: RequestHandler<ReportExerciseParams>
+  update: RequestHandler<IdParams>
+  delete: RequestHandler<IdParams>
+  publish: RequestHandler<ExerciseParams>
 }
 
 export function createReportsIndicatorsController({
@@ -76,9 +73,10 @@ export function createReportsIndicatorsController({
     async update(request, response, next) {
       try {
         const user = await requireUser(request)
+        const { id } = IdParamsSchema.parse(request.params)
         const input = UpdateReportsIndicatorRequestSchema.parse(request.body)
         response.json(
-          await getReportsIndicatorsService().update(request.params.id, {
+          await getReportsIndicatorsService().update(id, {
             ...input,
             userId: user.id,
           }),
@@ -91,7 +89,8 @@ export function createReportsIndicatorsController({
     async delete(request, response, next) {
       try {
         await requireUser(request)
-        await getReportsIndicatorsService().delete(request.params.id)
+        const { id } = IdParamsSchema.parse(request.params)
+        await getReportsIndicatorsService().delete(id)
         response.status(204).send()
       } catch (error) {
         next(error)
@@ -101,11 +100,9 @@ export function createReportsIndicatorsController({
     async publish(request, response, next) {
       try {
         const user = await requireUser(request)
+        const { exercise } = ExerciseParamsSchema.parse(request.params)
         response.json(
-          await getReportsIndicatorsService().publish(
-            ExerciseSchema.parse(Number(request.params.exercise)),
-            user.id,
-          ),
+          await getReportsIndicatorsService().publish(exercise, user.id),
         )
       } catch (error) {
         next(error)

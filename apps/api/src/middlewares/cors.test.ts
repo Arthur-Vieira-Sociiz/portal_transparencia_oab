@@ -21,4 +21,17 @@ describe('CORS middleware', () => {
       'https://transparencia.orbiapp.com.br',
     )
   })
+
+  it('rejects an origin outside the whitelist with JSON', async () => {
+    process.env.WEB_ORIGIN = 'https://transparencia.orbiapp.com.br'
+
+    const response = await request(createApp())
+      .get('/api/health')
+      .set('Origin', 'https://malicious.example.com')
+      .expect(403)
+
+    expect(response.body).toEqual({
+      message: 'Origem não autorizada pelo CORS.',
+    })
+  })
 })

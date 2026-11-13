@@ -1,10 +1,15 @@
-import { ExerciseSchema } from '@oab-transparencia/contracts/common'
 import {
   CreatePatrimonialAssetRequestSchema,
   PublicPatrimonialPageSchema,
   UpdatePatrimonialAssetRequestSchema,
 } from '@oab-transparencia/contracts/transparency'
 import type { RequestHandler } from 'express'
+import {
+  ExerciseParamsSchema,
+  IdParamsSchema,
+  type ExerciseParams,
+  type IdParams,
+} from '../../http/request-schemas.js'
 import type { RequireUser } from '../../middlewares/require-user.js'
 import type { PatrimonialAssetService } from './patrimonial-asset-service.js'
 
@@ -13,20 +18,12 @@ export type PatrimonialControllerDependencies = {
   requireUser: RequireUser
 }
 
-type PatrimonialIdParams = {
-  id: string
-}
-
-type PatrimonialExerciseParams = {
-  exercise: string
-}
-
 export type PatrimonialController = {
   listPublished: RequestHandler
   list: RequestHandler
   create: RequestHandler
-  update: RequestHandler<PatrimonialIdParams>
-  publish: RequestHandler<PatrimonialExerciseParams>
+  update: RequestHandler<IdParams>
+  publish: RequestHandler<ExerciseParams>
 }
 
 export function createPatrimonialController({
@@ -73,9 +70,10 @@ export function createPatrimonialController({
     async update(request, response, next) {
       try {
         const user = await requireUser(request)
+        const { id } = IdParamsSchema.parse(request.params)
         const input = UpdatePatrimonialAssetRequestSchema.parse(request.body)
         response.json(
-          await getPatrimonialAssetService().update(request.params.id, {
+          await getPatrimonialAssetService().update(id, {
             ...input,
             userId: user.id,
           }),
@@ -88,7 +86,7 @@ export function createPatrimonialController({
     async publish(request, response, next) {
       try {
         const user = await requireUser(request)
-        const exercise = ExerciseSchema.parse(Number(request.params.exercise))
+        const { exercise } = ExerciseParamsSchema.parse(request.params)
         response.json(
           await getPatrimonialAssetService().publishExercise(exercise, user.id),
         )

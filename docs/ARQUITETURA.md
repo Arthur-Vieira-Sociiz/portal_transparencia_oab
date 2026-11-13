@@ -90,9 +90,9 @@ Controllers usam os schemas Zod compartilhados nas entradas já cobertas e não
 acessam o Prisma diretamente. CORS usa uma whitelist explícita e é aplicado antes de
 todos os routers.
 
-A validação Zod de todos os `params` e queries ainda é uma etapa de hardening
-pendente; alguns controllers preservam a validação parcial existente para não mudar
-o comportamento durante a modularização.
+IDs, exercícios e filtros de query são validados por schemas Zod compartilhados na
+borda HTTP. A inicialização também valida e tipa as variáveis de ambiente. Erros de
+validação, rota inexistente, CORS e JSON malformado usam respostas JSON consistentes.
 
 Cada feature concentra router, controller, service, interface de repository,
 adapter Prisma e testes do domínio. Services dependem das interfaces locais de
