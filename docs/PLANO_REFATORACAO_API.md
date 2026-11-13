@@ -443,9 +443,22 @@ diferentes.
 
 ### Etapa 28 — Desempenho e dependências do frontend
 
-- [ ] Medir bundle do frontend e manter Chart.js fora do carregamento inicial.
-- [ ] Revisar re-renderizações e waterfalls somente com evidência de medição.
-- [ ] Executar auditoria de dependências sem atualizar versões no mesmo diff.
+- [x] Medir bundle do frontend e manter Chart.js fora do carregamento inicial.
+- [x] Revisar re-renderizações e waterfalls somente com evidência de medição.
+- [x] Executar auditoria de dependências sem atualizar versões no mesmo diff.
+
+O build inicial concentrava todas as páginas em um chunk de `669,82 kB`
+(`197,48 kB` gzip). Como a medição excedia o limite de `500 kB`, as páginas
+públicas e administrativas passaram a ser carregadas por rota. O chunk inicial
+foi reduzido para `259,98 kB` (`81,10 kB` gzip), sem o aviso de tamanho excessivo.
+O Chart.js permanece em um chunk independente de `203,67 kB` (`69,78 kB` gzip),
+carregado apenas no módulo de Relatórios.
+
+Não houve alteração especulativa de memoização ou fluxo de consultas, pois os
+testes e a inspeção não apontaram waterfall ou re-renderização problemática. O
+`pnpm audit --prod` não encontrou vulnerabilidades conhecidas. O inventário de
+versões identificou atualizações disponíveis, mas nenhuma dependência foi alterada
+nesta etapa.
 
 ### Etapa 29 — Validação e encerramento da branch
 
@@ -468,5 +481,5 @@ diferentes.
 
 ## Próxima ação
 
-As Etapas 12 a 27 estão concluídas. Depois da revisão do usuário, iniciar a Etapa
-28 pela medição do bundle e revisão de desempenho e dependências do frontend.
+As Etapas 12 a 28 estão concluídas. Depois da revisão do usuário, iniciar a Etapa
+29 pela validação completa e revisão final da branch de refatoração.
