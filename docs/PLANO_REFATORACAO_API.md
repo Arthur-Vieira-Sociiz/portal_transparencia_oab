@@ -117,8 +117,8 @@ internas de `createApp`, sem mudança de status ou payload.
 
 ### Etapa 8 — Financeiro
 
-- [ ] Extrair rotas públicas, CRUD administrativo e publicação por exercício.
-- [ ] Preservar os formatos de documento e o período.
+- [x] Extrair rotas públicas, CRUD administrativo e publicação por exercício.
+- [x] Preservar os formatos de documento e o período.
 
 ### Etapa 9 — Patrimonial
 

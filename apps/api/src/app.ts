@@ -39,8 +39,6 @@ import {
 } from './contracts/contract-service.js'
 import { createPrismaContractRepository } from './contracts/prisma-contract-repository.js'
 import {
-  CreateFinancialDocumentRequestSchema,
-  UpdateFinancialDocumentRequestSchema,
   CreatePatrimonialAssetRequestSchema,
   UpdatePatrimonialAssetRequestSchema,
   PublicPatrimonialPageSchema,
@@ -56,6 +54,7 @@ import { createRequireAdmin } from './middlewares/require-admin.js'
 import { createRequireUser } from './middlewares/require-user.js'
 import { createAuthRoutes } from './routes/auth/auth.routes.js'
 import { createBudgetRoutes } from './routes/budget/budget.routes.js'
+import { createFinancialRoutes } from './routes/financial/financial.routes.js'
 import { createGeneralDataRoutes } from './routes/general-data/general-data.routes.js'
 import { healthRoutes } from './routes/health/health.routes.js'
 import { createHumanResourcesRoutes } from './routes/human-resources/human-resources.routes.js'
@@ -255,66 +254,8 @@ export function createApp(options: AppOptions = {}): Express {
     createHumanResourcesRoutes({ getHumanResourcesService, requireUser }),
   )
   app.use(createBudgetRoutes({ getBudgetService, requireUser }))
-
-  app.get('/api/admin/financial', async (request, response, next) => {
-    try {
-      await requireUser(request)
-      response.json({ records: await getFinancialDocumentService().list() })
-    } catch (error) {
-      next(error)
-    }
-  })
-  app.get('/api/public/financial', async (_request, response, next) => {
-    try {
-      response.json(await getFinancialDocumentService().listPublished())
-    } catch (error) {
-      next(error)
-    }
-  })
-  app.post('/api/admin/financial', async (request, response, next) => {
-    try {
-      const user = await requireUser(request)
-      const input = CreateFinancialDocumentRequestSchema.parse(request.body)
-      response.status(201).json(
-        await getFinancialDocumentService().create({
-          ...input,
-          userId: user.id,
-        }),
-      )
-    } catch (error) {
-      next(error)
-    }
-  })
-  app.patch('/api/admin/financial/:id', async (request, response, next) => {
-    try {
-      const user = await requireUser(request)
-      const input = UpdateFinancialDocumentRequestSchema.parse(request.body)
-      response.json(
-        await getFinancialDocumentService().update(request.params.id, {
-          ...input,
-          userId: user.id,
-        }),
-      )
-    } catch (error) {
-      next(error)
-    }
-  })
-  app.post(
-    '/api/admin/financial/:exercise/publish',
-    async (request, response, next) => {
-      try {
-        const user = await requireUser(request)
-        const exercise = ExerciseSchema.parse(Number(request.params.exercise))
-        response.json(
-          await getFinancialDocumentService().publishExercise(
-            exercise,
-            user.id,
-          ),
-        )
-      } catch (error) {
-        next(error)
-      }
-    },
+  app.use(
+    createFinancialRoutes({ getFinancialDocumentService, requireUser }),
   )
 
   app.get('/api/public/patrimonial', async (_request, response, next) => {
