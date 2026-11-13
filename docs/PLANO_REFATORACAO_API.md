@@ -127,9 +127,9 @@ internas de `createApp`, sem mudança de status ou payload.
 
 ### Etapa 10 — Contratos e fornecedores
 
-- [ ] Extrair rotas públicas e administrativas de contratos.
-- [ ] Extrair CRUD de fornecedores no mesmo módulo.
-- [ ] Preservar deleções com `204`, conflitos de CNPJ e publicação por exercício.
+- [x] Extrair rotas públicas e administrativas de contratos.
+- [x] Extrair CRUD de fornecedores no mesmo módulo.
+- [x] Preservar deleções com `204`, conflitos de CNPJ e publicação por exercício.
 
 ### Etapa 11 — Limpeza do composition root
 

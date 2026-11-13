@@ -1,4 +1,3 @@
-import { ExerciseSchema } from '@oab-transparencia/contracts/common'
 import express, { type Express } from 'express'
 import helmet from 'helmet'
 import type { AuthService } from './auth/auth-service.js'
@@ -38,19 +37,13 @@ import {
   type ContractService,
 } from './contracts/contract-service.js'
 import { createPrismaContractRepository } from './contracts/prisma-contract-repository.js'
-import {
-  CreateContractRecordRequestSchema,
-  UpdateContractRecordRequestSchema,
-  CreateSupplierRequestSchema,
-  UpdateSupplierRequestSchema,
-  PublicContractsPageSchema,
-} from '@oab-transparencia/contracts/transparency'
 import { errorHandler } from './errors/error-handlers.js'
 import { createCorsMiddleware } from './middlewares/cors.js'
 import { createRequireAdmin } from './middlewares/require-admin.js'
 import { createRequireUser } from './middlewares/require-user.js'
 import { createAuthRoutes } from './routes/auth/auth.routes.js'
 import { createBudgetRoutes } from './routes/budget/budget.routes.js'
+import { createContractsRoutes } from './routes/contracts/contracts.routes.js'
 import { createFinancialRoutes } from './routes/financial/financial.routes.js'
 import { createGeneralDataRoutes } from './routes/general-data/general-data.routes.js'
 import { healthRoutes } from './routes/health/health.routes.js'
@@ -75,112 +68,8 @@ export function createApp(options: AppOptions = {}): Express {
   app.disable('x-powered-by')
   app.use(helmet())
   app.use(express.json())
-  app.get('/api/public/contracts', async (_request, response, next) => {
-    try {
-      response.json(
-        PublicContractsPageSchema.parse(
-          await getContractService().listPublished(),
-        ),
-      )
-    } catch (error) {
-      next(error)
-    }
-  })
-  app.get('/api/admin/contracts', async (request, response, next) => {
-    try {
-      await requireUser(request)
-      response.json({ records: await getContractService().list() })
-    } catch (error) {
-      next(error)
-    }
-  })
-  app.get('/api/admin/suppliers', async (request, response, next) => {
-    try {
-      await requireUser(request)
-      response.json({ suppliers: await getContractService().listSuppliers() })
-    } catch (error) {
-      next(error)
-    }
-  })
-  app.post('/api/admin/suppliers', async (request, response, next) => {
-    try {
-      await requireUser(request)
-      const input = CreateSupplierRequestSchema.parse(request.body)
-      response
-        .status(201)
-        .json(await getContractService().createSupplier(input))
-    } catch (error) {
-      next(error)
-    }
-  })
-  app.delete('/api/admin/suppliers/:id', async (request, response, next) => {
-    try {
-      await requireUser(request)
-      await getContractService().deleteSupplier(request.params.id)
-      response.status(204).send()
-    } catch (error) {
-      next(error)
-    }
-  })
-  app.patch('/api/admin/suppliers/:id', async (request, response, next) => {
-    try {
-      await requireUser(request)
-      const input = UpdateSupplierRequestSchema.parse(request.body)
-      response.json(
-        await getContractService().updateSupplier(request.params.id, input),
-      )
-    } catch (error) {
-      next(error)
-    }
-  })
-  app.post('/api/admin/contracts', async (request, response, next) => {
-    try {
-      const user = await requireUser(request)
-      const input = CreateContractRecordRequestSchema.parse(request.body)
-      response
-        .status(201)
-        .json(await getContractService().create({ ...input, userId: user.id }))
-    } catch (error) {
-      next(error)
-    }
-  })
-  app.patch('/api/admin/contracts/:id', async (request, response, next) => {
-    try {
-      const user = await requireUser(request)
-      const input = UpdateContractRecordRequestSchema.parse(request.body)
-      response.json(
-        await getContractService().update(request.params.id, {
-          ...input,
-          userId: user.id,
-        }),
-      )
-    } catch (error) {
-      next(error)
-    }
-  })
-  app.delete('/api/admin/contracts/:id', async (request, response, next) => {
-    try {
-      await requireUser(request)
-      await getContractService().delete(request.params.id)
-      response.status(204).send()
-    } catch (error) {
-      next(error)
-    }
-  })
-  app.post(
-    '/api/admin/contracts/:exercise/publish',
-    async (request, response, next) => {
-      try {
-        const user = await requireUser(request)
-        const exercise = ExerciseSchema.parse(Number(request.params.exercise))
-        response.json(
-          await getContractService().publishExercise(exercise, user.id),
-        )
-      } catch (error) {
-        next(error)
-      }
-    },
-  )
+  const requireUser = createRequireUser(getAuthService)
+  app.use(createContractsRoutes({ getContractService, requireUser }))
 
   app.use(createCorsMiddleware())
   let authService = options.authService
@@ -235,7 +124,6 @@ export function createApp(options: AppOptions = {}): Express {
     return contractService
   }
 
-  const requireUser = createRequireUser(getAuthService)
   const requireAdmin = createRequireAdmin(requireUser)
 
   app.use(healthRoutes)
