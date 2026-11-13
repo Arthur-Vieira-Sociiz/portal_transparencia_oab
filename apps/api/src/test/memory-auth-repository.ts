@@ -1,7 +1,7 @@
 import type {
   AuthRepository,
   StoredUser,
-} from '../features/auth/auth-service.js'
+} from '../modules/auth/auth-service.js'
 import { getPaginationMetadata } from '../http/request-schemas.js'
 
 export function createMemoryAuthRepository(): AuthRepository {

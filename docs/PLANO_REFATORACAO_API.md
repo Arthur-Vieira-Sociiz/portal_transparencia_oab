@@ -152,7 +152,7 @@ apps/web/src/
 ├── components/
 │   ├── ui/                         # primitivas genéricas
 │   └── shared/                     # compartilhamento real entre domínios
-├── features/
+├── modules/
 │   ├── public-shell/               # hero, navegação e layout público
 │   ├── auth/
 │   ├── general-data/
@@ -194,7 +194,7 @@ apps/api/src/
 ├── http/
 │   ├── errors/
 │   └── middlewares/
-└── features/
+└── modules/
     ├── auth/
     ├── general-data/
     ├── budget/
@@ -205,7 +205,7 @@ apps/api/src/
     └── reports/
 ```
 
-Cada feature concentra routes, controller, service, interface de repository e
+Cada módulo concentra routes, controller, service, interface de repository e
 adapter Prisma. Services dependem da interface, nunca diretamente do Prisma. Essa
 fronteira deve ser preservada para a futura implementação Firebase na `main`.
 
@@ -237,7 +237,7 @@ Pendências confirmadas:
       limpeza de sessões expiradas/revogadas.
 - [x] Adicionar paginação/limites nas listagens administrativas potencialmente
       ilimitadas.
-- [x] Separar `app.test.ts` por feature conforme o fatiamento vertical.
+- [x] Separar `app.test.ts` por módulo conforme o fatiamento vertical.
 - [x] Confirmar que Institucional, Administrativo, Glossário e LGPD são conteúdos
       estáticos, sem CRUD ou API. Os dados locais são intencionais e não representam
       uma pendência do backend.
@@ -270,12 +270,12 @@ nenhuma mudança nos contratos HTTP.
 
 ### Etapa 14 — Fatiamento vertical do backend
 
-- [x] Mover um domínio por vez para `features/<domínio>`.
+- [x] Mover um domínio por vez para `modules/<domínio>`.
 - [x] Manter interface de repository ao lado do service e adapter Prisma isolado.
-- [x] Mover os testes de cada domínio para perto da feature.
+- [x] Mover os testes de cada domínio para perto do módulo.
 - [x] Atualizar apenas imports em cada subetapa.
 
-**Aceite:** cada feature concentra routes, controller, service, repository e testes,
+**Aceite:** cada módulo concentra routes, controller, service, repository e testes,
 sem dependências circulares ou acesso direto ao Prisma pelo controller.
 
 ### Etapa 15 — Bordas HTTP e validação
@@ -339,7 +339,7 @@ sem dependência lateral e sem abstração genérica prematura.
 - [x] Remover o acesso direto ao cliente HTTP/repository antigo nesse módulo.
 - [x] Preservar filtros, documentos e estados de loading/vazio/erro.
 
-**Aceite:** Orçamentário funciona de ponta a ponta dentro da própria feature.
+**Aceite:** Orçamentário funciona de ponta a ponta dentro do próprio módulo.
 
 ### Etapa 20 — Módulo Financeiro
 
@@ -364,7 +364,7 @@ sem dependência lateral e sem abstração genérica prematura.
 ### Etapa 23 — Módulo Contratos e Fornecedores
 
 - [ ] Migrar API, hooks, páginas pública/administrativa e testes.
-- [ ] Manter contratos e fornecedores na mesma feature, com componentes internos
+- [ ] Manter contratos e fornecedores no mesmo módulo, com componentes internos
       separados.
 - [ ] Preservar CNPJ, aditivos, documentos e publicação por exercício.
 

@@ -1,42 +1,42 @@
 import express, { type Express } from 'express'
 import helmet from 'helmet'
-import type { AuthService } from './features/auth/auth-service.js'
-import { createPrismaAuthService } from './features/auth/prisma-auth-service.js'
+import type { AuthService } from './modules/auth/auth-service.js'
+import { createPrismaAuthService } from './modules/auth/prisma-auth-service.js'
 import {
   createGeneralDataService,
   type GeneralDataService,
-} from './features/general-data/general-data-service.js'
-import { createPrismaGeneralDataRepository } from './features/general-data/prisma-general-data-repository.js'
+} from './modules/general-data/general-data-service.js'
+import { createPrismaGeneralDataRepository } from './modules/general-data/prisma-general-data-repository.js'
 import {
   createReportsIndicatorsService,
   type ReportsIndicatorsService,
-} from './features/reports-indicators/reports-indicators-service.js'
-import { createPrismaReportsIndicatorsRepository } from './features/reports-indicators/prisma-reports-indicators-repository.js'
+} from './modules/reports-indicators/reports-indicators-service.js'
+import { createPrismaReportsIndicatorsRepository } from './modules/reports-indicators/prisma-reports-indicators-repository.js'
 import {
   createBudgetService,
   type BudgetService,
-} from './features/budget/budget-service.js'
-import { createPrismaBudgetRepository } from './features/budget/prisma-budget-repository.js'
+} from './modules/budget/budget-service.js'
+import { createPrismaBudgetRepository } from './modules/budget/prisma-budget-repository.js'
 import {
   createFinancialDocumentService,
   type FinancialDocumentService,
-} from './features/financial/financial-document-service.js'
-import { createPrismaFinancialDocumentRepository } from './features/financial/prisma-financial-document-repository.js'
+} from './modules/financial/financial-document-service.js'
+import { createPrismaFinancialDocumentRepository } from './modules/financial/prisma-financial-document-repository.js'
 import {
   createHumanResourcesService,
   type HumanResourcesService,
-} from './features/human-resources/human-resources-service.js'
-import { createPrismaHumanResourcesRepository } from './features/human-resources/prisma-human-resources-repository.js'
+} from './modules/human-resources/human-resources-service.js'
+import { createPrismaHumanResourcesRepository } from './modules/human-resources/prisma-human-resources-repository.js'
 import {
   createPatrimonialAssetService,
   type PatrimonialAssetService,
-} from './features/patrimonial/patrimonial-asset-service.js'
-import { createPrismaPatrimonialAssetRepository } from './features/patrimonial/prisma-patrimonial-asset-repository.js'
+} from './modules/patrimonial/patrimonial-asset-service.js'
+import { createPrismaPatrimonialAssetRepository } from './modules/patrimonial/prisma-patrimonial-asset-repository.js'
 import {
   createContractService,
   type ContractService,
-} from './features/contracts/contract-service.js'
-import { createPrismaContractRepository } from './features/contracts/prisma-contract-repository.js'
+} from './modules/contracts/contract-service.js'
+import { createPrismaContractRepository } from './modules/contracts/prisma-contract-repository.js'
 import { errorHandler, notFoundHandler } from './errors/error-handlers.js'
 import { createCorsMiddleware } from './middlewares/cors.js'
 import { noStoreAuthenticatedResponses } from './middlewares/no-store.js'
@@ -49,15 +49,15 @@ import { createRequireAdmin } from './middlewares/require-admin.js'
 import { createRequirePermission } from './middlewares/require-permission.js'
 import { createRequireUser } from './middlewares/require-user.js'
 import { createRequestLogger } from './middlewares/request-logger.js'
-import { createAuthRoutes } from './features/auth/auth.routes.js'
-import { createBudgetRoutes } from './features/budget/budget.routes.js'
-import { createContractsRoutes } from './features/contracts/contracts.routes.js'
-import { createFinancialRoutes } from './features/financial/financial.routes.js'
-import { createGeneralDataRoutes } from './features/general-data/general-data.routes.js'
-import { healthRoutes } from './features/health/health.routes.js'
-import { createHumanResourcesRoutes } from './features/human-resources/human-resources.routes.js'
-import { createPatrimonialRoutes } from './features/patrimonial/patrimonial.routes.js'
-import { createReportsIndicatorsRoutes } from './features/reports-indicators/reports-indicators.routes.js'
+import { createAuthRoutes } from './modules/auth/auth.routes.js'
+import { createBudgetRoutes } from './modules/budget/budget.routes.js'
+import { createContractsRoutes } from './modules/contracts/contracts.routes.js'
+import { createFinancialRoutes } from './modules/financial/financial.routes.js'
+import { createGeneralDataRoutes } from './modules/general-data/general-data.routes.js'
+import { healthRoutes } from './modules/health/health.routes.js'
+import { createHumanResourcesRoutes } from './modules/human-resources/human-resources.routes.js'
+import { createPatrimonialRoutes } from './modules/patrimonial/patrimonial.routes.js'
+import { createReportsIndicatorsRoutes } from './modules/reports-indicators/reports-indicators.routes.js'
 
 type AppOptions = {
   authService?: AuthService

@@ -36,10 +36,10 @@ import {
   useAdminGeneralData,
   usePublishGeneralData,
   useSaveGeneralData,
-} from '@/features/general-data/general-data.queries'
-import { GeneralDataPreviewGrid } from '@/features/general-data/components/GeneralDataPreviewGrid'
-import { getStoredAuthSession } from './auth-session'
-import { AdminShell } from './AdminShell'
+} from '@/modules/general-data/hooks/useGeneralData'
+import { GeneralDataPreviewGrid } from '@/modules/general-data/components/GeneralDataPreviewGrid'
+import { getStoredAuthSession } from '@/modules/auth/auth-session'
+import { AdminShell } from '@/modules/auth/AdminShell'
 
 const emptyForm: CreateGeneralDataRequest = {
   exercise: new Date().getFullYear(),

@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { PublicPageState } from '@/components/shared/public-page'
 
-import { PublicPortalLayout } from '@/features/public-shell/components/PublicPortalLayout'
+import { PublicPortalLayout } from '@/modules/public-shell/components/PublicPortalLayout'
 import { localPublicTransparencyRepository } from '../data/public.repository'
 import '../public-portal.css'
 

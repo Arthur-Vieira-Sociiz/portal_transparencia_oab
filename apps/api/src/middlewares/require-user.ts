@@ -3,8 +3,8 @@ import type { Request } from 'express'
 import {
   AuthenticationError,
   type AuthService,
-} from '../features/auth/auth-service.js'
-import { readBearerToken } from '../features/auth/bearer-token.js'
+} from '../modules/auth/auth-service.js'
+import { readBearerToken } from '../modules/auth/bearer-token.js'
 
 export type RequireUser = (request: Request) => Promise<AuthenticatedUser>
 

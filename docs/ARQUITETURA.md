@@ -58,11 +58,13 @@ apps/web/src/
 ├── components/
 │   ├── ui/                   # primitivas visuais
 │   └── shared/               # componentes com usos equivalentes comprovados
-├── features/
+├── modules/
 │   ├── public-shell/         # hero, navegação e layout público
 │   ├── general-data/         # API, queries e componentes de Dados Gerais
 │   ├── budget/               # API, queries e páginas do Orçamentário
-│   └── public/               # páginas e domínios públicos ainda em migração
+│   ├── auth/                 # autenticação e páginas admin ainda não migradas
+│   ├── public/               # páginas públicas ainda não migradas por domínio
+│   └── ...                   # demais domínios após sua etapa de migração
 ├── data/                     # repositório local temporário
 ├── lib/
 │   ├── api-client.ts         # transporte HTTP e tratamento central de sessão
@@ -78,7 +80,7 @@ query keys no próprio domínio. O Orçamentário atualiza o cache administrativ
 salvar ou publicar e invalida somente as consultas públicas afetadas.
 Estados de página, cabeçalhos, filtros, links de download e contêineres de tabela
 são compartilhados somente quando preservam a mesma semântica entre páginas; regras
-de negócio e formatos de cada domínio permanecem na respectiva feature.
+de negócio e formatos de cada domínio permanecem no respectivo módulo.
 
 ## Fronteiras internas da API
 
@@ -89,7 +91,7 @@ apps/api/src/
 ├── infrastructure/           # Prisma compartilhado e tratamento de erros do banco
 ├── middlewares/              # CORS e guards de autenticação/autorização
 ├── test/                     # utilitários compartilhados somente entre testes
-└── features/                 # fatias verticais por domínio
+└── modules/                  # fatias verticais por domínio
 │   ├── auth/
 │   ├── budget/
 │   ├── contracts/
@@ -126,7 +128,7 @@ sem `passwordHash`, e a validação de sessão busca somente os campos públicos
 usuário. Contratos mantêm `supplierId` obrigatório com chave estrangeira para
 impedir fornecedores órfãos ou exclusões inconsistentes.
 
-Cada feature concentra router, controller, service, interface de repository,
+Cada módulo concentra router, controller, service, interface de repository,
 adapter Prisma e testes do domínio. Services dependem das interfaces locais de
 repository; controllers não acessam o Prisma. A infraestrutura de banco permanece
 compartilhada e é injetada nos adapters pelo composition root.
@@ -134,7 +136,7 @@ compartilhada e é injetada nos adapters pelo composition root.
 ### Regra de componentização
 
 - Elementos visuais básicos e independentes de domínio pertencem a `packages/ui`.
-- Componentes usados somente pelo portal ficam próximos da feature em `apps/web/src/features`.
+- Componentes usados somente por um módulo ficam próximos dele em `apps/web/src/modules`.
 - Uma página compõe componentes; ela não deve repetir marcação de cards, tabelas, filtros ou documentos.
 - A extração ocorre quando há repetição real ou um conceito de domínio claro. Não criamos abstrações genéricas antes de conhecer suas variações.
 - Administrativo e público podem compartilhar apresentação e contratos, mas controles de edição permanecem exclusivos do layout administrativo.

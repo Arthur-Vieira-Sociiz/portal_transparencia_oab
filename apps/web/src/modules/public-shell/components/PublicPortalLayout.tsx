@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 
 import { PublicPageState } from '@/components/shared/public-page'
-import { usePublicGeneralData } from '@/features/general-data/general-data.queries'
+import { usePublicGeneralData } from '@/modules/general-data/hooks/useGeneralData'
 import { CategoryNavigation } from './CategoryNavigation'
 import { PublicPortalHero } from './PublicPortalHero'
 import { SummaryGrid } from './SummaryGrid'

@@ -10,9 +10,9 @@ import {
 } from '@/components/shared/public-page'
 
 import { formatCurrency } from '@/lib/formatters'
-import { PublicPortalLayout } from '@/features/public-shell/components/PublicPortalLayout'
-import { usePublicBudget } from '../budget.queries'
-import '@/features/public/public-portal.css'
+import { PublicPortalLayout } from '@/modules/public-shell/components/PublicPortalLayout'
+import { usePublicBudget } from '../hooks/useBudget'
+import '@/modules/public/public-portal.css'
 
 const CURRENT_EXERCISE = new Date().getFullYear()
 

@@ -11,7 +11,7 @@ import {
   listGeneralData,
   publishGeneralData,
   updateGeneralData,
-} from './api/general-data.api'
+} from '../data/general-data.api'
 
 export const generalDataKeys = {
   all: ['general-data'] as const,

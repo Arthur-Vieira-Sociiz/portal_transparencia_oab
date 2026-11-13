@@ -13,7 +13,7 @@ import {
   listBudgetRecords,
   publishBudgetExercise,
   updateBudgetRecord,
-} from './api/budget.api'
+} from '../data/budget.api'
 
 const emptyPublicBudget: PublicBudgetRecords = {
   availableExercises: [],

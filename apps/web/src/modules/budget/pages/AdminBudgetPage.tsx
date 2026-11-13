@@ -27,9 +27,9 @@ import {
   useAdminBudget,
   usePublishBudgetExercise,
   useSaveBudgetRecord,
-} from '../budget.queries'
-import { useAuthSession } from '@/features/auth/useAuth'
-import { AdminShell } from '@/features/auth/AdminShell'
+} from '../hooks/useBudget'
+import { useAuthSession } from '@/modules/auth/useAuth'
+import { AdminShell } from '@/modules/auth/AdminShell'
 
 const types = [
   ['budget-proposal', 'Proposta orçamentária'],

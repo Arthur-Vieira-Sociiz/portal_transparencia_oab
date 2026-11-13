@@ -11,7 +11,7 @@ import {
 } from '@/components/shared/public-page'
 import { getPublicFinancialPage } from '../../../lib/api'
 
-import { PublicPortalLayout } from '@/features/public-shell/components/PublicPortalLayout'
+import { PublicPortalLayout } from '@/modules/public-shell/components/PublicPortalLayout'
 import { localPublicTransparencyRepository } from '../data/public.repository'
 import '../public-portal.css'
 

@@ -6,7 +6,7 @@ import {
   rateLimit,
   type Store,
 } from 'express-rate-limit'
-import type { AuthService } from '../features/auth/auth-service.js'
+import type { AuthService } from '../modules/auth/auth-service.js'
 import { readEnvironment } from '../environment.js'
 import { PrismaRateLimitStore } from '../infrastructure/rate-limit/prisma-rate-limit-store.js'
 import { getRequestUser, type RequireUser } from './require-user.js'

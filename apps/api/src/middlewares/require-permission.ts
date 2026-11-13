@@ -1,10 +1,10 @@
 import type { AuthenticatedUser } from '@oab-transparencia/contracts/auth'
 import type { Request } from 'express'
-import { AuthenticationError } from '../features/auth/auth-service.js'
+import { AuthenticationError } from '../modules/auth/auth-service.js'
 import {
   roleHasPermission,
   type Permission,
-} from '../features/auth/permissions.js'
+} from '../modules/auth/permissions.js'
 import type { RequireUser } from './require-user.js'
 
 export type RequirePermission = (
