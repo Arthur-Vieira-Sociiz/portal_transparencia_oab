@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import {
+  PublicDocumentLink,
   PublicPageState,
   PublicSectionHeader,
   PublicSelectField,
@@ -38,5 +39,24 @@ describe('shared public page components', () => {
     expect(
       screen.getByRole('heading', { name: 'Título da seção' }),
     ).toHaveAttribute('id', 'section-title')
+  })
+
+  it('renders document links with an accessible label and safe target', () => {
+    render(
+      <PublicDocumentLink
+        document={{
+          category: 'financial',
+          exercise: 2026,
+          format: 'pdf',
+          id: 'document-1',
+          title: 'Balanço anual',
+          url: 'https://example.com/document.pdf',
+        }}
+      />,
+    )
+
+    expect(
+      screen.getByRole('link', { name: 'Visualizar Balanço anual' }),
+    ).toHaveAttribute('target', '_blank')
   })
 })

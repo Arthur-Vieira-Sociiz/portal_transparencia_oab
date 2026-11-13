@@ -92,6 +92,51 @@ function DownloadIcon() {
   )
 }
 
+function ViewIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+    >
+      <circle cx="11" cy="11" r="8" />
+      <path d="m21 21-4.35-4.35" />
+    </svg>
+  )
+}
+
+type PublicDocumentLinkProps = {
+  className?: string
+  document: TransparencyDocument
+  label?: string
+  showLabel?: boolean
+}
+
+export function PublicDocumentLink({
+  className,
+  document,
+  label = `Visualizar ${document.title}`,
+  showLabel = false,
+}: PublicDocumentLinkProps) {
+  return (
+    <a
+      aria-label={label}
+      className={className}
+      href={document.url}
+      rel="noreferrer"
+      target="_blank"
+      title={showLabel ? undefined : 'Visualizar documento'}
+    >
+      <ViewIcon />
+      {showLabel ? <span>{label}</span> : null}
+    </a>
+  )
+}
+
 type PublicDownloadLinkProps = {
   className?: string
   document: TransparencyDocument

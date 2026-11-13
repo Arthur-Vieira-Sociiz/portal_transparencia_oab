@@ -427,11 +427,19 @@ foram removidos. O estilo compartilhado das páginas públicas passou para
 
 ### Etapa 27 — Componentes compartilhados comprovados
 
-- [ ] Inventariar repetições depois da migração dos módulos.
-- [ ] Promover para `components/shared` ou `components/ui` somente componentes com
+- [x] Inventariar repetições depois da migração dos módulos.
+- [x] Promover para `components/shared` ou `components/ui` somente componentes com
       pelo menos dois usos realmente equivalentes.
-- [ ] Avaliar `DocumentLink`, estados de página e selects antes de generalizar.
-- [ ] Não criar DataTable genérica se colunas e comportamentos ainda divergirem.
+- [x] Avaliar `DocumentLink`, estados de página e selects antes de generalizar.
+- [x] Não criar DataTable genérica se colunas e comportamentos ainda divergirem.
+
+O inventário confirmou o mesmo link de visualização de documentos nos módulos
+Orçamentário, Patrimonial e Contratos. A implementação foi promovida para
+`PublicDocumentLink`, mantendo classes e rótulos específicos por uso. Os estados
+de página e selects públicos já estavam corretamente compartilhados; o select de
+Relatórios permaneceu no módulo por fazer parte de um cabeçalho próprio. As tabelas
+continuam específicas porque colunas, células, estados vazios e comportamentos são
+diferentes.
 
 ### Etapa 28 — Desempenho e dependências do frontend
 
@@ -460,5 +468,5 @@ foram removidos. O estilo compartilhado das páginas públicas passou para
 
 ## Próxima ação
 
-As Etapas 12 a 26 estão concluídas. Depois da revisão do usuário, iniciar a Etapa
-27 pelo inventário das repetições reais entre os módulos frontend.
+As Etapas 12 a 27 estão concluídas. Depois da revisão do usuário, iniciar a Etapa
+28 pela medição do bundle e revisão de desempenho e dependências do frontend.

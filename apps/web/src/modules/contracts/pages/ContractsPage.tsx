@@ -1,7 +1,7 @@
 import { useState } from 'react'
 
-import type { TransparencyDocument } from '@oab-transparencia/contracts'
 import {
+  PublicDocumentLink,
   PublicFilters,
   PublicPageState,
   PublicSelectField,
@@ -28,36 +28,6 @@ function ContractDocumentIcon() {
       <path d="M14 3v5h5" />
       <path d="M9 13h6M9 17h4" />
     </svg>
-  )
-}
-
-function ViewIcon() {
-  return (
-    <svg aria-hidden="true" fill="none" viewBox="0 0 24 24">
-      <circle cx="11" cy="11" r="8" />
-      <path d="m21 21-4.35-4.35" />
-    </svg>
-  )
-}
-
-function DocumentLink({
-  document,
-  label,
-}: {
-  document: TransparencyDocument
-  label: string
-}) {
-  return (
-    <a
-      aria-label={label}
-      className="contracts-document-link"
-      href={document.url}
-      rel="noreferrer"
-      target="_blank"
-    >
-      <ViewIcon />
-      <span>{label}</span>
-    </a>
   )
 }
 
@@ -169,9 +139,11 @@ export function ContractsPage() {
                   <ContractDocumentIcon />
                   <span className="contract-card__pdf-badge">PDF</span>
                   {contract.contractDocument ? (
-                    <DocumentLink
+                    <PublicDocumentLink
+                      className="contracts-document-link"
                       document={contract.contractDocument}
                       label="Visualizar contrato"
+                      showLabel
                     />
                   ) : null}
                 </div>

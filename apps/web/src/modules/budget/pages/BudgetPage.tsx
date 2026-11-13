@@ -2,6 +2,7 @@ import { useState } from 'react'
 
 import type { BudgetRecord } from '@oab-transparencia/contracts'
 import {
+  PublicDocumentLink,
   PublicFilters,
   PublicPageState,
   PublicSectionHeader,
@@ -26,23 +27,6 @@ const informationTypeLabels = {
 } as const
 
 type InformationType = BudgetRecord['informationType']
-
-function DocumentIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      fill="none"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
-    >
-      <circle cx="11" cy="11" r="8" />
-      <path d="m21 21-4.35-4.35" />
-    </svg>
-  )
-}
 
 function executionClass(percentage: number) {
   if (percentage >= 80) return 'budget-execution--high'
@@ -156,16 +140,10 @@ export function BudgetPage() {
                     </td>
                     <td>
                       {record.document ? (
-                        <a
-                          aria-label={`Visualizar ${record.document.title}`}
+                        <PublicDocumentLink
                           className="budget-document-link"
-                          href={record.document.url}
-                          rel="noreferrer"
-                          target="_blank"
-                          title="Visualizar documento"
-                        >
-                          <DocumentIcon />
-                        </a>
+                          document={record.document}
+                        />
                       ) : (
                         '—'
                       )}

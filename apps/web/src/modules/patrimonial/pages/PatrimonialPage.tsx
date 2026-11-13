@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 import {
+  PublicDocumentLink,
   PublicFilters,
   PublicPageState,
   PublicSectionHeader,
@@ -16,23 +17,6 @@ import {
 } from '../data/patrimonial.constants'
 import { usePublicPatrimonial } from '../hooks/usePatrimonial'
 import '@/modules/public-shell/styles/public-portal.css'
-
-function DocumentIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      fill="none"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
-    >
-      <circle cx="11" cy="11" r="8" />
-      <path d="m21 21-4.35-4.35" />
-    </svg>
-  )
-}
 
 function statusClass(status: string) {
   return `patrimonial-status patrimonial-status--${status
@@ -153,16 +137,10 @@ export function PatrimonialPage() {
                     <td>{asset.exercise}</td>
                     <td>
                       {asset.document ? (
-                        <a
-                          aria-label={`Visualizar ${asset.document.title}`}
+                        <PublicDocumentLink
                           className="patrimonial-document-link"
-                          href={asset.document.url}
-                          rel="noreferrer"
-                          target="_blank"
-                          title="Visualizar documento"
-                        >
-                          <DocumentIcon />
-                        </a>
+                          document={asset.document}
+                        />
                       ) : (
                         '—'
                       )}
