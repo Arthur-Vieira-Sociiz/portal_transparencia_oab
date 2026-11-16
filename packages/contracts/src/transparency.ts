@@ -7,7 +7,16 @@ import {
 } from './common.js'
 
 const NonNegativeIntegerSchema = z.number().int().nonnegative()
-const NonNegativeAmountSchema = z.number().finite().nonnegative()
+
+// Mantém a mesma escala e o mesmo limite do Decimal(14, 2) usado no PostgreSQL.
+const NonNegativeAmountSchema = z
+  .number()
+  .finite()
+  .nonnegative()
+  .max(999_999_999_999.99)
+  .refine((value) => /^\d+(\.\d{1,2})?$/.test(String(value)), {
+    message: 'O valor monetário deve ter no máximo duas casas decimais.',
+  })
 
 export const GeneralDataStatusSchema = z.enum(['DRAFT', 'PUBLISHED'])
 

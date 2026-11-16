@@ -1,268 +1,381 @@
-# Plano de migração para Firebase
+# Plano de migração do Prisma/Neon para Cloud Firestore
 
-## Contexto e trilha
+**Status:** em andamento
+**Última atualização:** 2026-11-16
+**Progresso:** Etapa 1 funcional concluída; 1 pendência externa de segurança
+**Etapa atual:** Etapa 1, aguardando publicação das regras do Firestore
 
-- Branch-base: `main`.
-- Estado atual: API Express, Prisma e PostgreSQL/Neon.
-- Objetivo: migrar autenticação, persistência e documentos para serviços Firebase
-  sem alterar os contratos HTTP consumidos pelo frontend.
-- O refactor modular já incorporado à `main` é a base da migração; a troca de
-  persistência deve preservar as fronteiras atuais entre módulos.
+## Decisão adotada
 
-## Decisão obrigatória antes da implementação
+Migrar somente a persistência da API:
 
-“Firebase” pode representar duas arquiteturas diferentes:
+- sair do PostgreSQL/Neon e do Prisma;
+- usar Cloud Firestore no projeto Firebase da empresa;
+- manter Express, autenticação própria, contratos Zod e frontend atuais;
+- manter PDFs, CSVs e planilhas no armazenamento atual, sem Cloud Storage;
+- não migrar dados, porque o banco Neon ainda é de desenvolvimento.
 
-1. **Cloud Firestore:** banco NoSQL orientado a documentos. É a hipótese principal
-   deste plano e exige remodelagem, novos índices e tratamento explícito de
-   unicidade e valores monetários.
-2. **Firebase SQL Connect:** camada Firebase sobre PostgreSQL gerenciado no Cloud
-   SQL. Preserva melhor o modelo relacional atual e deve ser escolhido se relações,
-   constraints SQL ou consultas relacionais forem requisitos dominantes.
+O Firebase Authentication e o Storage não fazem parte deste trabalho. O frontend continuará acessando apenas a API Express e não receberá o SDK do Firebase.
 
-Antes de implementar, criar um spike curto com Dados Gerais e Contratos nas duas
-opções e registrar uma ADR com custo, complexidade, latência, operação, lock-in e
-facilidade de migração. Se a opção escolhida for Data Connect, revisar este plano
-antes de seguir as etapas específicas de Firestore.
+> Este documento substitui o plano anterior, que previa Firebase Authentication, Cloud Storage, ambiente de homologação, dual-write e cutover de produção. Como ainda não há produção nem dados relevantes, esse processo maior não se justifica.
 
-## Arquitetura-alvo assumida
+## Regras de acompanhamento
+
+- Marcar `[x]` somente depois de concluir e validar o item.
+- Marcar a etapa como concluída apenas após typecheck, lint, build, code review e aceite manual.
+- Registrar cada avanço na seção **Histórico de avanços**.
+- Não criar testes automatizados nesta migração; a validação funcional será manual, conforme as regras do projeto.
+- Manter o Neon disponível até a Etapa 6, mas não criar fallback, dual-write ou leitura híbrida.
+
+## Arquitetura-alvo
 
 ```text
 React
-  │ Firebase Authentication (login e ID token)
+  │ HTTP atual, sem mudanças de contrato
   ▼
-Express /api
-  ├── Firebase Admin SDK: valida token e autorização
-  ├── repositories: Cloud Firestore
-  └── documentos: Cloud Storage for Firebase
+Express
+  ├── autenticação própria atual
+  ├── controllers e services atuais
+  ├── repositories Firestore
+  └── Firebase Admin SDK
+           │
+           ▼
+      Cloud Firestore
 ```
 
-Na primeira migração o frontend não acessará Firestore diretamente. A API Express
-permanece como fronteira de autorização e compatibilidade, e os schemas Zod de
-`packages/contracts` continuam sendo os contratos de entrada e saída. Isso permite
-trocar repositories por módulo e voltar ao PostgreSQL sem reescrever as páginas.
+O Admin SDK será usado exclusivamente no backend. O Firestore ficará fechado para acesso direto do navegador; autorização e RBAC continuam sob responsabilidade da API.
 
-Institucional, Administrativo, Glossário e LGPD permanecem como conteúdo estático:
-não criar CRUD, coleções ou adapters artificiais para essas páginas.
+## Configuração do Firebase
 
-## Regras de segurança e dados
+A configuração web fornecida (`apiKey`, `authDomain`, `storageBucket` etc.) não é uma credencial administrativa e não será usada na API.
 
-- Usar projetos Firebase separados para desenvolvimento, homologação e produção.
-- Nunca expor credenciais do Admin SDK no frontend ou no Git.
-- Validar ID tokens no backend e autorizar perfis `ADMIN`, `EDITOR` e `REVIEWER`.
-- Manter Firestore e Storage bloqueados por padrão; regras ficam versionadas.
-- Lembrar que o Admin SDK ignora Firestore Security Rules: a API deve aplicar
-  autorização mesmo com regras corretas.
-- Armazenar dinheiro como inteiro em centavos. Firestore não substitui o
-  `Decimal(14,2)` do PostgreSQL com a mesma semântica.
-- Usar timestamps do servidor e preservar `createdById`, `updatedById`,
-  `publishedAt`, status e trilha de auditoria.
-- Não confiar em leitura seguida de escrita para unicidade. Usar ID determinístico,
-  documento-reserva e/ou transação.
-- Definir região e política de backup antes de criar a base de produção.
+Variáveis necessárias no backend:
 
-## Modelo inicial de coleções
+```env
+FIREBASE_PROJECT_ID=transparencia-oab-al
+FIREBASE_CLIENT_EMAIL=conta-de-servico@transparencia-oab-al.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nCHAVE_PRIVADA\n-----END PRIVATE KEY-----\n"
+```
 
-| Modelo atual           | Coleção proposta                            | Estratégia de identidade/unicidade       |
-| ---------------------- | ------------------------------------------- | ---------------------------------------- |
-| `User`                 | `users/{firebaseUid}`                       | UID do Firebase Auth; e-mail normalizado |
-| `Session`              | removida após o corte                       | ID tokens e revogação do Firebase Auth   |
-| `GeneralData`          | `generalData/{exercise}`                    | exercício como ID                        |
-| `BudgetRecord`         | `budgetRecords/{exercise_informationType}`  | chave composta normalizada               |
-| `FinancialDocument`    | `financialDocuments/{exercise_period_type}` | chave composta normalizada               |
-| `HumanResourcesRecord` | `humanResources/{exercise_locality}`        | chave composta normalizada               |
-| `ReportsIndicator`     | `reportsIndicators/{exercise}`              | exercício como ID                        |
-| `PatrimonialAsset`     | `patrimonialAssets/{id}`                    | reserva de chave composta para conflito  |
-| `Supplier`             | `suppliers/{id}`                            | índice/reserva separada por CNPJ         |
-| `ContractRecord`       | `contracts/{id}`                            | reserva por fornecedor, data e exercício |
+- A chave privada fica somente em `apps/api/.env` e nas variáveis protegidas da Vercel.
+- O JSON da conta de serviço nunca será commitado nem enviado por chat.
+- `DATABASE_URL` e `DATABASE_URL_POOLED` continuam necessárias durante a transição.
+- A conta de serviço deve ter somente a permissão necessária para ler e escrever no Firestore.
 
-Os nomes e formatos finais só serão aprovados depois de listar todas as consultas
-reais. Cada consulta deverá possuir índice, paginação e estimativa de leituras.
+### Configuração inicial do projeto
 
-## Etapas
+1. No console do Firebase, abrir **Firestore Database** e criar o banco no modo
+   **Native**. A região deve ser escolhida antes da criação e não é facilmente
+   alterada depois.
+2. No Google Cloud, criar uma conta de serviço dedicada para a API e conceder a
+   ela o papel **Cloud Datastore User**, suficiente para ler e escrever no
+   Firestore.
+3. Gerar uma chave JSON para essa conta e copiar os campos `project_id`,
+   `client_email` e `private_key` para as três variáveis de `apps/api/.env`.
+4. Confirmar que `apps/api/.env` continua ignorado pelo Git.
+5. Autenticar e publicar as regras e os índices:
 
-### Etapa 0 — Inventário, backup e critérios
+```bash
+pnpm dlx firebase-tools login
+pnpm dlx firebase-tools deploy --project transparencia-oab-al --only firestore:rules,firestore:indexes
+```
 
-- [ ] Congelar o schema lógico que será migrado.
-- [ ] Inventariar volumes por tabela, tamanho de documentos e consultas por rota.
-- [ ] Registrar constraints únicas, relações, transações e regras de publicação.
-- [ ] Definir RPO, RTO, janela de manutenção e período de rollback.
-- [ ] Criar backup verificável do PostgreSQL e ensaiar restauração.
-- [ ] Definir critérios de paridade: contagem, campos, dinheiro, datas, autoria e
-      documentos.
+A criação dos índices pode levar alguns minutos. A API ainda falhará ao iniciar
+enquanto as três variáveis Firebase não estiverem configuradas.
 
-**Aceite:** inventário e restauração aprovados antes de criar dados no Firebase.
+## Modelo de coleções
 
-### Etapa 1 — Spike e ADR Firestore versus SQL Connect
+| Modelo atual           | Coleção Firestore    | Estratégia de unicidade                                      |
+| ---------------------- | -------------------- | ------------------------------------------------------------ |
+| `User`                 | `users`              | ID estável + reserva por e-mail normalizado                   |
+| `Session`              | `sessions`           | `tokenHash` como ID do documento                              |
+| `RateLimitCounter`     | `rateLimitCounters`  | chave qualificada como ID                                     |
+| `GeneralData`          | `generalData`        | reserva por exercício                                         |
+| `ReportsIndicator`     | `reportsIndicators`  | reserva por exercício                                         |
+| `BudgetRecord`         | `budgetRecords`      | reserva por exercício + tipo de informação                    |
+| `FinancialDocument`    | `financialDocuments` | reserva por exercício + período + tipo de informação          |
+| `HumanResourcesRecord` | `humanResources`     | reserva por exercício + localidade                            |
+| `PatrimonialAsset`     | `patrimonialAssets`  | reserva por exercício + tipo + descrição                      |
+| `Supplier`             | `suppliers`          | reserva por CNPJ                                              |
+| `ContractRecord`       | `contracts`          | reserva por fornecedor + data de assinatura + exercício       |
+| Controle interno       | `uniqueKeys`         | documento por chave única, criado dentro de transação         |
+| Controle interno       | `internal`           | controle do primeiro administrador e metadados operacionais   |
 
-- [ ] Implementar somente leitura e escrita de Dados Gerais nas duas opções.
-- [ ] Prototipar consulta/publicação de contratos, incluindo unicidade.
-- [ ] Medir esforço, custo estimado, latência, observabilidade e rollback.
-- [ ] Escolher a tecnologia e registrar a decisão em `docs/adr/`.
+### Convenções de persistência
 
-**Aceite:** decisão explícita; não iniciar migração completa sem a ADR.
+- O ID do documento será gerado pelo Firestore e devolvido como `id`; ele não muda em edições.
+- Unicidade será garantida por transação e documento de reserva em `uniqueKeys`, nunca por consulta seguida de escrita.
+- Dinheiro será salvo como inteiro em centavos, com sufixo `Cents` no campo interno.
+- A conversão para reais acontece somente nos repositories, preservando os números esperados pelos contratos atuais.
+- Valores monetários dos contratos mantêm o limite e a escala do antigo `Decimal(14,2)`: até duas casas decimais e máximo de `999.999.999.999,99`.
+- Datas serão salvas como `Timestamp` e devolvidas em ISO 8601.
+- Campos opcionais vazios serão omitidos; nenhum `undefined` será enviado ao Firestore.
+- Arrays como `months` e `amendmentUrls` serão armazenados como arrays nativos.
+- Paginação administrativa continuará usando `page` e `limit`, com `count()` e `offset()`. Não haverá mudança para cursor nesta migração.
+- Publicação por exercício usará um único `WriteBatch` de até 500 escritas. Acima disso, a operação falhará de forma explícita para não gerar publicação parcial silenciosa.
+- Regras do Firestore serão deny-by-default e versionadas.
+- Índices compostos serão versionados em `firestore.indexes.json`.
 
-### Etapa 2 — Fundação Firebase
+## Visão das etapas
 
-- [ ] Criar projetos dev, staging e produção com região definida.
-- [ ] Configurar Firebase CLI e Local Emulator Suite.
-- [ ] Versionar `firebase.json`, regras e índices.
-- [ ] Configurar credenciais por ambiente na plataforma de deploy.
-- [ ] Adicionar validação de variáveis Firebase sem remover variáveis Prisma.
-- [ ] Configurar orçamento, alertas, logs, auditoria e backups.
+- [ ] Etapa 1 — Fundação Firebase e Dados Gerais _(implementação e teste concluídos; regras ainda não publicadas)_
+- [ ] Etapa 2 — Usuários, sessões e rate limit
+- [ ] Etapa 3 — Relatórios, Orçamentário e Patrimonial
+- [ ] Etapa 4 — Recursos Humanos e Financeiro
+- [ ] Etapa 5 — Fornecedores e Contratos
+- [ ] Etapa 6 — Remoção do Prisma e atualização operacional
 
-**Aceite:** ambiente local e staging funcionam sem credenciais no repositório.
+---
 
-### Etapa 3 — Abstrações de persistência
+## Etapa 1 — Fundação Firebase e Dados Gerais
 
-- [ ] Confirmar que todos os services dependem de interfaces de repository.
-- [ ] Criar adapters Firestore atrás das mesmas interfaces.
-- [ ] Selecionar o provider por configuração durante a transição.
-- [ ] Manter schemas Zod na entrada e na saída dos repositories.
-- [ ] Criar conversores únicos para timestamps, dinheiro e valores opcionais.
+**Estimativa:** até 2 horas
+**Status:** implementação, conexão e aceite funcional concluídos; aguardando publicação das regras
+**Dependência:** acesso administrativo ao projeto Firebase da empresa.
+**Situação atual:** a conexão com o Firestore e o fluxo HTTP de Dados Gerais foram validados. A conta de serviço atual não tem permissão para publicar as regras pelo Firebase CLI.
 
-**Aceite:** um módulo pode alternar Prisma/Firestore sem mudar controller, service
-ou contrato HTTP.
+### Requisitos externos
 
-### Etapa 4 — Autenticação
+- [x] Confirmar que o Cloud Firestore existe no projeto `transparencia-oab-al`.
+- [ ] Confirmar a região definitiva do banco no console.
+- [x] Criar uma conta de serviço para a API.
+- [ ] Conceder à conta de serviço somente a permissão necessária no Firestore.
+- [x] Gerar a chave da conta de serviço e configurar as variáveis no `apps/api/.env`.
+- [x] Confirmar que nenhuma credencial foi adicionada ao Git.
+- [ ] Revogar a chave que foi exposta em conversa e substituir pela chave definitiva.
 
-- [ ] Criar login por e-mail/senha no Firebase Authentication.
-- [ ] Substituir tokens de sessão próprios por ID tokens verificados no Express.
-- [ ] Mapear perfis e status para custom claims e documento `users`.
-- [ ] Definir revogação, desativação, expiração e atualização de claims.
-- [ ] Preservar logout entre abas, revogação dos tokens e bloqueio do retorno às
-      telas protegidas pelo histórico do navegador.
-- [ ] Migrar rate limits e bloqueios para armazenamento compartilhado compatível
-      com a infraestrutura escolhida.
-- [ ] Testar importação do hash `scrypt` próprio atual em um projeto descartável.
-- [ ] Se o formato não for compatível, executar convite/redefinição obrigatória de
-      senha; nunca migrar ou registrar senhas em texto puro.
-- [ ] Manter o mecanismo atual disponível até validar todos os usuários migrados.
+### Implementação
 
-**Aceite:** login, logout, usuário atual e autorização administrativa mantêm o
-comportamento esperado, com plano aprovado para todas as contas existentes.
+- [x] Adicionar `firebase-admin` às dependências da API.
+- [x] Criar `infrastructure/database/firestore.ts` com inicialização singleton e tratamento de ambiente.
+- [x] Validar `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL` e `FIREBASE_PRIVATE_KEY` com Zod.
+- [x] Manter a validação de `DATABASE_URL` durante a transição.
+- [x] Criar conversores compartilhados para `Timestamp`, centavos e campos opcionais.
+- [x] Criar helper transacional de unicidade usando `uniqueKeys`.
+- [x] Mapear erros seletivamente, sem transformar qualquer falha do Firestore em `null`.
+- [x] Criar `firebase.json`, `.firebaserc`, `firestore.rules` e `firestore.indexes.json`.
+- [x] Implementar `firestore-general-data-repository.ts`.
+- [x] Trocar somente Dados Gerais para Firestore no `app.ts`.
+- [x] Manter os demais módulos no Prisma durante esta etapa.
+- [x] Validar typecheck, lint, build e formatação dos arquivos alterados.
+- [x] Executar code review de padrões e de escopo e corrigir os achados.
+- [x] Ajustar a validação monetária para a escala e o limite do `Decimal(14,2)`.
+- [x] Confirmar que o cliente Firestore não exige `DATABASE_URL`.
+- [x] Reforçar o `.gitignore` contra arquivos locais de conta de serviço.
+- [x] Validar a conexão do Admin SDK com o Firestore.
+- [x] Validar criação, duplicidade, edição, publicação e leitura pública pelos endpoints HTTP.
+- [x] Confirmar que os documentos de diagnóstico foram removidos.
+- [x] Eliminar a necessidade de índice composto na consulta pública de Dados Gerais.
+- [ ] Aplicar as regras do Firestore com uma conta que tenha permissão de deploy.
+- [ ] Revogar a chave exposta e validar novamente com a chave definitiva.
 
-### Etapa 5 — Modelo, índices e regras do Firestore
+### Aceite manual
 
-- [ ] Definir documentos e reservas de unicidade por módulo.
-- [ ] Criar `firestore.indexes.json` a partir das consultas públicas/admin.
-- [ ] Criar regras deny-by-default e acesso mínimo necessário.
-- [ ] Implementar transações para publicação e chaves únicas.
-- [ ] Definir paginação, limites e proteção contra leituras sem limite.
-- [ ] Validar tamanho máximo dos documentos e crescimento dos arrays/objetos.
+- [x] Criar um rascunho de Dados Gerais.
+- [x] Editar o mesmo registro mantendo o ID.
+- [x] Impedir dois registros para o mesmo exercício, inclusive em tentativas repetidas.
+- [x] Publicar e consultar pela rota pública.
+- [x] Confirmar que a resposta HTTP e o formato dos campos não mudaram.
+- [x] Confirmar que a coleção e as reservas de unicidade foram criadas automaticamente.
+- [x] Confirmar que nenhum documento de diagnóstico permaneceu no banco.
 
-**Aceite:** queries, índices, transações e regras passam no emulador e em staging.
+---
 
-### Etapa 6 — Migração de repositories por módulo
+## Etapa 2 — Usuários, sessões e rate limit
 
-Migrar e validar um módulo por vez:
+**Estimativa:** até 2 horas
+**Status:** não iniciada
+**Dependência:** Etapa 1 concluída.
 
-1. Dados Gerais.
-2. Relatórios e Indicadores.
-3. Recursos Humanos.
-4. Orçamentário.
-5. Financeiro.
-6. Patrimonial.
-7. Fornecedores e Contratos.
+### Implementação
 
-Para cada módulo:
+- [ ] Criar `firestore-auth-repository.ts`.
+- [ ] Criar `firestore-auth-service.ts` reutilizando `createAuthService`.
+- [ ] Preservar o hash de senha e o formato atual dos tokens.
+- [ ] Criar reserva transacional por e-mail normalizado.
+- [ ] Criar sessões com `tokenHash` como ID.
+- [ ] Buscar sessão e usuário separadamente, já que o Firestore não possui join.
+- [ ] Manter expiração, revogação, status e bloqueio temporário.
+- [ ] Criar controle transacional que permita somente o primeiro administrador pelo cadastro público.
+- [ ] Criar `firestore-rate-limit-store.ts`.
+- [ ] Migrar limpeza, incremento e decremento de contadores.
+- [ ] Trocar autenticação e rate limit no `app.ts`.
+- [ ] Garantir que conflitos de e-mail continuem retornando o erro HTTP atual.
 
-- [ ] implementar adapter Firestore;
-- [ ] validar CRUD, publicação e conflitos;
-- [ ] comparar respostas Prisma versus Firestore;
-- [ ] liberar primeiro em staging;
-- [ ] manter fallback para Prisma até o aceite.
+### Aceite manual
 
-Durante a transição, não fazer leitura híbrida silenciosa: divergências entre os
-adapters devem falhar de forma observável e gerar evidência para reconciliação.
+- [ ] Criar o primeiro administrador no banco novo.
+- [ ] Impedir um segundo cadastro inicial.
+- [ ] Fazer login, consultar usuário autenticado e logout.
+- [ ] Criar usuários com os três perfis.
+- [ ] Rejeitar e-mail duplicado.
+- [ ] Validar permissões de `ADMIN`, `EDITOR` e `REVIEWER`.
+- [ ] Validar rate limit, bloqueio e revogação de sessões.
 
-### Etapa 7 — Documentos no Cloud Storage
+---
 
-- [ ] Definir caminhos imutáveis por módulo, exercício, registro e versão.
-- [ ] Restringir MIME type, tamanho e perfil autorizado nas regras.
-- [ ] Armazenar no Firestore apenas metadados, chave, URL controlada, checksum,
-      tamanho, versão e autoria.
-- [ ] Planejar URLs de download e retenção sem tornar o bucket público inteiro.
-- [ ] Migrar arquivos e conferir checksum antes de atualizar referências.
+## Etapa 3 — Relatórios, Orçamentário e Patrimonial
 
-**Aceite:** upload, download, substituição, auditoria e autorização validados.
+**Estimativa:** até 2 horas
+**Status:** não iniciada
+**Dependência:** Etapa 1 concluída.
 
-### Etapa 8 — Ferramenta de migração e ensaios
+### Implementação
 
-- [ ] Criar export versionado do PostgreSQL sem segredos ou dados sensíveis no Git.
-- [ ] Criar script idempotente de transformação e carga.
-- [ ] Preservar IDs quando possível e manter mapa de IDs quando não for.
-- [ ] Converter `Decimal` para centavos e datas para timestamps explicitamente.
-- [ ] Migrar usuários, dados de domínio e arquivos em ordem documentada.
-- [ ] Gerar relatório de reconciliação por coleção e por exercício.
-- [ ] Executar pelo menos dois dry-runs completos em staging.
+- [ ] Criar `firestore-reports-indicators-repository.ts`.
+- [ ] Manter os cálculos de resultado e percentual de execução no service/repository atual.
+- [ ] Criar `firestore-budget-repository.ts`.
+- [ ] Criar `firestore-patrimonial-asset-repository.ts`.
+- [ ] Implementar unicidade por exercício nos indicadores.
+- [ ] Implementar unicidade por exercício + tipo no orçamento.
+- [ ] Implementar unicidade por exercício + tipo + descrição no patrimonial.
+- [ ] Preservar filtros, ordenações e listagens de publicados.
+- [ ] Publicar exercícios com `WriteBatch` e limite explícito de 500 documentos.
+- [ ] Adicionar os índices compostos necessários.
+- [ ] Trocar os três repositories no `app.ts`.
 
-**Aceite:** dry-run reproduzível, idempotente e com reconciliação sem divergência.
+### Aceite manual
 
-### Etapa 9 — Paridade e homologação
+- [ ] CRUD dos três módulos.
+- [ ] Duplicidades rejeitadas.
+- [ ] Indicadores calculados corretamente.
+- [ ] Publicação por exercício.
+- [ ] Listagens administrativas e públicas com ordem e formato atuais.
+- [ ] Metadados e URLs de documentos preservados.
 
-- [ ] Comparar respostas de todas as rotas públicas e administrativas.
-- [ ] Validar permissões por perfil e tentativas de acesso indevido.
-- [ ] Validar publicação concorrente, unicidade e falhas parciais.
-- [ ] Medir leituras, escritas, latência e custo com volume representativo.
-- [ ] Validar restore de backup e rollback técnico.
-- [ ] Obter aceite funcional da equipe responsável.
+---
 
-### Etapa 10 — Cutover de produção
+## Etapa 4 — Recursos Humanos e Financeiro
 
-- [ ] Comunicar e iniciar janela de manutenção ou bloqueio temporário de escrita.
-- [ ] Fazer backup final e registrar contagens de origem.
-- [ ] Executar carga incremental/final e reconciliação.
-- [ ] Trocar autenticação e repositories por feature flags/configuração.
-- [ ] Executar smoke test de login, CRUD, publicação e leitura pública.
-- [ ] Monitorar erros, latência, custos e divergências.
-- [ ] Manter PostgreSQL somente leitura durante o período de rollback.
+**Estimativa:** até 2 horas
+**Status:** não iniciada
+**Dependência:** Etapa 1 concluída.
 
-**Abortar o corte** se houver divergência de contagem, dinheiro, autoria,
-publicação, autenticação ou documentos.
+### Implementação
 
-### Etapa 11 — Estabilização e retirada do Prisma
+- [ ] Criar `firestore-human-resources-repository.ts`.
+- [ ] Criar `firestore-financial-document-repository.ts`.
+- [ ] Preservar os doze meses e os documentos PDF/XLSX de RH.
+- [ ] Preservar documentos PDF/CSV do Financeiro.
+- [ ] Implementar unicidade de RH por exercício + localidade.
+- [ ] Implementar unicidade financeira por exercício + período + tipo.
+- [ ] Implementar paginação com `count()` e `offset()` sem alterar `page`/`limit`.
+- [ ] Preservar filtros, ordenações e listagens públicas.
+- [ ] Publicar exercícios com `WriteBatch` e limite explícito de 500 documentos.
+- [ ] Adicionar os índices compostos necessários.
+- [ ] Trocar os dois repositories no `app.ts`.
 
-- [ ] Encerrar o período de rollback somente após aceite formal.
-- [ ] Remover dual-read/dual-write e feature flags temporárias.
-- [ ] Remover Prisma, adapter PostgreSQL e migrations apenas em mudança separada.
-- [ ] Revogar credenciais antigas e atualizar documentação operacional.
-- [ ] Preservar backup final do PostgreSQL conforme política de retenção.
+### Aceite manual
 
-**Aceite:** Firebase é a fonte única, com backup, monitoramento e operação
-documentados.
+- [ ] RH com os doze meses e URLs corretas.
+- [ ] Conflitos de RH e Financeiro retornando os erros esperados.
+- [ ] Paginação e totais corretos.
+- [ ] Publicação por exercício.
+- [ ] Página pública de RH e Financeiro com o mesmo formato.
+- [ ] Documentos continuam abrindo pelas URLs atuais.
 
-## Estratégia de rollback
+---
 
-1. Não apagar nem alterar irreversivelmente o PostgreSQL durante a migração.
-2. No corte, bloquear escritas ou registrar todas as mutações para replay.
-3. Manter a seleção de repository por configuração.
-4. Se um critério de aborto ocorrer, reativar Prisma, restaurar autenticação antiga
-   e reconciliar apenas as escritas feitas depois do corte.
-5. Remover o caminho antigo somente depois do período de estabilidade aprovado.
+## Etapa 5 — Fornecedores e Contratos
 
-## Critérios finais de aceite
+**Estimativa:** até 2 horas
+**Status:** não iniciada
+**Dependência:** Etapas 1 e 3 concluídas.
 
-- Todos os registros, valores monetários, timestamps, estados e autores conferem.
-- Contratos HTTP e schemas Zod permanecem compatíveis.
-- Somente dados publicados aparecem nas rotas públicas.
-- Perfis e usuários desativados têm o mesmo nível de acesso esperado.
-- Constraints únicas continuam efetivas sob concorrência.
-- Arquivos conferem por checksum e não ficam expostos indevidamente.
-- Backup, restauração, alertas, custos e runbook estão validados.
-- O PostgreSQL pode ser desligado sem dependência oculta.
+### Implementação
 
-## Referências oficiais
+- [ ] Criar `firestore-contract-repository.ts`.
+- [ ] Implementar fornecedor com ID estável e reserva transacional por CNPJ.
+- [ ] Implementar unicidade de contrato por fornecedor + assinatura + exercício.
+- [ ] Atualizar `supplierName` e `cnpj` dos contratos quando o fornecedor mudar.
+- [ ] Substituir a foreign key por verificação de contratos antes de excluir fornecedor.
+- [ ] Preservar `contractDocumentUrl` e `amendmentUrls`.
+- [ ] Preservar listagem, paginação e publicação.
+- [ ] Tratar criação e edição dentro de transações, com todas as leituras antes das escritas.
+- [ ] Adicionar os índices compostos necessários.
+- [ ] Trocar o repository no `app.ts`.
 
-- [Modelo de dados do Cloud Firestore](https://firebase.google.com/docs/firestore/data-model)
-- [Transações e escritas em lote](https://firebase.google.com/docs/firestore/manage-data/transactions)
-- [Índices do Cloud Firestore](https://firebase.google.com/docs/firestore/query-data/index-overview)
-- [Verificação de ID tokens](https://firebase.google.com/docs/auth/admin/verify-id-tokens)
-- [Firebase Local Emulator Suite](https://firebase.google.com/docs/emulator-suite/install_and_configure)
-- [Regras do Cloud Storage](https://firebase.google.com/docs/storage/security)
-- [Exportação e importação do Firestore](https://firebase.google.com/docs/firestore/manage-data/export-import)
-- [Firebase SQL Connect](https://firebase.google.com/docs/sql-connect)
+### Aceite manual
+
+- [ ] Cadastro e edição de fornecedores e contratos.
+- [ ] CNPJ duplicado rejeitado.
+- [ ] Contrato duplicado rejeitado.
+- [ ] Alteração do fornecedor refletida nos contratos.
+- [ ] Fornecedor em uso não pode ser excluído.
+- [ ] Aditivos e documento do contrato preservados.
+- [ ] Publicação e consulta pública corretas.
+
+---
+
+## Etapa 6 — Remoção do Prisma e atualização operacional
+
+**Estimativa:** 1 hora
+**Status:** não iniciada
+**Dependência:** Etapas 1 a 5 aceitas.
+
+### Implementação
+
+- [ ] Remover `@prisma/client`, `prisma`, `@prisma/adapter-pg`, `pg` e `@types/pg`.
+- [ ] Remover scripts `prisma generate` e `db:migrate`.
+- [ ] Remover adapters Prisma, cliente gerado, schema, migrations e `verify-migration-environment.ts`.
+- [ ] Remover `DATABASE_URL`, `DATABASE_URL_POOLED` e `DIRECT_DATABASE_URL` do código, exemplos e `turbo.json`.
+- [ ] Remover entradas de Prisma do `.gitignore` e `pnpm-workspace.yaml`.
+- [ ] Atualizar os scripts de build e typecheck.
+- [ ] Configurar as variáveis Firebase na Vercel.
+- [ ] Atualizar `README.md`, `PRODUCT.md` e documentos atuais de arquitetura, autenticação, desenvolvimento e deploy.
+- [ ] Confirmar que não restam referências ativas ao Prisma no código da aplicação.
+- [ ] Rodar typecheck, lint e build completos.
+- [ ] Executar code review final.
+
+### Aceite manual
+
+- [ ] Fluxo público completo funcionando.
+- [ ] Login, criação de usuário, permissões e logout funcionando.
+- [ ] CRUD e publicação dos sete módulos funcionando.
+- [ ] API iniciando apenas com as variáveis Firebase.
+- [ ] Neon podendo ser desligado sem quebrar a aplicação.
+
+---
+
+## Critérios finais
+
+- [ ] Nenhum arquivo ou service de domínio acessa o Firestore diretamente fora dos repositories.
+- [ ] Controllers, services, contratos HTTP e frontend permanecem desacoplados da persistência.
+- [ ] Todas as restrições únicas atuais continuam efetivas sob concorrência.
+- [ ] Apenas registros publicados aparecem nas rotas públicas.
+- [ ] Valores monetários, datas, autoria e publicação mantêm o comportamento atual.
+- [ ] RBAC, rate limit e revogação de sessões continuam funcionando.
+- [ ] Firestore está fechado para acesso direto do cliente.
+- [ ] Índices e regras estão versionados.
+- [ ] A aplicação não depende mais do NeonDB ou do Prisma.
+
+## Estratégia de retorno durante o desenvolvimento
+
+- O histórico do Git mantém os adapters Prisma enquanto a migração não termina.
+- O Neon permanece disponível, sem alterações destrutivas, até a Etapa 6.
+- Como não há produção, não haverá dual-write, feature flag ou sincronização entre bancos.
+- Se uma etapa falhar, ela será corrigida antes de seguir para a próxima.
+
+## Histórico de avanços
+
+| Data       | Etapa       | Registro                                                                 |
+| ---------- | ----------- | ------------------------------------------------------------------------ |
+| 2026-11-16 | Planejamento | Escopo reduzido para Firestore, autenticação própria e sem migração de dados. |
+| 2026-11-16 | Planejamento | Plano consolidado e criado neste arquivo. |
+| 2026-11-16 | Etapa 1 | Fundação Firebase, configurações, regras, índices e adapter de Dados Gerais implementados. |
+| 2026-11-16 | Etapa 1 | Typecheck, lint, build e formatação da API aprovados. O typecheck global ainda falha em testes antigos do `apps/web`, sem relação com esta etapa. |
+| 2026-11-16 | Etapa 1 | Code review de padrões e escopo concluído; conflito de exercício corrigido para 409 e helpers sem uso removidos. |
+| 2026-11-16 | Etapa 1 | Contrato monetário alinhado ao `Decimal(14,2)` e `pnpm audit --prod` sem vulnerabilidades conhecidas. |
+| 2026-11-16 | Etapa 1 | `environment.test.ts` existente ajustado para a validação transitória; nenhum teste novo foi criado. |
+| 2026-11-16 | Etapa 1 | Bloqueio identificado: a configuração web recebida não contém credencial administrativa nem acesso ao console. |
+| 2026-11-16 | Etapa 1 | Credenciais do Firebase Admin configuradas localmente em `apps/api/.env`, sem versionamento. |
+| 2026-11-16 | Etapa 1 | A chave privada foi exposta em conversa e deve ser revogada após a validação; nenhuma credencial foi adicionada ao repositório. |
+| 2026-11-16 | Etapa 1 | Conexão Admin validada: Firestore acessível e coleções iniciais vazias. |
+| 2026-11-16 | Etapa 1 | Fluxo HTTP validado: criação 201, duplicidade 409, edição com ID estável, publicação 200 e leitura pública 200. |
+| 2026-11-16 | Etapa 1 | Documentos e reservas de diagnóstico removidos; banco confirmado sem resíduos. |
+| 2026-11-16 | Etapa 1 | Índice composto removido do desenho; a consulta pública filtra o pequeno conjunto publicado em memória. |
+| 2026-11-16 | Etapa 1 | Deploy de regras bloqueado por 403: a conta de serviço não possui permissão para administrar regras/índices. |
 
 ## Próxima ação
 
-Executar somente a Etapa 0 e, com o inventário pronto, iniciar o spike da Etapa 1.
+Pedir a uma conta com permissão no projeto para executar `firestore:rules` ou liberar acesso de deploy. Em paralelo, após confirmação, iniciar a Etapa 2 (usuários, sessões e rate limit). A chave exposta deve ser revogada e substituída antes do uso em produção.

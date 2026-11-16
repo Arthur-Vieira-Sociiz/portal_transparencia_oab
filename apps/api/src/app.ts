@@ -6,7 +6,7 @@ import {
   createGeneralDataService,
   type GeneralDataService,
 } from './modules/general-data/general-data-service.js'
-import { createPrismaGeneralDataRepository } from './modules/general-data/prisma-general-data-repository.js'
+import { createFirestoreGeneralDataRepository } from './modules/general-data/firestore-general-data-repository.js'
 import {
   createReportsIndicatorsService,
   type ReportsIndicatorsService,
@@ -89,7 +89,7 @@ export function createApp(options: AppOptions = {}): Express {
   let generalDataService = options.generalDataService
   function getGeneralDataService() {
     generalDataService ??= createGeneralDataService(
-      createPrismaGeneralDataRepository(),
+      createFirestoreGeneralDataRepository(),
     )
     return generalDataService
   }

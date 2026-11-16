@@ -6,6 +6,9 @@
       "env": [
         "DATABASE_URL",
         "DATABASE_URL_POOLED",
+        "FIREBASE_PROJECT_ID",
+        "FIREBASE_CLIENT_EMAIL",
+        "FIREBASE_PRIVATE_KEY",
         "VITE_API_URL",
         "WEB_ORIGIN"
       ],

@@ -1,7 +1,10 @@
 import { defineConfig } from 'prisma/config'
 import { readEnvironment } from './src/environment.js'
 
-const environment = readEnvironment(process.env, { requireDatabase: false })
+const environment = readEnvironment(process.env, {
+  requireDatabase: false,
+  requireFirebase: false,
+})
 
 export default defineConfig({
   migrations: {

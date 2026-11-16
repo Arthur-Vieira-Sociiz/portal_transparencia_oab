@@ -37,6 +37,14 @@ Thumbs.db
 # Evidências temporárias das revisões visuais
 .impeccable/review/
 
+# Cache e arquivos temporários do Firebase CLI
+.firebase/
+
+# Chaves locais de conta de serviço do Firebase/Google
+**/*firebase-adminsdk*.json
+**/service-account*.json
+**/serviceAccount*.json
+
 # Snippets legados brutos: revisar e remover segredos antes de versionar
 docs/referencias/snippets/raw/
 

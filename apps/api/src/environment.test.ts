@@ -34,13 +34,44 @@ describe('environment validation', () => {
     ).toThrow()
   })
 
-  it('requires a database URL outside the test environment', () => {
+  it('requires database and Firebase outside the test environment', () => {
+    const firebaseEnvironment = {
+      FIREBASE_PROJECT_ID: 'projeto-de-teste',
+      FIREBASE_CLIENT_EMAIL: 'api@projeto-de-teste.iam.gserviceaccount.com',
+      FIREBASE_PRIVATE_KEY:
+        '-----BEGIN PRIVATE KEY-----\\nchave-de-teste-com-tamanho-suficiente\\n-----END PRIVATE KEY-----',
+    }
+
     expect(() => readEnvironment({ NODE_ENV: 'production' })).toThrow()
+    expect(() =>
+      readEnvironment({
+        NODE_ENV: 'production',
+        ...firebaseEnvironment,
+      }),
+    ).toThrow()
+    expect(() =>
+      readEnvironment({
+        NODE_ENV: 'production',
+        DATABASE_URL_POOLED: 'postgresql://user:password@host/database',
+      }),
+    ).toThrow()
     expect(
       readEnvironment({
         NODE_ENV: 'production',
         DATABASE_URL_POOLED: 'postgresql://user:password@host/database',
+        ...firebaseEnvironment,
       }).pooledDatabaseUrl,
     ).toBe('postgresql://user:password@host/database')
+
+    // O cliente Firestore pode ser validado sem exigir a configuração do banco antigo.
+    expect(
+      readEnvironment(
+        {
+          NODE_ENV: 'production',
+          ...firebaseEnvironment,
+        },
+        { requireDatabase: false },
+      ).firebase?.projectId,
+    ).toBe('projeto-de-teste')
   })
 })
